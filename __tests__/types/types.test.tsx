@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom'
 import * as AS from '../../types/activity_streams';
 
-describe('Home', () => {
-  it('can create a Note Object', () => {
+describe('Types', () => {
+  it('can handle a Note Object', () => {
     const object: AS.Object = {
       type: AS.ObjectTypes.NOTE,
     };
@@ -10,11 +10,21 @@ describe('Home', () => {
     expect(object.type).toBe('Note');
   });
   
-  it('can create a Tombstone Object', () => {
+  it('can handle a Tombstone Object', () => {
     const object: AS.Tombstone = {
       type: AS.ObjectTypes.TOMBSTONE,
+      deleted: new Date(),
+      formerType: AS.ObjectTypes.NOTE,
     };
 
     expect(object.type).toBe('Tombstone');
+  });
+
+  it('can handle an Actor', () => {
+    const object: AS.Actor = {
+      type: AS.ActorTypes.PERSON,
+    };
+
+    expect(object.type).toBe('Person');
   });
 });

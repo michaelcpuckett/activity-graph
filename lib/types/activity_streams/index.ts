@@ -69,7 +69,7 @@ export const CollectionPageTypes = {
 
 export type StringReference = string | string[];
 export type StringReferenceMap = { (key: string): StringReference; }
-export type ObjectReference = StringReference | Object | Object[];
+export type ObjectReference = StringReference | CoreObject | CoreObject[];
 export type LinkReference = StringReference | Link | Link[];
 export type ImageReference = StringReference | Image[]; 
 export type CollectionReference = StringReference | Collection | Collection[];
@@ -80,7 +80,7 @@ export interface Thing {
   id?: string;
 }
 
-export interface Object extends Thing {
+export interface CoreObject extends Thing {
   type:
     typeof ObjectTypes[keyof typeof ObjectTypes] |
     typeof ActorTypes[keyof typeof ActorTypes] |
@@ -123,6 +123,12 @@ export interface Object extends Thing {
   url?: StringReference | LinkReference;
 };
 
+export interface Object extends CoreObject {
+  type:
+    typeof ObjectTypes[keyof typeof ObjectTypes] |
+    Array<typeof ObjectTypes[keyof typeof ObjectTypes]>;
+}
+
 export interface Tombstone extends Object {
   type: typeof ObjectTypes.TOMBSTONE,
   formerType?: typeof ObjectTypes[keyof typeof ObjectTypes] | Array<typeof ObjectTypes[keyof typeof ObjectTypes]>;
@@ -131,7 +137,7 @@ export interface Tombstone extends Object {
 
 export interface Relationship extends Object {
   type: typeof ObjectTypes.RELATIONSHIP,
-  subject?: string | Object | Link;
+  subject?: string | CoreObject | Link;
   object?: ObjectOrLinkReference;
   relationship?: ObjectReference;
 };
@@ -180,7 +186,7 @@ export type Video = Document & {
 
 export interface Profile extends Object {
   type: typeof ObjectTypes.PROFILE,
-  describes?: string | Object;
+  describes?: string | CoreObject;
 };
 
 export interface Link extends Thing {
@@ -200,7 +206,7 @@ export interface Mention extends Link {
   type: typeof LinkTypes.MENTION,
 };
 
-export interface Actor extends Object {
+export interface Actor extends CoreObject {
   type: typeof ActorTypes[keyof typeof ActorTypes],
 };
 
@@ -220,7 +226,7 @@ export interface Organization extends Actor {
   type: typeof ActorTypes.ORGANIZATION,
 };
 
-export interface Activity extends Object {
+export interface Activity extends CoreObject {
   type: typeof ActivityTypes[keyof typeof ActivityTypes];
   actor?: ObjectOrLinkReference;
   object?: ObjectOrLinkReference;
@@ -347,7 +353,7 @@ export interface Question extends IntransitiveActivity {
   closed: ObjectOrLinkReference|Date|boolean;
 };
 
-export interface Collection extends Object {
+export interface Collection extends CoreObject {
   type: typeof CollectionTypes[keyof typeof CollectionTypes];
   totalItems?: number;
   items?: ObjectOrLinkReference;

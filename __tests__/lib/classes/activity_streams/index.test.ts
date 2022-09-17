@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import * as AS from '../../types/activity_streams';
+import * as AS from '../../../../lib/types/activity_streams';
 
 describe('Types', () => {
   it('can handle a Note Object', () => {

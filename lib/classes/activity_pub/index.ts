@@ -1,15 +1,14 @@
 import * as AP from '../../types/activity_pub';
 
-type Complete<T> = {
+export type Complete<T> = {
   [P in keyof Required<T>]: Pick<T, P> extends Required<Pick<T, P>> ? T[P] : (T[P] | undefined);
-}
+};
 
 export class APObject implements Complete<AP.Object> {
   id?: string | null;
   type: typeof AP.ObjectTypes[keyof typeof AP.ObjectTypes];
   likes?: string | AP.OrderedCollection;
   shares?: string | AP.OrderedCollection;
-
   attachment?: AP.ObjectOrLinkReference;
   attributedTo?: AP.ObjectOrLinkReference;
   audience?: AP.ObjectOrLinkReference;
@@ -45,4 +44,3 @@ export class APObject implements Complete<AP.Object> {
     Object.assign(this, object);
   }
 }
-

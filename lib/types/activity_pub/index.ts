@@ -9,15 +9,25 @@ export {
   CollectionPageTypes
 } from '../activity_streams';
 
-type Thing = Omit<AS.Thing, 'id'> & {
+type Thing = {
+  // Activity Pub allows null.
   id?: string | null;
 }
 
-export type CoreObject = Omit<AS.CoreObject, 'id'> & Thing & {
-  source?: {
-    content?: StringReference,
-    contentMap?: StringReferenceMap,
-  };
+// Core Object.
+export interface CoreObject extends Thing {
+  // Activity Streams properties.
+  type:
+    typeof ObjectTypes[keyof typeof ObjectTypes] |
+    typeof ActorTypes[keyof typeof ActorTypes] |
+    typeof ActivityTypes[keyof typeof ActivityTypes] |
+    typeof CollectionTypes[keyof typeof CollectionTypes] |
+    Array<
+      typeof ObjectTypes[keyof typeof ObjectTypes] |
+      typeof ActorTypes[keyof typeof ActorTypes] |
+      typeof ActivityTypes[keyof typeof ActivityTypes] |
+      typeof CollectionTypes[keyof typeof CollectionTypes]
+    >;
   attachment?: ObjectOrLinkReference;
   attributedTo?: ObjectOrLinkReference;
   audience?: ObjectOrLinkReference;
@@ -47,9 +57,21 @@ export type CoreObject = Omit<AS.CoreObject, 'id'> & Thing & {
   to?: ObjectOrLinkReference;
   updated?: Date;
   url?: StringReference | LinkReference;
+
+  // Activity Pub properties.
+  source?: {
+    content?: StringReference;
+    contentMap?: StringReferenceMap;
+  };
 };
 
-export type Actor = Omit<AS.Actor, 'id'> & CoreObject & {
+// Actors.
+
+export interface Actor extends CoreObject {
+  // Activity Streams properties.
+  type: typeof ActorTypes[keyof typeof ActorTypes];
+
+  // Activity Pub properties.
   inbox: string | OrderedCollection;
   outbox: string | OrderedCollection;
   following?: string | Collection;
@@ -77,67 +99,274 @@ export type Actor = Omit<AS.Actor, 'id'> & CoreObject & {
   };
 };
 
-export type Application = AS.Application & Actor;
-export type Service = AS.Application & Actor;
-export type Person = AS.Person & Actor;
-export type Group = AS.Group & Actor;
-export type Organization = AS.Organization & Actor;
+export interface Application extends Actor {
+  type: typeof ActorTypes.APPLICATION;
+};
 
-export type Object = Omit<AS.Object, 'id'> & CoreObject & {
+export interface Person extends Actor {
+  type: typeof ActorTypes.PERSON;
+};
+
+export interface Group extends Actor {
+  type: typeof ActorTypes.GROUP;
+};
+
+export interface Service extends Actor {
+  type: typeof ActorTypes.SERVICE;
+};
+
+export interface Organization extends Actor {
+  type: typeof ActorTypes.ORGANIZATION;
+};
+
+// Object
+
+export interface Object extends CoreObject {
+  // Activity Streams
+  type:
+    typeof ObjectTypes[keyof typeof ObjectTypes] |
+    Array<typeof ObjectTypes[keyof typeof ObjectTypes]>;
+
+  // Activity Pub
   likes?: string | OrderedCollection;
   shares?: string | OrderedCollection;
 };
-export type Tombstone = AS.Tombstone & Object;
-export type Relationship = AS.Relationship & Object;
-export type Article = AS.Article & Object;
-export type Note = AS.Note & Object;
-export type Page = AS.Page & Object;
-export type Event = AS.Event & Object;
-export type Place = AS.Place & Object;
-export type Document = AS.Document & Object;
-export type Image = AS.Image & Object;
-export type Audio = AS.Audio & Object;
-export type Video = AS.Video & Object;
-export type Profile = AS.Profile & Object;
 
-export type Link = AS.Link & CoreObject;
-export type Mention = AS.Mention & Link;
+export interface Tombstone extends Object {
+  type: typeof ObjectTypes.TOMBSTONE,
+  formerType?: typeof ObjectTypes[keyof typeof ObjectTypes] | Array<typeof ObjectTypes[keyof typeof ObjectTypes]>;
+  deleted?: Date;
+};
 
-export type Activity = AS.Activity & CoreObject;
-export type IntransitiveActivity = AS.IntransitiveActivity & CoreObject;
-export type Accept = AS.Accept & Activity;
-export type TentativeAccept = AS.TentativeAccept & IntransitiveActivity;
-export type Add = AS.Add & Activity;
-export type Arrive = AS.Arrive & IntransitiveActivity;
-export type Create = AS.Create & Activity;
-export type Delete = AS.Delete & Activity;
-export type Follow = AS.Follow & Activity;
-export type Ignore = AS.Ignore & Activity;
-export type Join = AS.Join & Activity;
-export type Leave = AS.Leave & Activity;
-export type Like = AS.Like & Activity;
-export type Offer = AS.Offer & Activity;
-export type Invite = AS.Invite & Activity;
-export type Reject = AS.Reject & Activity;
-export type TentativeReject = AS.TentativeReject & Activity;
-export type Remove = AS.Remove & Activity;;
-export type Undo = AS.Undo & Activity;
-export type Update = AS.Update & Activity;
-export type View = AS.View & Activity;
-export type Listen = AS.Listen & Activity;
-export type Read = AS.Read & Activity;
-export type Move = AS.Move & Activity;
-export type Travel = AS.Travel & IntransitiveActivity;
-export type Announce = AS.Announce & Activity;
-export type Block = AS.Block & Activity;
-export type Flag = AS.Flag & Activity;
-export type Dislike = AS.Dislike & Activity;
-export type Question = AS.Question & Activity;
+export interface Relationship extends Object {
+  type: typeof ObjectTypes.RELATIONSHIP,
+  subject?: string | CoreObject | Link;
+  object?: ObjectOrLinkReference;
+  relationship?: ObjectReference;
+};
 
-export type Collection = AS.Collection & CoreObject;
-export type OrderedCollection = AS.OrderedCollection & CoreObject;
-export type CollectionPage = AS.CollectionPage & CoreObject;
-export type OrderedCollectionPage = AS.OrderedCollectionPage & CoreObject;
+export interface Article extends Object {
+  type: typeof ObjectTypes.ARTICLE;
+};
+
+export interface Note extends Object {
+  type: typeof ObjectTypes.NOTE;
+};
+
+export interface Page extends Object {
+  type: typeof ObjectTypes.PAGE;
+};
+
+export interface Event extends Object {
+  type: typeof ObjectTypes.EVENT;
+};
+
+export interface Place extends Object {
+  type: typeof ObjectTypes.PLACE,
+  accuracy?: number;
+  altitude: number;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  units?: string;
+};
+
+export interface Document extends Object {
+  type: typeof ObjectTypes.DOCUMENT;
+};
+
+export type Image = Document & {
+  type: typeof ObjectTypes.IMAGE;
+};
+
+export type Audio = Document & {
+  type: typeof ObjectTypes.IMAGE;
+};
+
+export type Video = Document & {
+  type: typeof ObjectTypes.IMAGE;
+};
+
+export interface Profile extends Object {
+  type: typeof ObjectTypes.PROFILE,
+  describes?: string | CoreObject;
+};
+
+// Link
+
+export interface Link extends Thing {
+  type: typeof LinkTypes[keyof typeof LinkTypes] |
+    Array<typeof LinkTypes[keyof typeof LinkTypes]>;
+  height?: number;
+  href?: string;
+  hrefLang?: string;
+  mediaType?: string;
+  name?: StringReference;
+  preview?: ObjectOrLinkReference;
+  rel?: StringReference;
+  width?: number;
+};
+
+export interface Mention extends Link {
+  type: typeof LinkTypes.MENTION;
+};
+
+// Activity
+
+export interface Activity extends CoreObject {
+  // Activity Streams.
+  type: typeof ActivityTypes[keyof typeof ActivityTypes];
+  actor?: ObjectOrLinkReference;
+  object?: ObjectOrLinkReference;
+  target?: ObjectOrLinkReference;
+  result?: ObjectOrLinkReference;
+  origin?: ObjectOrLinkReference;
+  instrument?: ObjectOrLinkReference;
+};
+
+export interface IntransitiveActivity extends Omit<Activity, 'object'> {};
+
+export interface Accept extends Activity {
+  type: typeof ActivityTypes.ACCEPT;
+};
+
+export type TentativeAccept = Accept & {
+  type: typeof ActivityTypes.TENTATIVE_ACCEPT;
+};
+
+export interface Add extends Activity {
+  type: typeof ActivityTypes.ADD;
+};
+
+export interface Arrive extends IntransitiveActivity {
+  type: typeof ActivityTypes.ARRIVE;
+};
+
+export interface Create extends Activity {
+  type: typeof ActivityTypes.CREATE;
+};
+
+export interface Delete extends Activity {
+  type: typeof ActivityTypes.DELETE;
+};
+
+export interface Follow extends Activity {
+  type: typeof ActivityTypes.FOLLOW;
+};
+
+export interface Ignore extends Activity {
+  type: typeof ActivityTypes.IGNORE;
+};
+
+export interface Join extends Activity {
+  type: typeof ActivityTypes.JOIN;
+};
+
+export interface Leave extends Activity {
+  type: typeof ActivityTypes.LEAVE;
+};
+
+export interface Like extends Activity {
+  type: typeof ActivityTypes.LIKE;
+};
+
+export interface Offer extends Activity {
+  type: typeof ActivityTypes.OFFER;
+};
+
+export type Invite = Offer & {
+  type: typeof ActivityTypes.INVITE;
+};
+
+export interface Reject extends Activity {
+  type: typeof ActivityTypes.REJECT;
+};
+
+export type TentativeReject = Reject & {
+  type: typeof ActivityTypes.TENTATIVE_REJECT;
+};
+
+export interface Remove extends Activity {
+  type: typeof ActivityTypes.REMOVE;
+};
+
+export interface Undo extends Activity {
+  type: typeof ActivityTypes.UNDO;
+};
+
+export interface Update extends Activity {
+  type: typeof ActivityTypes.UPDATE;
+};
+
+export interface View extends Activity {
+  type: typeof ActivityTypes.VIEW;
+};
+
+export interface Listen extends Activity {
+  type: typeof ActivityTypes.LISTEN;
+};
+
+export interface Read extends Activity {
+  type: typeof ActivityTypes.READ;
+};
+
+export interface Move extends Activity {
+  type: typeof ActivityTypes.MOVE;
+};
+
+export interface Travel extends IntransitiveActivity {
+  type: typeof ActivityTypes.TRAVEL;
+};
+
+export interface Announce extends Activity {
+  type: typeof ActivityTypes.ANNOUNCE;
+};
+
+export type Block = Ignore & {
+  type: typeof ActivityTypes.BLOCK;
+};
+
+export interface Flag extends Activity {
+  type: typeof ActivityTypes.FLAG;
+};
+
+export interface Dislike extends Activity {
+  type: typeof ActivityTypes.DISLIKE;
+};
+
+export interface Question extends IntransitiveActivity {
+  type: typeof ActivityTypes.QUESTION,
+  oneOf: ObjectOrLinkReference;
+  anyOf: ObjectOrLinkReference;
+  closed: ObjectOrLinkReference|Date|boolean;
+};
+
+// Collections.
+
+export interface Collection extends CoreObject {
+  type: typeof CollectionTypes[keyof typeof CollectionTypes];
+  totalItems?: number;
+  items?: ObjectOrLinkReference;
+  current?: string | CollectionPage | Link;
+  first?: string | CollectionPage | Link;
+  last?: string | CollectionPage | Link;
+}
+
+export interface OrderedCollection extends Collection {
+  type: typeof CollectionTypes.ORDERED_COLLECTION; 
+}
+
+export type CollectionPage = Collection & {
+  type: typeof CollectionPageTypes[keyof typeof CollectionPageTypes];
+  partOf: string | CollectionPage | Link;
+  next: string | CollectionPage | Link;
+  prev: string | CollectionPage | Link;
+};
+
+export type OrderedCollectionPage = OrderedCollection & CollectionPage & {
+  type: typeof CollectionPageTypes.ORDERED_COLLECTION_PAGE;
+  startIndex: number;
+};
 
 export type StringReference = string | string[];
 export type StringReferenceMap = { (key: string): StringReference; }

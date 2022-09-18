@@ -1,27 +1,45 @@
 import '@testing-library/jest-dom';
-import * as AP from '../../../../lib/types/activity_pub';
+import * as AP from '../../../../lib/classes/activity_pub';
 
 describe('Types', () => {
   describe('can handle a Note Object', () => {
     it('when valid', () => {
-      const object: AP.Object = {
+      const object = new AP.Object({
         type: AP.ObjectTypes.NOTE,
-      };
+      });
 
-      expect(object.type).toBe('Note');
+      expect(object instanceof AP.Object).toBe(true);
+    });
+
+    it('when given an invalid type', () => {
+      const object = new AP.Object({
+        type: AP.ActivityTypes.CREATE,
+      });
+
+      expect(object instanceof AP.Object).toBe(false);
     });
   });
   
   describe('can handle a Tombstone Object', () => {
     it('when valid', () => {
-        const object: AP.Tombstone = {
-        type: AP.ObjectTypes.TOMBSTONE,
+        const object = new AP.Object({
+        type: AP.ObjectTypes.DOCUMENT,
         deleted: new Date(),
         formerType: AP.ObjectTypes.NOTE,
-      };
+      });
 
-      expect(object.type).toBe('Tombstone');
+      expect(object instanceof AP.Object).toBe(false);
     });
+
+    it('when given an invalid type', () => {
+      const object = new AP.Object({
+      type: AP.ObjectTypes.TOMBSTONE,
+      deleted: new Date(),
+      formerType: AP.ObjectTypes.NOTE,
+    });
+
+    expect(object instanceof AP.Object).toBe(true);
+  });
   });
 
   describe('can handle an Actor', () => {

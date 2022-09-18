@@ -1,13 +1,71 @@
-import * as AS from '../activity_streams';
+export const ObjectTypes = {
+  ARTICLE: "Article",
+  AUDIO: "Audio",
+  DOCUMENT: "Document",
+  EVENT: "Event",
+  IMAGE: "Image",
+  NOTE: "Note",
+  PAGE: "Page",
+  PLACE: "Place",
+  PROFILE: "Profile",
+  RELATIONSHIP: "Relationship",
+  TOMBSTONE: "Tombstone",
+  VIDEO: "Video",
+} as const;
 
-export {
-  ObjectTypes,
-  LinkTypes,
-  ActorTypes,
-  ActivityTypes,
-  CollectionTypes,
-  CollectionPageTypes
-} from '../activity_streams';
+export const LinkTypes = {
+  LINK: "Link",
+  MENTION: "Mention",
+} as const;
+
+export const ActorTypes = {
+  APPLICATION: "Application",
+  GROUP: "Group",
+  ORGANIZATION: "Organization",
+  PERSON: "Person",
+  SERVICE: "Service",
+} as const;
+
+export const ActivityTypes = {
+  ACCEPT: "Accept",
+  ADD: "Add",
+  ANNOUNCE: "Announce",
+  ARRIVE: "Arrive",
+  BLOCK: "Block",
+  CREATE: "Create",
+  DELETE: "Delete",
+  DISLIKE: "Dislike",
+  FLAG: "Flag",
+  FOLLOW: "Follow",
+  IGNORE: "Ignore",
+  INVITE: "Invite",
+  JOIN: "Join",
+  LEAVE: "Leave",
+  LIKE: "Like",
+  LISTEN: "Listen",
+  MOVE: "Move",
+  OFFER: "Offer",
+  QUESTION: "Question",
+  READ: "Read",
+  REJECT: "Reject",
+  REMOVE: "Remove",
+  TENTATIVE_ACCEPT: "TentativeAccept",
+  TENTATIVE_REJECT: "TentativeReject",
+  TRAVEL: "Travel",
+  UNDO: "Undo",
+  UPDATE: "Update",
+  VIEW: "View",
+} as const;
+
+export const CollectionTypes = {
+  COLLECTION: "Collection",
+  ORDERED_COLLECTION: "OrderedCollection",
+} as const;
+
+export const CollectionPageTypes = {
+  COLLECTION_PAGE: "CollectionPage",
+  ORDERED_COLLECTION_PAGE: "OrderedCollectionPage",
+} as const;
 
 type Thing = {
   // Activity Pub allows null.
@@ -164,7 +222,7 @@ export interface Event extends Object {
 export interface Place extends Object {
   type: typeof ObjectTypes.PLACE,
   accuracy?: number;
-  altitude: number;
+  altitude?: number;
   latitude?: number;
   longitude?: number;
   radius?: number;
@@ -192,6 +250,8 @@ export interface Profile extends Object {
   describes?: string | CoreObject;
 };
 
+export type AnyObject = Tombstone | Relationship | Image | Page | Event | Place | Event | Page | Article | Document | Audio | Video | Note | Profile;
+
 // Link
 
 export interface Link extends Thing {
@@ -210,6 +270,8 @@ export interface Link extends Thing {
 export interface Mention extends Link {
   type: typeof LinkTypes.MENTION;
 };
+
+export type AnyLink = Link | Mention;
 
 // Activity
 
@@ -262,6 +324,7 @@ export interface Join extends Activity {
   type: typeof ActivityTypes.JOIN;
 };
 
+
 export interface Leave extends Activity {
   type: typeof ActivityTypes.LEAVE;
 };
@@ -281,7 +344,7 @@ export type Invite = Offer & {
 export interface Reject extends Activity {
   type: typeof ActivityTypes.REJECT;
 };
-
+  
 export type TentativeReject = Reject & {
   type: typeof ActivityTypes.TENTATIVE_REJECT;
 };
@@ -341,6 +404,36 @@ export interface Question extends IntransitiveActivity {
   closed: ObjectOrLinkReference|Date|boolean;
 };
 
+export type AnyActivity =
+  Accept |
+  TentativeAccept |
+  Add |
+  Arrive |
+  Create |
+  Delete |
+  Follow |
+  Ignore |
+  Join |
+  Leave |
+  Like |
+  Invite |
+  Offer |
+  Reject |
+  TentativeReject |
+  Remove |
+  Undo |
+  Update |
+  View |
+  Listen |
+  Read |
+  Move |
+  Travel |
+  Announce |
+  Block |
+  Flag |
+  Dislike |
+  Question;
+
 // Collections.
 
 export interface Collection extends CoreObject {
@@ -354,7 +447,9 @@ export interface Collection extends CoreObject {
 
 export interface OrderedCollection extends Collection {
   type: typeof CollectionTypes.ORDERED_COLLECTION; 
-}
+};
+
+export type AnyCollection = Collection | OrderedCollection;
 
 export type CollectionPage = Collection & {
   type: typeof CollectionPageTypes[keyof typeof CollectionPageTypes];
@@ -367,6 +462,8 @@ export type OrderedCollectionPage = OrderedCollection & CollectionPage & {
   type: typeof CollectionPageTypes.ORDERED_COLLECTION_PAGE;
   startIndex: number;
 };
+
+export type AnyCollectionPage = CollectionPage | OrderedCollectionPage;
 
 export type StringReference = string | string[];
 export type StringReferenceMap = { (key: string): StringReference; }

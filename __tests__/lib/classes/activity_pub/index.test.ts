@@ -1,64 +1,104 @@
 import '@testing-library/jest-dom';
-import * as AP from '../../../../lib/classes/activity_pub';
+import {
+  APObject,
+} from '../../../../lib/classes/activity_pub';
+import {
+  ObjectTypes,
+  ActivityTypes,
+} from '../../../../lib/types/activity_pub';
 
 describe('Types', () => {
   describe('can handle a Note Object', () => {
     it('when valid', () => {
-      const object = new AP.Object({
-        type: AP.ObjectTypes.NOTE,
+      const object = new APObject({
+        type: ObjectTypes.NOTE,
       });
 
-      expect(object instanceof AP.Object).toBe(true);
+      expect(object).toBeTruthy();
     });
 
     it('when given an invalid type', () => {
-      const object = new AP.Object({
-        type: AP.ActivityTypes.CREATE,
+      const createObject = () => new APObject({
+        type: ActivityTypes.CREATE,
       });
 
-      expect(object instanceof AP.Object).toBe(false);
+      expect(createObject).toThrow();
     });
   });
   
   describe('can handle a Tombstone Object', () => {
     it('when valid', () => {
-        const object = new AP.Object({
-        type: AP.ObjectTypes.DOCUMENT,
+      const createObject = () => new APObject({
+        type: ObjectTypes.TOMBSTONE,
         deleted: new Date(),
-        formerType: AP.ObjectTypes.NOTE,
+        formerType: ObjectTypes.NOTE,
       });
 
-      expect(object instanceof AP.Object).toBe(false);
+      expect(createObject).toBeTruthy();
     });
 
     it('when given an invalid type', () => {
-      const object = new AP.Object({
-      type: AP.ObjectTypes.TOMBSTONE,
-      deleted: new Date(),
-      formerType: AP.ObjectTypes.NOTE,
+      const createObject = () => new APObject({
+        type: ObjectTypes.DOCUMENT,
+        deleted: new Date(),
+        formerType: ObjectTypes.NOTE,
+      });
+
+      expect(createObject).toThrow();
+    });
+  });
+
+  describe('can handle a Relationship Object', () => {
+    it('when valid', () => {
+      const createObject = () => new APObject({
+        type: ObjectTypes.RELATIONSHIP,
+        subject: 'http://un.org',
+        object: 'http://un.org',
+        relationship: 'http://un.org',
+      });
+
+      expect(createObject).toBeTruthy();
     });
 
-    expect(object instanceof AP.Object).toBe(true);
-  });
+    it('when given an invalid type', () => {
+      const createObject = () => new APObject({
+        type: ObjectTypes.NOTE,
+        subject: 'http://un.org',
+        object: 'http://un.org',
+        relationship: 'http://un.org',
+      });
+
+      expect(createObject).toThrow();
+    });
   });
 
-  describe('can handle an Actor', () => {
-    it('is readable when valid', () => {
-      const object: AP.Actor = {
-        type: AP.ActorTypes.PERSON,
-        inbox: 'http://un.org',
-        outbox: 'http://un.org',
-      };
+  describe('can handle a Place Object', () => {
+    it('when valid', () => {
+      const createObject = () => new APObject({
+        type: ObjectTypes.PLACE,
+        accuracy: 50,
+        altitude: 50,
+        longitude: 50,
+        latitude: 50,
+        radius: 50,
+        units: 'cm',
+      });
 
-      expect(object.type).toBe('Person');
+      expect(createObject).toBeTruthy();
     });
 
-    it('is not readable without `inbox` property', () => {
-      const object: AP.Actor = {
-        type: AP.ActorTypes.PERSON,
-      } as AP.Actor;
+    it('when given an invalid type', () => {
+      const createObject = () => new APObject({
+        type: ObjectTypes.NOTE,
+        accuracy: 50,
+        altitude: 50,
+        longitude: 50,
+        latitude: 50,
+        radius: 50,
+        units: 'cm',
+      });
 
-      expect(object.type).toBe('Person');
+      expect(createObject).toThrow();
     });
   });
 });

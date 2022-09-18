@@ -14,4 +14,16 @@ export class Graph {
     const db = client.db(dbName);
     return new Graph(db);
   }
+
+  private async findOne(collection: string, matchingObject: Object) {
+    // try {
+    return JSON.parse(JSON.stringify(await this.db.collection(collection).findOne(matchingObject)));
+    // } catch (error: unknown) {
+    //   return null;
+    // }
+  }
+
+  public async getActorByPreferredUsername(preferredUsername: string) {
+    return await this.findOne('actor', { preferredUsername });
+  }
 }

@@ -465,11 +465,13 @@ export type OrderedCollectionPage = OrderedCollection & CollectionPage & {
 
 export type AnyCollectionPage = CollectionPage | OrderedCollectionPage;
 
+export type AnyCoreObject = AnyObject | AnyActor | AnyActivity | AnyCollection | AnyCollectionPage | AnyLink;
+
 export type StringReference = string | string[];
 export type StringReferenceMap = { (key: string): StringReference; }
-export type ObjectReference = StringReference | CoreObject | CoreObject[];
-export type LinkReference = StringReference | Link | Link[];
-export type ImageReference = StringReference | Image[]; 
-export type CollectionReference = StringReference | Collection | Collection[];
+export type ObjectReference = StringReference | AnyCoreObject | AnyCoreObject[];
+export type LinkReference = StringReference | AnyLink | AnyLink[];
+export type ImageReference = StringReference | Image[];
+export type CollectionReference = StringReference | AnyCollection | AnyCollection[];
 export type ObjectOrLinkReference = StringReference | ObjectReference | LinkReference;
-export type CollectionPageReference = CollectionPage | CollectionPage[];
+export type CollectionPageReference = AnyCollectionPage | AnyCollectionPage[];

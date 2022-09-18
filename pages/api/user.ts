@@ -137,19 +137,22 @@ export default async function handler(
 
   await graph.saveActivity(createFriendsGroupActivity);
 
-  // await Promise.all([
-  //   graph.set(`${LOCAL_DOMAIN}/account/${user.uid}`, email),
-  //   graph.set(`${LOCAL_DOMAIN}/private-key/${user.uid}`, privateKey),
-  //   graph.set(`${LOCAL_DOMAIN}/username/${user.uid}`, preferredUsername),
-  //   graph.createCollection(`${id}/inbox`),
-  //   graph.createCollection(`${id}/outbox`),
-  //   graph.createCollection(`${id}/followers`),
-  //   graph.createCollection(`${id}/following`),
-  //   graph.createCollection(`${id}/liked`),
-  //   graph.createCollection(`${id}/blocked`),
-  //   graph.createCollection(`${id}/groups`),
-  //   graph.createCollection(`${id}/collections`),
-  // ]);
+  await Promise.all([
+    // graph.setString(`${LOCAL_DOMAIN}/account/${user.uid}`, email),
+    // graph.setString(`${LOCAL_DOMAIN}/private-key/${user.uid}`, privateKey),
+    // graph.setString(`${LOCAL_DOMAIN}/username/${user.uid}`, preferredUsername),
+    
+    // TODO graph.saveThing(new Collection({})) ...
+    
+    graph.createCollection(`${id}/inbox`, AP.CollectionTypes.ORDERED_COLLECTION),
+    graph.createCollection(`${id}/outbox`, AP.CollectionTypes.ORDERED_COLLECTION),
+    graph.createCollection(`${id}/followers`),
+    graph.createCollection(`${id}/following`),
+    graph.createCollection(`${id}/liked`, AP.CollectionTypes.ORDERED_COLLECTION),
+    graph.createCollection(`${id}/blocked`),
+    graph.createCollection(`${id}/groups`),
+    graph.createCollection(`${id}/collections`),
+  ]);
 
   res.status(200).json({
     success: true,

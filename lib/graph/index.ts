@@ -1,5 +1,5 @@
 import { Db, MongoClient } from 'mongodb';
-import { APActivity } from '../classes/activity_pub';
+import { APActivity, APCollection } from '../classes/activity_pub';
 import { APCoreObject } from '../classes/activity_pub/core_object';
 import { APThing } from '../classes/activity_pub/thing';
 import { LOCAL_HOSTNAME } from '../globals';
@@ -31,6 +31,35 @@ export class Graph {
   public async getActorByPreferredUsername(preferredUsername: string) {
     return await this.findOne('actor', { preferredUsername });
   }
+
+  
+  async createCollection(objectUrl: string, collectionType: typeof AP.CollectionTypes[keyof typeof AP.CollectionTypes] = AP.CollectionTypes.COLLECTION) {
+    // try {
+      const [ , collectionName, parent, identifier ] = new URL(objectUrl).pathname.split('/');
+
+      const name = collectionName[0].toUpperCase() + collectionName.slice(1);
+
+      const collection = new APCollection({
+        "id": objectUrl,
+        "type": collectionType,
+        "name": name,
+        "url": objectUrl,
+        "items": [],
+      });
+
+      await this.db.collection(collectionName).updateOne({
+          identifier: `${parent}/${identifier}`
+      }, {
+          $set: collection.compress(),
+      }, {
+          upsert: true,
+      });
+    // } catch (error: unknown) {
+    //   console.error(error);
+    //   throw new Error(String(error));
+    // }
+  }
+
 
   public async saveActivity(activity: APActivity) {
     return await Promise.all([

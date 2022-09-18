@@ -31,5 +31,46 @@ export class APThing implements AP.Thing {
     }
 
     Object.assign(this, thing);
+  }  
+
+  public compress() {
+    const compressedThing = [];
+
+    for (const prop in this) {
+      const value = this[prop];
+
+      if (typeof value === 'string') {
+        compressedThing.push([prop, value]);
+      } else if (value && typeof value === 'object' && 'type' in value) {
+        compressedThing.push([prop, this.getUrlForm(value)]);
+      }
+    }
+
+    return Object.fromEntries(compressedThing);
   }
+
+  private getUrlForm(prop: AP.AnyThing) {
+    if (typeof prop === 'string') {
+      return prop;
+    } else if (typeof prop === 'object') {
+      if ('url' in prop) {
+        if (typeof prop.url === 'string') {
+          return prop.url;
+        } else if (typeof prop.url === 'object') {
+          if ('href' in prop.url) {
+            if (typeof prop.url.href === 'string') {
+              return prop.url.href;
+            }
+          }
+        }
+      } else if ('href' in prop) {
+        if (typeof prop.href === 'string') {
+          return prop.href;
+        }
+      }
+      return '';
+    }
+
+  }
+
 }

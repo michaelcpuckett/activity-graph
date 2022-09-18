@@ -32,7 +32,7 @@ export class Graph {
   }
 
   public async saveActivity(activity: APActivity) {
-    await this.setObject(activity);
+    await this.setObject(activity.compress());
   }
 
   private async setObject(object: APCoreObject) {

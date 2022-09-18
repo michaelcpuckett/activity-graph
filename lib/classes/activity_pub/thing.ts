@@ -20,8 +20,14 @@ export class APThing implements AP.Thing {
     if (thing.id) {
       this.id = thing.id;
     } else {
-      const guid = getGuid();
-      this.id = `${LOCAL_DOMAIN}/${this.getCollectionType()}/${guid}`;
+      const collectionType = this.getCollectionType();
+
+      if (collectionType === 'actor' && 'preferredUsername' in thing) {
+        this.id = `${LOCAL_DOMAIN}/${collectionType}/${thing.preferredUsername}`
+      } else {
+        const guid = getGuid();
+        this.id = `${LOCAL_DOMAIN}/${this.getCollectionType()}/${guid}`;
+      }
     }
 
     Object.assign(this, thing);

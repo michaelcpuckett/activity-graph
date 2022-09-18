@@ -8,13 +8,27 @@ describe('Types', () => {
     it('when valid', () => {
       const object = new APActor({
         type: 'Person',
+        preferredUsername: 'foobar',
+        inbox: 'http://un.org',
+        outbox: 'http://un.org',
+      });
+
+      const [, collectionName, collectionId] = new URL(object.id ?? '').pathname.split('/');
+
+      expect(object).toBeTruthy();
+      expect(collectionName).toBe('actor');
+      expect(collectionId).toBe('foobar');
+    });
+
+    it('creates a random ID when not given a preferredUsername', () => {
+      const object = new APActor({
+        type: 'Person',
         inbox: 'http://un.org',
         outbox: 'http://un.org',
       });
 
       const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
 
-      expect(object).toBeTruthy();
       expect(collectionName).toBe('actor');
     });
 

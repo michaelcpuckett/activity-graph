@@ -1,4 +1,8 @@
 import { Db, MongoClient } from 'mongodb';
+import { APActivity } from '../classes/activity_pub';
+import { APCoreObject } from '../classes/activity_pub/core_object';
+import { LOCAL_HOSTNAME } from '../globals';
+import * as AP from '../types/activity_pub';
 
 export class Graph {
   db: Db;
@@ -26,4 +30,35 @@ export class Graph {
   public async getActorByPreferredUsername(preferredUsername: string) {
     return await this.findOne('actor', { preferredUsername });
   }
+
+  public async saveActivity(activity: APActivity) {
+    await this.setObject(activity);
+  }
+
+  private async setObject(object: APCoreObject) {
+    try {
+      const url = new URL(object.id ?? '');
+      const isLocal = url.hostname === LOCAL_HOSTNAME;
+
+      const [
+        ,
+        collection,
+        guid,
+      ] = url.pathname.split('/');
+
+        await this.db.collection(isLocal ? collection : 'foreign-object').replaceOne(
+            {
+              _id: isLocal ? guid : url,
+            },
+            JSON.parse(JSON.stringify(object)),
+            {
+              upsert: true,
+            }
+        );
+    } catch (error: unknown) {
+        console.error(error);
+        throw new Error(String(error));
+    }
+}
+
 }

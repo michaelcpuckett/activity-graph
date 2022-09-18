@@ -3,6 +3,7 @@ import { APThing } from './thing';
 
 export class APCoreObject extends APThing implements AP.CoreObject {
   type: typeof AP.CoreObjectTypes[keyof typeof AP.CoreObjectTypes];
+  url: AP.StringReference | AP.LinkReference;
   likes?: string | AP.OrderedCollection;
   shares?: string | AP.OrderedCollection;
   attachment?: AP.ObjectOrLinkReference;
@@ -33,7 +34,6 @@ export class APCoreObject extends APThing implements AP.CoreObject {
   tag?: AP.ObjectOrLinkReference;
   to?: AP.ObjectOrLinkReference;
   updated?: Date;
-  url?: AP.StringReference | AP.LinkReference;
   source?: {
     content?: AP.StringReference;
     contentMap?: AP.StringReferenceMap;
@@ -46,6 +46,14 @@ export class APCoreObject extends APThing implements AP.CoreObject {
       this.type = object.type;
     } else {
       throw new Error('Bad type.')
+    }
+
+    if (object.url) {
+      this.url = object.url;
+    } else if (this.id) {
+      this.url = this.id;
+    } else {
+      throw new Error('Could not generate URL');
     }
   }
 }

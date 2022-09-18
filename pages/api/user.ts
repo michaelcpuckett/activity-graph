@@ -11,7 +11,6 @@ import {
 import * as AP from '../../lib/types/activity_pub'
 import { APActivity, APActor } from '../../lib/classes/activity_pub';
 import { generateKeyPair } from '../../lib/crypto';
-import { create } from 'domain';
 
 type Data = {
   error?: string;
@@ -81,7 +80,7 @@ export default async function handler(
 
   const id = `${LOCAL_DOMAIN}/actor/${preferredUsername}`;
 
-  const actor: APActor = {
+  const actor: AP.Actor = {
     id,
     url: id,
     type: AP.ActorTypes.PERSON,
@@ -123,6 +122,8 @@ export default async function handler(
   });
 
   console.log(createActorActivity);
+
+  await graph.saveActivity(createActorActivity);
 
   res.status(200).json({
     success: true,

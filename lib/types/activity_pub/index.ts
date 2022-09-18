@@ -67,11 +67,6 @@ export const CollectionPageTypes = {
   ORDERED_COLLECTION_PAGE: "OrderedCollectionPage",
 } as const;
 
-export type Thing = {
-  // Activity Pub allows null.
-  id?: string | null;
-}
-
 export const CoreObjectTypes = {
   ...ObjectTypes,
   ...ActorTypes,
@@ -79,6 +74,17 @@ export const CoreObjectTypes = {
   ...CollectionTypes,
   ...CollectionPageTypes,
 } as const;
+
+export const AllTypes = {
+  ...CoreObjectTypes,
+  ...LinkTypes,
+};
+
+export type Thing = {
+  // Activity Pub allows null.
+  id?: string | null;
+  type: typeof AllTypes[keyof typeof AllTypes];
+}
 
 // Core Object.
 export interface CoreObject extends Thing {

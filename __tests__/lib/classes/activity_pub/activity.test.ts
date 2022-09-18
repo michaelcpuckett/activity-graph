@@ -11,7 +11,10 @@ describe('Types', () => {
         actor: 'http://un.org',
       });
 
+      const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
+
       expect(object).toBeTruthy();
+      expect(collectionName).toBe('activity');
     });
 
     it('when not given an actor', () => {

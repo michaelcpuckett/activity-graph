@@ -13,6 +13,10 @@ export class APLink extends APThing implements AP.Link {
   rel?: AP.StringReference;
   width?: number;
 
+  override getCollectionType() {
+    return 'link';
+  }
+
   constructor(link: AP.AnyLink) {
     super(link);
 

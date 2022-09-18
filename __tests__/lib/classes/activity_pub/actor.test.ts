@@ -12,7 +12,10 @@ describe('Types', () => {
         outbox: 'http://un.org',
       });
 
+      const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
+
       expect(object).toBeTruthy();
+      expect(collectionName).toBe('actor');
     });
 
     it('when not given an inbox', () => {

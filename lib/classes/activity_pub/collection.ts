@@ -9,6 +9,10 @@ export class APCollection extends APCoreObject implements AP.Collection {
   first?: string | AP.CollectionPage | AP.Link;
   last?: string | AP.CollectionPage | AP.Link;
 
+  override getCollectionType() {
+    return 'collection';
+  }
+
   constructor(collection: AP.AnyCollection) {
     super(collection);
 

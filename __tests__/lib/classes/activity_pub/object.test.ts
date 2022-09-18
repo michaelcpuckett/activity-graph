@@ -10,7 +10,10 @@ describe('Types', () => {
         type: 'Note',
       });
 
+      const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
+
       expect(object).toBeTruthy();
+      expect(collectionName).toBe('object');
     });
 
     it('when given an invalid type', () => {

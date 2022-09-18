@@ -10,6 +10,10 @@ export class APActivity extends APCoreObject implements AP.Activity {
   origin?: AP.ObjectOrLinkReference;
   instrument?: AP.ObjectOrLinkReference;
 
+  override getCollectionType() {
+    return 'activity';
+  }
+
   constructor(activity: AP.AnyActivity) {
     super(activity);
 

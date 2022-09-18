@@ -10,7 +10,10 @@ describe('Types', () => {
         type: 'Link',
       });
 
+      const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
+
       expect(object).toBeTruthy();
+      expect(collectionName).toBe('link');
     });
 
     it('when given a bad type', () => {

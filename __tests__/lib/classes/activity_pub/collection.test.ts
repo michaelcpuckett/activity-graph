@@ -10,7 +10,10 @@ describe('Types', () => {
         type: 'Collection',
       });
 
+      const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
+
       expect(object).toBeTruthy();
+      expect(collectionName).toBe('collection');
     });
 
     it('when given a bad type', () => {

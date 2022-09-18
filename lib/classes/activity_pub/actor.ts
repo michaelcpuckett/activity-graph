@@ -29,6 +29,10 @@ export class APActor extends APCoreObject implements AP.Actor {
     publicKeyPem: string;
   };
 
+  override getCollectionType() {
+    return 'actor';
+  }
+
   constructor(actor: AP.AnyActor) {
     super(actor);
 

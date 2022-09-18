@@ -33,6 +33,20 @@ export class APThing implements AP.Thing {
     Object.assign(this, thing);
   }  
 
+  getCompressedProps() {
+    const compressedProps = [];
+    
+    for (const key in this) {
+      const value = this[key];
+
+      if (value && typeof value === 'object' && 'type' in value) {
+        compressedProps.push([key, new APThing(value).compress()]);
+      }
+    }
+
+    return Object.fromEntries(compressedProps);
+  }
+
   public compress() {
     const compressedThing = [];
 

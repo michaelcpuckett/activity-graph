@@ -9,7 +9,7 @@ import {
   LOCAL_DOMAIN
 } from '../../lib/globals';
 import * as AP from '../../lib/types/activity_pub'
-import { APActivity, APActor } from '../../lib/classes/activity_pub';
+import { APActivity, APActor, APObject } from '../../lib/classes/activity_pub';
 import { generateKeyPair } from '../../lib/crypto';
 
 type Data = {
@@ -80,7 +80,7 @@ export default async function handler(
 
   const id = `${LOCAL_DOMAIN}/actor/${preferredUsername}`;
 
-  const actor: AP.Actor = {
+  const actor = new APActor({
     id,
     url: id,
     type: AP.ActorTypes.PERSON,
@@ -104,26 +104,52 @@ export default async function handler(
         "owner": `${id}`,
         "publicKeyPem": publicKey
     },
-  };
+  });
 
   const botServiceUrl = `${LOCAL_DOMAIN}/actor/bot`;
 
   const createActorActivity = new APActivity({
     type: AP.ActivityTypes.CREATE,
-    actor: {
+    actor: new APActor({
       id: botServiceUrl,
       type: AP.ActorTypes.APPLICATION,
       name: 'Bot',
       url: botServiceUrl,
       inbox: `${botServiceUrl}/inbox`,
       outbox: `${botServiceUrl}/outbox`,
-    },
+    }),
     object: actor,
   });
 
-  console.log(createActorActivity);
-
   await graph.saveActivity(createActorActivity);
+
+  const createFriendsGroupActivity = new APActivity({
+    type: AP.ActivityTypes.CREATE,
+    actor: id,
+    object: new APActor({
+      type: AP.ActorTypes.GROUP,
+      name: 'Friends',
+      url: `${id}/groups/friends`,
+      inbox: `${id}/groups/friends/inbox`,
+      outbox: `${id}/groups/friends/outbox`,
+    }),
+  });
+
+  await graph.saveActivity(createFriendsGroupActivity);
+
+  // await Promise.all([
+  //   graph.set(`${LOCAL_DOMAIN}/account/${user.uid}`, email),
+  //   graph.set(`${LOCAL_DOMAIN}/private-key/${user.uid}`, privateKey),
+  //   graph.set(`${LOCAL_DOMAIN}/username/${user.uid}`, preferredUsername),
+  //   graph.createCollection(`${id}/inbox`),
+  //   graph.createCollection(`${id}/outbox`),
+  //   graph.createCollection(`${id}/followers`),
+  //   graph.createCollection(`${id}/following`),
+  //   graph.createCollection(`${id}/liked`),
+  //   graph.createCollection(`${id}/blocked`),
+  //   graph.createCollection(`${id}/groups`),
+  //   graph.createCollection(`${id}/collections`),
+  // ]);
 
   res.status(200).json({
     success: true,

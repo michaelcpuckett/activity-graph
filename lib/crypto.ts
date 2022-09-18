@@ -1,5 +1,7 @@
 import * as crypto from 'crypto';
 
+export const getGuid = () => crypto.randomBytes(16).toString('hex');
+
 export async function generateKeyPair() {
     let publicKey = '';
     let privateKey = '';

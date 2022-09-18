@@ -1,43 +1,8 @@
 import * as AP from '../../types/activity_pub';
+import { APThing } from './thing';
 
-export class APObject implements AP.Object {
-  id?: string | null;
+export class APObject extends APThing implements AP.Object {
   type: typeof AP.ObjectTypes[keyof typeof AP.ObjectTypes];
-  likes?: string | AP.OrderedCollection;
-  shares?: string | AP.OrderedCollection;
-  attachment?: AP.ObjectOrLinkReference;
-  attributedTo?: AP.ObjectOrLinkReference;
-  audience?: AP.ObjectOrLinkReference;
-  bcc?: AP.ObjectOrLinkReference;
-  bto?: AP.ObjectOrLinkReference;
-  cc?: AP.ObjectOrLinkReference;
-  content?: AP.StringReference;
-  contentMap?: AP.StringReferenceMap;
-  context?: AP.ObjectOrLinkReference;
-  duration?: string;
-  endTime?: Date;
-  generator?: AP.ObjectOrLinkReference;
-  icon?: AP.ImageReference | AP.LinkReference;
-  image?: AP.ImageReference | AP.LinkReference;
-  inReplyTo?: AP.ObjectOrLinkReference;
-  location?: AP.ObjectOrLinkReference;
-  mediaType?: string;
-  name?: AP.StringReference;
-  nameMap?: AP.StringReferenceMap;
-  preview?: AP.ObjectOrLinkReference;
-  published?: Date;
-  replies?: string | AP.Collection;
-  startTime?: Date;
-  summary?: AP.StringReference;
-  summaryMap?: AP.StringReferenceMap;
-  tag?: AP.ObjectOrLinkReference;
-  to?: AP.ObjectOrLinkReference;
-  updated?: Date;
-  url?: AP.StringReference | AP.LinkReference;
-  source?: {
-    content?: AP.StringReference;
-    contentMap?: AP.StringReferenceMap;
-  };
 
   deleted?: Date;
   formerType?: typeof AP.ObjectTypes[keyof typeof AP.ObjectTypes] | Array<typeof AP.ObjectTypes[keyof typeof AP.ObjectTypes]>;
@@ -56,6 +21,8 @@ export class APObject implements AP.Object {
   describes?: string | AP.CoreObject;
 
   constructor(object: AP.AnyObject) {
+    super(object);
+
     if (Object.values(AP.ObjectTypes).includes(object.type)) {
       this.type = object.type;
     } else {
@@ -85,7 +52,5 @@ export class APObject implements AP.Object {
         throw new Error(`Some properties can only be used with "Place" type.`);
       }
     }
-    
-    Object.assign(this, object);
   }
 }

@@ -1,7 +1,7 @@
 import * as AP from '../../types/activity_pub';
+import { APThing } from './thing';
 
-export class APLink implements AP.Link {
-  id?: string | null;
+export class APLink extends APThing implements AP.Link {
   type: typeof AP.LinkTypes[keyof typeof AP.LinkTypes];
   height?: number;
   href?: string;
@@ -13,13 +13,13 @@ export class APLink implements AP.Link {
   rel?: AP.StringReference;
   width?: number;
 
-  constructor(object: AP.AnyLink) {
-    if (Object.values(AP.LinkTypes).includes(object.type)) {
-      this.type = object.type;
-    } else {
-      throw new Error('`type` must be defined and be one of the Object Types.');
-    }
+  constructor(link: AP.AnyLink) {
+    super(link);
 
-    Object.assign(this, object);
+    if (Object.values(AP.LinkTypes).includes(link.type)) {
+      this.type = link.type;
+    } else {
+      throw new Error('`type` must be defined and be one of the Link Types.');
+    }
   }
 }

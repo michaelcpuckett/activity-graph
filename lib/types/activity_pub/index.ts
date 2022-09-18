@@ -102,7 +102,7 @@ export interface CoreObject extends Thing {
   image?: ImageReference | LinkReference;
   inReplyTo?: ObjectOrLinkReference;
   location?: ObjectOrLinkReference;
-  mediaType?: StringReference;
+  mediaType?: string;
   name?: StringReference;
   nameMap?: StringReferenceMap;
   preview?: ObjectOrLinkReference;
@@ -116,7 +116,9 @@ export interface CoreObject extends Thing {
   updated?: Date;
   url?: StringReference | LinkReference;
 
-  // Activity Pub properties.
+  // Activity Pub
+  likes?: string | OrderedCollection;
+  shares?: string | OrderedCollection;
   source?: {
     content?: StringReference;
     contentMap?: StringReferenceMap;
@@ -157,6 +159,8 @@ export interface Actor extends CoreObject {
   };
 };
 
+export type AnyActor = Application | Person | Organization | Service | Group;
+
 export interface Application extends Actor {
   type: typeof ActorTypes.APPLICATION;
 };
@@ -184,10 +188,6 @@ export interface Object extends CoreObject {
   type:
     typeof ObjectTypes[keyof typeof ObjectTypes] |
     Array<typeof ObjectTypes[keyof typeof ObjectTypes]>;
-
-  // Activity Pub
-  likes?: string | OrderedCollection;
-  shares?: string | OrderedCollection;
 };
 
 export interface Tombstone extends Object {
@@ -255,13 +255,13 @@ export type AnyObject = Tombstone | Relationship | Image | Page | Event | Place 
 // Link
 
 export interface Link extends Thing {
-  type: typeof LinkTypes[keyof typeof LinkTypes] |
-    Array<typeof LinkTypes[keyof typeof LinkTypes]>;
+  type: typeof LinkTypes[keyof typeof LinkTypes];
   height?: number;
   href?: string;
   hrefLang?: string;
   mediaType?: string;
   name?: StringReference;
+  nameMap?: StringReferenceMap;
   preview?: ObjectOrLinkReference;
   rel?: StringReference;
   width?: number;
@@ -278,7 +278,7 @@ export type AnyLink = Link | Mention;
 export interface Activity extends CoreObject {
   // Activity Streams.
   type: typeof ActivityTypes[keyof typeof ActivityTypes];
-  actor?: ObjectOrLinkReference;
+  actor: ObjectOrLinkReference;
   object?: ObjectOrLinkReference;
   target?: ObjectOrLinkReference;
   result?: ObjectOrLinkReference;

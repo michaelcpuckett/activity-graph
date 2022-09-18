@@ -2,16 +2,12 @@ import '@testing-library/jest-dom';
 import {
   APObject,
 } from '../../../../lib/classes/activity_pub';
-import {
-  ObjectTypes,
-  ActivityTypes,
-} from '../../../../lib/types/activity_pub';
 
 describe('Types', () => {
   describe('can handle a Note Object', () => {
     it('when valid', () => {
       const object = new APObject({
-        type: ObjectTypes.NOTE,
+        type: 'Note',
       });
 
       expect(object).toBeTruthy();
@@ -19,7 +15,7 @@ describe('Types', () => {
 
     it('when given an invalid type', () => {
       const createObject = () => new APObject({
-        type: ActivityTypes.CREATE,
+        type: 'Create',
       });
 
       expect(createObject).toThrow();
@@ -29,9 +25,9 @@ describe('Types', () => {
   describe('can handle a Tombstone Object', () => {
     it('when valid', () => {
       const createObject = () => new APObject({
-        type: ObjectTypes.TOMBSTONE,
+        type: 'Tombstone',
         deleted: new Date(),
-        formerType: ObjectTypes.NOTE,
+        formerType: 'Note',
       });
 
       expect(createObject).toBeTruthy();
@@ -39,9 +35,8 @@ describe('Types', () => {
 
     it('when given an invalid type', () => {
       const createObject = () => new APObject({
-        type: ObjectTypes.DOCUMENT,
+        type: 'Document',
         deleted: new Date(),
-        formerType: ObjectTypes.NOTE,
       });
 
       expect(createObject).toThrow();
@@ -51,7 +46,7 @@ describe('Types', () => {
   describe('can handle a Relationship Object', () => {
     it('when valid', () => {
       const createObject = () => new APObject({
-        type: ObjectTypes.RELATIONSHIP,
+        type: 'Relationship',
         subject: 'http://un.org',
         object: 'http://un.org',
         relationship: 'http://un.org',
@@ -62,7 +57,7 @@ describe('Types', () => {
 
     it('when given an invalid type', () => {
       const createObject = () => new APObject({
-        type: ObjectTypes.NOTE,
+        type: 'Note',
         subject: 'http://un.org',
         object: 'http://un.org',
         relationship: 'http://un.org',
@@ -75,7 +70,7 @@ describe('Types', () => {
   describe('can handle a Place Object', () => {
     it('when valid', () => {
       const createObject = () => new APObject({
-        type: ObjectTypes.PLACE,
+        type: 'Place',
         accuracy: 50,
         altitude: 50,
         longitude: 50,
@@ -89,7 +84,7 @@ describe('Types', () => {
 
     it('when given an invalid type', () => {
       const createObject = () => new APObject({
-        type: ObjectTypes.NOTE,
+        type: 'Note',
         accuracy: 50,
         altitude: 50,
         longitude: 50,

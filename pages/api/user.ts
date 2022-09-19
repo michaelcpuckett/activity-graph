@@ -202,6 +202,15 @@ export default async function handler(
     graph.saveString('username', user.uid, preferredUsername),
   ]);
 
+  if (createFriendsGroupActivity.object && typeof createFriendsGroupActivity.object !== 'string' && 'url' in createFriendsGroupActivity.object && typeof createFriendsGroupActivity.object?.url === 'string') {
+    await graph.insertItem(`${id}/groups`, createFriendsGroupActivity.object.url);
+  }
+
+  if (typeof createActorActivity.url === 'string') {
+    await graph.insertOrderedItem(`${botServiceUrl}/outbox`, createActorActivity.url);
+    await graph.insertOrderedItem(`${id}/inbox`, createActorActivity.url);
+  }
+
   res.status(200).json({
     success: true,
   });

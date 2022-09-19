@@ -1,5 +1,5 @@
 import { Db, MongoClient } from 'mongodb';
-import { APActivity, APActor, APCollection, APLink, APObject } from '../classes/activity_pub';
+import { APActivity, APActor, APCollection, APLink, APObject, APOrderedCollection } from '../classes/activity_pub';
 import { APCollectionPage } from '../classes/activity_pub/collection_page';
 import { LOCAL_HOSTNAME } from '../globals';
 import * as AP from '../types/activity_pub';
@@ -39,10 +39,9 @@ export class Graph {
     return one;
   }
 
-  public async findThingById(id: string) {
-    const [ , collectionName, identifier, nextIdentifier, finalIdentifier ] = new URL(id).pathname.split('/');
-
-    return await this.findOne((nextIdentifier && !finalIdentifier) ? 'collection' : collectionName, { id });
+  public async findThingById(_id: string) {
+    const collectionName = this.getCollectionNameByUrl(_id);
+    return await this.findOne(collectionName, { _id });
   }
 
   public async findStringValueById(dbCollection: string, _id: string) {
@@ -103,13 +102,16 @@ export class Graph {
   }
 
   public async saveThing(thing: AP.AnyThing) {
-    const url = new URL(thing.id ?? '');
-    const isLocal = url.hostname === LOCAL_HOSTNAME;
-    const dbCollection = isLocal ? this.getTypedThing(thing)?.getCollectionType() ?? 'object' : 'foreign-object';
+    if (!thing.id) {
+      throw new Error('No ID.');
+    }
 
-    return await this.db.collection(dbCollection).replaceOne(
+    const collectionName = this.getCollectionNameByUrl(thing.id);
+    const _id = thing.id;
+
+    return await this.db.collection(collectionName).replaceOne(
         {
-          _id: isLocal ? url.pathname : url,
+          _id,
         },
         JSON.parse(JSON.stringify(thing)),
         {
@@ -132,7 +134,77 @@ export class Graph {
     );
   }
 
+  // Insert/Remove
+
+  async insertOrderedItem(path: string, url: string) {
+    const collectionItem = await this.findOne('collection', { _id: path });
+    const collection = new APOrderedCollection(collectionItem);
+    console.log(collection.totalItems);
+
+    await this.db.collection('collection').updateOne({
+      _id: path
+    }, {
+      $set: { totalItems: (collection.totalItems ?? 0) + 1, },
+      $push: { "orderedItems": url },
+    }, {
+      upsert: true,
+    });
+  }
+  
+  async removeOrderedItem(path: string, url: string) {
+    const collectionItem = await this.findOne('collection', { _id: path });
+    const collection = new APOrderedCollection(collectionItem);
+    console.log(collection.totalItems);
+
+    await this.db.collection('collection').updateOne({
+      _id: path
+    }, {
+      $set: { totalItems: (collection.totalItems ?? 0) + 1, },
+      $pull: { "orderedItems": url },
+    }, {
+      upsert: true,
+    });
+  }
+
+  async insertItem(path: string, url: string) {
+    const collectionItem = await this.findOne('collection', { _id: path });
+    console.log(path, collectionItem);
+    const collection = new APCollection(collectionItem);
+    console.log(collection.totalItems);
+
+    await this.db.collection('collection').updateOne({
+      _id: path
+    }, {
+      $set: { totalItems: (collection.totalItems ?? 0) + 1, },
+      $push: { "items": url },
+    }, {
+      upsert: true,
+    });
+  }
+  
+  async removeItem(path: string, url: string) {
+    const collectionItem = await this.findOne('collection', { _id: path });
+    const collection = new APCollection(collectionItem);
+    console.log(collection.totalItems);
+
+    await this.db.collection('collection').updateOne({
+      _id: path
+    }, {
+      $set: { totalItems: (collection.totalItems ?? 0) + 1, },
+      $pull: { "items": url },
+    }, {
+      upsert: true,
+    });
+  }
+
   // Other
+
+  // TODO?
+  private getCollectionNameByUrl(url: string) {
+    const [ , collectionName, identifier, nextIdentifier, finalIdentifier ] = new URL(url).pathname.split('/');
+
+    return (!finalIdentifier && nextIdentifier) ? 'collection' : collectionName;
+  }
 
   public getTypedThing(thing: AP.AnyThing) {
     for (const linkType of Object.values(AP.LinkTypes)) {

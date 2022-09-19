@@ -4,24 +4,31 @@ import {
 } from '../../../../lib/classes/activity_pub';
 
 describe('Types', () => {
-  describe('can handle an Activity Object', () => {
+  describe('can handle a Link', () => {
     it('when valid', () => {
-      const object = new APLink({
+      const link = new APLink({
         type: 'Link',
       });
 
-      const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
+      expect(link).toBeTruthy();
+    });
 
-      expect(object).toBeTruthy();
+    it('can get the collection name', () => {
+      const link = new APLink({
+        type: 'Mention',
+      });
+
+      const collectionName = link.getCollectionType();
+
       expect(collectionName).toBe('link');
     });
 
     it('when given a bad type', () => {
-      const createObject = () => new APLink({
+      const createLink = () => new APLink({
         type: 'Create',
       });
 
-      expect(createObject).toThrow();
+      expect(createLink).toThrow();
     });
   });
 });

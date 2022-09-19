@@ -6,23 +6,31 @@ import {
 describe('Types', () => {
   describe('can handle an Activity Object', () => {
     it('when valid', () => {
-      const object = new APActivity({
+      const activity = new APActivity({
         type: 'Create',
         actor: 'http://un.org',
       });
 
-      const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
+      expect(activity).toBeTruthy();
+    });
 
-      expect(object).toBeTruthy();
+    it('can get the collection name', () => {
+      const activity = new APActivity({
+        type: 'Create',
+        actor: 'http://un.org',
+      });
+
+      const collectionName = activity.getCollectionType();
+
       expect(collectionName).toBe('activity');
     });
 
     it('when not given an actor', () => {
-      const createObject = () => new APActivity({
+      const createActivity = () => new APActivity({
         type: 'Create',
       });
 
-      expect(createObject).toThrow();
+      expect(createActivity).toThrow();
     });
   });
 });

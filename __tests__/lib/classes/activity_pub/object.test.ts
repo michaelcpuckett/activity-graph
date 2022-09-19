@@ -10,9 +10,16 @@ describe('Types', () => {
         type: 'Note',
       });
 
-      const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
-
       expect(object).toBeTruthy();
+    });
+
+    it('can get the collection name', () => {
+      const object = new APObject({
+        type: 'Note',
+      });
+
+      const collectionName = object.getCollectionType();
+
       expect(collectionName).toBe('object');
     });
 

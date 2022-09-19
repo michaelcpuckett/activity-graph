@@ -6,22 +6,29 @@ import {
 describe('Types', () => {
   describe('can handle an Activity Object', () => {
     it('when valid', () => {
-      const object = new APCollection({
+      const collection = new APCollection({
         type: 'Collection',
       });
 
-      const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
+      expect(collection).toBeTruthy();
+    });
 
-      expect(object).toBeTruthy();
+    it('can get the collection name', () => {
+      const collection = new APCollection({
+        type: 'Collection',
+      });
+
+      const collectionName = collection.getCollectionType();
+
       expect(collectionName).toBe('collection');
     });
 
     it('when given a bad type', () => {
-      const createObject = () => new APCollection({
+      const createCollection = () => new APCollection({
         type: 'Create',
       });
 
-      expect(createObject).toThrow();
+      expect(createCollection).toThrow();
     });
   });
 });

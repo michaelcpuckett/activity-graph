@@ -1,5 +1,6 @@
 import { Db, MongoClient } from 'mongodb';
 import { APActivity, APActor, APCollection, APLink, APObject } from '../classes/activity_pub';
+import { APCollectionPage } from '../classes/activity_pub/collection_page';
 import { APCoreObject } from '../classes/activity_pub/core_object';
 import { APThing } from '../classes/activity_pub/thing';
 import { LOCAL_HOSTNAME } from '../globals';
@@ -42,52 +43,52 @@ export class Graph {
     ]);
   }
 
-  private async saveThing(thing: AP.AnyThing) {
-    const url = new URL(thing.id ?? '');
-    const isLocal = url.hostname === LOCAL_HOSTNAME;
-
-    let dbCollection = 'foreign-object';
-
-    if (isLocal) {
-      dbCollection = 'object';
-
-      for (const activityType of Object.values(AP.ActivityTypes)) {
-        if (thing.type === activityType) {
-          dbCollection = new APActivity(thing).getCollectionType();
-          break;
-        }
-      }
-      
-      for (const activityType of Object.values(AP.CollectionTypes)) {
-        if (thing.type === activityType) {
-          dbCollection = new APCollection(thing).getCollectionType();
-          break;
-        }
-      }
-      
-      for (const activityType of Object.values(AP.LinkTypes)) {
-        if (thing.type === activityType) {
-          dbCollection = new APLink(thing).getCollectionType();
-          break;
-        }
-      }
-      
-      for (const activityType of Object.values(AP.ActorTypes)) {
-        if (thing.type === activityType) {
-          dbCollection = new APActor(thing).getCollectionType();
-          break;
-        }
-      }
-      
-      for (const activityType of Object.values(AP.ObjectTypes)) {
-        if (thing.type === activityType) {
-          dbCollection = new APObject(thing).getCollectionType();
-          break;
-        }
+  getTypedThing(thing: AP.AnyThing) {
+    for (const linkType of Object.values(AP.LinkTypes)) {
+      if (thing.type === linkType) {
+        return new APLink(thing);
       }
     }
 
-    await this.db.collection(isLocal ? dbCollection : 'foreign-object').replaceOne(
+    for (const activityType of Object.values(AP.ActivityTypes)) {
+      if (thing.type === activityType) {
+        return new APActivity(thing);
+      }
+    }
+    
+    for (const actorType of Object.values(AP.ActorTypes)) {
+      if (thing.type === actorType) {
+        return new APActor(thing);
+      }
+    }
+    
+    for (const collectionType of Object.values(AP.CollectionTypes)) {
+      if (thing.type === collectionType) {
+        return new APCollection(thing);
+      }
+    }
+    
+    for (const collectionPageType of Object.values(AP.CollectionPageTypes)) {
+      if (thing.type === collectionPageType) {
+        return new APCollectionPage(thing);
+      }
+    }
+    
+    for (const objectType of Object.values(AP.ObjectTypes)) {
+      if (thing.type === objectType) {
+        return new APObject(thing);
+      }
+    }
+
+    return null;
+  }
+
+  private async saveThing(thing: AP.AnyThing) {
+    const url = new URL(thing.id ?? '');
+    const isLocal = url.hostname === LOCAL_HOSTNAME;
+    const dbCollection = isLocal ? this.getTypedThing(thing)?.getCollectionType() ?? 'object' : 'foreign-object';
+
+    await this.db.collection(dbCollection).replaceOne(
         {
           _id: isLocal ? url.pathname : url,
         },

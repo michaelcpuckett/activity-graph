@@ -68,11 +68,11 @@ export const CollectionPageTypes = {
 } as const;
 
 export const CoreObjectTypes = {
+  ...CollectionPageTypes,
   ...ObjectTypes,
   ...ActorTypes,
   ...ActivityTypes,
   ...CollectionTypes,
-  ...CollectionPageTypes,
 } as const;
 
 export const AllTypes = {
@@ -454,16 +454,22 @@ export type OrderedCollection = Collection & {
 
 export type AnyCollection = Collection | OrderedCollection;
 
-export type CollectionPage = Collection & {
+export type CollectionPage = CoreObject & {
   type: typeof CollectionPageTypes[keyof typeof CollectionPageTypes];
-  partOf: string | CollectionPage | Link;
-  next: string | CollectionPage | Link;
-  prev: string | CollectionPage | Link;
+  partOf?: string | CollectionPage | Link;
+  next?: string | CollectionPage | Link;
+  prev?: string | CollectionPage | Link;
+  totalItems?: number;
+  items?: ObjectOrLinkReference;
+  current?: string | CollectionPage | Link;
+  first?: string | CollectionPage | Link;
+  last?: string | CollectionPage | Link;
 };
 
-export type OrderedCollectionPage = OrderedCollection & CollectionPage & {
+export type OrderedCollectionPage = CollectionPage & {
   type: typeof CollectionPageTypes.ORDERED_COLLECTION_PAGE;
-  startIndex: number;
+  startIndex?: number;
+  orderedItems?: ObjectOrLinkReference;
 };
 
 export type AnyCollectionPage = CollectionPage | OrderedCollectionPage;

@@ -6,48 +6,45 @@ import {
 describe('Types', () => {
   describe('can handle an Actor Object', () => {
     it('when valid', () => {
-      const object = new APActor({
+      const actor = new APActor({
         type: 'Person',
         preferredUsername: 'foobar',
         inbox: 'http://un.org',
         outbox: 'http://un.org',
       });
 
-      const [, collectionName, collectionId] = new URL(object.id ?? '').pathname.split('/');
-
-      expect(object).toBeTruthy();
-      expect(collectionName).toBe('actor');
-      expect(collectionId).toBe('foobar');
+      expect(actor).toBeTruthy();
     });
 
-    it('creates a random ID when not given a preferredUsername', () => {
-      const object = new APActor({
+    it('can get the collection name', () => {
+      const actor = new APActor({
         type: 'Person',
+        preferredUsername: 'foobar',
         inbox: 'http://un.org',
         outbox: 'http://un.org',
       });
 
-      const [, collectionName] = new URL(object.id ?? '').pathname.split('/');
+      const collectionName = actor.getCollectionType();
 
       expect(collectionName).toBe('actor');
     });
 
     it('when not given an inbox', () => {
-      const createObject = () => new APActor({
+      const createActor = () => new APActor({
         type: 'Person',
         outbox: 'http://un.org',
       });
 
-      expect(createObject).toThrow();
+      expect(createActor).toThrow();
     });
 
     it('when not given an outbox', () => {
-      const createObject = () => new APActor({
+      const createActor = () => new APActor({
         type: 'Person',
         inbox: 'http://un.org',
       });
 
-      expect(createObject).toThrow();
+      expect(createActor).toThrow();
     });
   });
 });

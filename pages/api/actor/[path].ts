@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Graph } from '../../lib/graph';
-import { CONTEXT, LOCAL_DOMAIN } from '../../lib/globals';
-import * as AP from '../../lib/types/activity_pub';
+import { Graph } from '../../../lib/graph';
+import { CONTEXT, LOCAL_DOMAIN } from '../../../lib/globals';
+import * as AP from '../../../lib/types/activity_pub';
 
 export default async function handler(
   req: NextApiRequest,

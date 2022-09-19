@@ -5,16 +5,28 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/object/:path/:object/:guid',
-        destination: '/api/object/:path/:object/:guid',
-      },
-      {
-        source: '/object/:path/:object',
-        destination: '/api/object/:path/:object',
+        source: '/actor/:path',
+        destination: '/api/actor/:path',
       },
       {
         source: '/object/:path',
         destination: '/api/object/:path',
+      },
+      {
+        source: '/activity/:path',
+        destination: '/api/activity/:path',
+      },
+      {
+        source: '/collection/:path',
+        destination: '/api/collection/:path',
+      },
+      {
+        source: '/link/:path',
+        destination: '/api/link/:path',
+      },
+      {
+        source: '/collection-page/:path',
+        destination: '/api/collection-page/:path',
       },
   ]}
 }

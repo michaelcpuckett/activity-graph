@@ -117,7 +117,7 @@ export default async function handler(
       totalItems: 0,
       orderedItems: [],
     }),
-    "streams": [
+    streams: [
       new APCollection({
         id: `${id}/blocked`,
         type: AP.CollectionTypes.COLLECTION,
@@ -131,13 +131,13 @@ export default async function handler(
         items: [],
       }),
     ],
-    "endpoints": {
-      "sharedInbox": `${LOCAL_DOMAIN}/inbox`,
+    endpoints: {
+      sharedInbox: `${LOCAL_DOMAIN}/inbox`,
     },
-    "publicKey": {
-        "id": `${id}}#main-key`,
-        "owner": `${id}`,
-        "publicKeyPem": publicKey
+    publicKey: {
+        id: `${id}}#main-key`,
+        owner: id,
+        publicKeyPem: publicKey
     },
   });
 

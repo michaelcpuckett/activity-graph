@@ -68,11 +68,11 @@ export const CollectionPageTypes = {
 } as const;
 
 export const CoreObjectTypes = {
-  ...CollectionPageTypes,
   ...ObjectTypes,
   ...ActorTypes,
   ...ActivityTypes,
   ...CollectionTypes,
+  ...CollectionPageTypes,
 } as const;
 
 export const AllTypes = {

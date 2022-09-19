@@ -7,16 +7,19 @@ import { FormEventHandler, MouseEventHandler } from 'react';
 import { ACTIVITYSTREAMS_CONTEXT } from '../lib/globals';
 import * as AP from '../lib/types/activity_pub';
 import { Graph } from '../lib/graph';
+import { APOrderedCollection } from '../lib/classes/activity_pub';
+import { APThing } from '../lib/classes/activity_pub/thing';
 
 const PUBLIC_ACTOR = `${ACTIVITYSTREAMS_CONTEXT}#Public`;
 
 type Data = {
   actor: AP.Actor|null;
+  inbox?: AP.AnyThing[];
 }
 
 export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookies: { __session?: string; } }}) => {
   const graph = await Graph.connect();
-  const actor = await graph.getActorByToken(req.cookies.__session ?? '')
+  const actor = await graph.getActorByToken(req.cookies.__session ?? '');
 
   if (!actor) {
     return {
@@ -26,15 +29,51 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
     }
   }
 
+  const inboxUrl = ('inbox' in actor && typeof actor.inbox === 'string') ? actor.inbox : (typeof actor.inbox === 'string') ? actor.inbox : ('url' in actor.inbox) ? typeof actor.inbox.url === 'string' ? actor.inbox.url : '' : '';
+  let inboxItems: Array<AP.Thing> = [];
+
+  if (inboxUrl) {
+    const inbox = await graph.findOne('collection', { _id: inboxUrl });
+    if (inbox && 'orderedItems' in inbox && inbox.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+      const { orderedItems } = new APOrderedCollection(inbox);
+
+      if (Array.isArray(orderedItems) && orderedItems.length) {
+        inboxItems = await Promise.all(orderedItems.map(async (orderedItem): Promise<AP.Thing> => {
+          if (typeof orderedItem === 'string') {
+            const item = await graph.findOne(graph.getCollectionNameByUrl(orderedItem), {
+              _id: orderedItem,
+            });
+            if (item && 'type' in item) {
+              return item;
+            }
+            return ({
+              type: 'Note',
+              id: orderedItem,
+            });
+          } else if ('type' in orderedItem) {
+            return orderedItem;
+          } else {
+            return {
+              type: 'Note',
+              id: orderedItem,
+            }
+          }
+        }));
+      }
+    }
+  }
+
   return {
     props: {
       actor,
+      inbox: inboxItems,
     }
   };
 }
 
 function Dashboard({
   actor,
+  inbox,
 }: Data) {
 
   if (!actor) {
@@ -81,6 +120,7 @@ function Dashboard({
             ) : null}
           </ul>
         </nav>
+        <textarea defaultValue={JSON.stringify(inbox)}></textarea>
       </main>
     </div>
   )

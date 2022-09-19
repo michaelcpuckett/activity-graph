@@ -24,7 +24,7 @@ export class Graph {
 
   // Find.
 
-  public async findOne(collection: string, matchingObject: Object) {
+  public async findOne(collection: string, matchingObject: Object): Promise<AP.AnyThing|null> {
     const value = await this.db.collection(collection).findOne(matchingObject);
 
     if (!value) {
@@ -44,12 +44,32 @@ export class Graph {
     return await this.findOne(collectionName, { _id });
   }
 
-  public async findStringValueById(dbCollection: string, _id: string) {
-    return (await this.findOne(dbCollection, { _id }))?.value ?? '';
+  public async findStringValueById(dbCollection: string, _id: string): Promise<string> {
+    const one = await this.db.collection(dbCollection).findOne({ _id });
+
+    if (!one) {
+      return '';
+    }
+
+    if (!('value' in one) || typeof one.value !== 'string') {
+      return '';
+    }
+
+    return one.value;
   }
 
-  public async findStringIdByValue(dbCollection: string, value: string) {
-    return (await this.findOne(dbCollection, { value }))?._id ?? '';
+  public async findStringIdByValue(dbCollection: string, value: string): Promise<string> {
+    const one = await this.db.collection(dbCollection).findOne({ value });
+
+    if (!one) {
+      return '';
+    }
+
+    if (!('_id' in one) || typeof one._id !== 'string') {
+      return '';
+    }
+
+    return one._id;
   }
   
   async getAuthenticatedUserIdByToken(token: string): Promise<string|null> {
@@ -78,7 +98,7 @@ export class Graph {
     return user.uid;
   }
 
-  async getActorByToken(token: string): Promise<string|null> {
+  async getActorByToken(token: string): Promise<AP.AnyActor|null> {
     const userId = await this.getAuthenticatedUserIdByToken(token);
 
     if (!userId) {
@@ -86,8 +106,13 @@ export class Graph {
     }
 
     const preferredUsername = await this.findStringValueById('username', userId);
+    const user = await this.findOne('actor', { preferredUsername });
 
-    return await this.findOne('actor', { preferredUsername });
+    if (user && 'preferredUsername' in user) {
+      return user;
+    }
+
+    return null;
   }
 
   // Save.
@@ -138,6 +163,15 @@ export class Graph {
 
   async insertOrderedItem(path: string, url: string) {
     const collectionItem = await this.findOne('collection', { _id: path });
+
+    if (!collectionItem || !('orderedItems' in collectionItem)) {
+      throw new Error('Error');
+    }
+
+    if (collectionItem.type === AP.CollectionPageTypes.ORDERED_COLLECTION_PAGE) {
+      throw new Error('Error');
+    }
+
     const collection = new APOrderedCollection(collectionItem);
     console.log(collection.totalItems);
 
@@ -153,6 +187,15 @@ export class Graph {
   
   async removeOrderedItem(path: string, url: string) {
     const collectionItem = await this.findOne('collection', { _id: path });
+
+    if (!collectionItem || !('orderedItems' in collectionItem)) {
+      throw new Error('Error');
+    }
+
+    if (collectionItem.type === AP.CollectionPageTypes.ORDERED_COLLECTION_PAGE) {
+      throw new Error('Error');
+    }
+
     const collection = new APOrderedCollection(collectionItem);
     console.log(collection.totalItems);
 
@@ -168,9 +211,15 @@ export class Graph {
 
   async insertItem(path: string, url: string) {
     const collectionItem = await this.findOne('collection', { _id: path });
-    console.log(path, collectionItem);
+
+    if (!collectionItem || !('orderedItems' in collectionItem)) {
+      throw new Error('Error');
+    }
+
+    if (collectionItem.type === AP.CollectionPageTypes.ORDERED_COLLECTION_PAGE) {
+      throw new Error('Error');
+    }
     const collection = new APCollection(collectionItem);
-    console.log(collection.totalItems);
 
     await this.db.collection('collection').updateOne({
       _id: path
@@ -184,6 +233,14 @@ export class Graph {
   
   async removeItem(path: string, url: string) {
     const collectionItem = await this.findOne('collection', { _id: path });
+
+    if (!collectionItem || !('orderedItems' in collectionItem)) {
+      throw new Error('Error');
+    }
+
+    if (collectionItem.type === AP.CollectionPageTypes.ORDERED_COLLECTION_PAGE) {
+      throw new Error('Error');
+    }
     const collection = new APCollection(collectionItem);
     console.log(collection.totalItems);
 
@@ -200,7 +257,7 @@ export class Graph {
   // Other
 
   // TODO?
-  private getCollectionNameByUrl(url: string) {
+  public getCollectionNameByUrl(url: string) {
     const [ , collectionName, identifier, nextIdentifier, finalIdentifier ] = new URL(url).pathname.split('/');
 
     return (!finalIdentifier && nextIdentifier) ? 'collection' : collectionName;

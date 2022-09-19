@@ -25,7 +25,18 @@ export class Graph {
   // Find.
 
   public async findOne(collection: string, matchingObject: Object) {
-    return JSON.parse(JSON.stringify(await this.db.collection(collection).findOne(matchingObject)));
+    const value = await this.db.collection(collection).findOne(matchingObject);
+
+    if (!value) {
+      return value;
+    }
+
+    const {
+      _id,
+      ...one
+    } = JSON.parse(JSON.stringify(value));
+
+    return one;
   }
 
   public async findThingById(id: string) {

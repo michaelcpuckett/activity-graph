@@ -1,3 +1,4 @@
+import { ACTIVITYSTREAMS_CONTEXT, CONTEXT } from '../../globals';
 import * as AP from '../../types/activity_pub';
 import { APThing } from './thing';
 
@@ -55,5 +56,24 @@ export class APCoreObject extends APThing implements AP.CoreObject {
     } else {
       throw new Error('Could not generate URL');
     }
+  }
+
+  public override formatPublicObject(): AP.AnyThing & {
+    [CONTEXT]: string|string[];
+  } {
+    const compressed = this.compress();
+
+    if ('bto' in compressed) {
+      delete compressed.bto;
+    }
+
+    if ('bcc' in compressed) {
+      delete compressed.bcc;
+    }
+
+    return {
+      [CONTEXT]: ACTIVITYSTREAMS_CONTEXT,
+      ...compressed,
+    };
   }
 }

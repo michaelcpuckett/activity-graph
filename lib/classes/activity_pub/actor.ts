@@ -1,3 +1,4 @@
+import { ACTIVITYSTREAMS_CONTEXT, CONTEXT, W3ID_SECURITY_CONTEXT } from '../../globals';
 import * as AP from '../../types/activity_pub';
 import { APCoreObject } from './core_object';
 
@@ -53,5 +54,27 @@ export class APActor extends APCoreObject implements AP.Actor {
     }
 
     this.outbox = actor.outbox;
+  }
+
+  public override formatPublicObject(): AP.AnyThing & {
+    [CONTEXT]: string|string[];
+  } {
+    const compressed = this.compress();
+
+    if ('bto' in compressed) {
+      delete compressed.bto;
+    }
+
+    if ('bcc' in compressed) {
+      delete compressed.bcc;
+    }
+
+    return {
+      [CONTEXT]: [
+        ACTIVITYSTREAMS_CONTEXT,
+        W3ID_SECURITY_CONTEXT,
+      ],
+      ...compressed,
+    };
   }
 };

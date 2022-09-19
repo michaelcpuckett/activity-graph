@@ -1,6 +1,6 @@
 import * as AP from '../../types/activity_pub';
 import { getGuid } from "../../crypto";
-import { LOCAL_DOMAIN } from '../../globals';
+import { ACTIVITYSTREAMS_CONTEXT, CONTEXT, LOCAL_DOMAIN } from '../../globals';
 
 export class APThing implements AP.Thing {
   id: string | null;
@@ -109,5 +109,14 @@ export class APThing implements AP.Thing {
       }
       return '';
     }
+  }
+
+  public formatPublicObject(): AP.AnyThing & {
+    [CONTEXT]: string|string[];
+  } {
+    return {
+      [CONTEXT]: ACTIVITYSTREAMS_CONTEXT,
+      ...this.compress(),
+    };
   }
 }

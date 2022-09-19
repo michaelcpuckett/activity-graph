@@ -22,10 +22,16 @@ export class Graph {
     return new Graph(db);
   }
 
-  // Get.
+  // Find.
 
   public async findOne(collection: string, matchingObject: Object) {
     return JSON.parse(JSON.stringify(await this.db.collection(collection).findOne(matchingObject)));
+  }
+
+  public async findThingById(id: string) {
+    const [ , collectionName ] = new URL(id).pathname.split('/');
+
+    return await this.findOne(collectionName, { id });
   }
 
   public async findStringValueById(dbCollection: string, _id: string) {

@@ -195,12 +195,11 @@ export default async function handler(
     }),
   });
 
-  await graph.saveActivity(createFriendsGroupActivity);
-
   await Promise.all([
-    // graph.saveString(`${LOCAL_DOMAIN}/account/${user.uid}`, email),
-    // graph.saveString(`${LOCAL_DOMAIN}/private-key/${user.uid}`, privateKey),
-    // graph.saveString(`${LOCAL_DOMAIN}/username/${user.uid}`, preferredUsername),
+    graph.saveActivity(createFriendsGroupActivity),
+    graph.saveString('account', user.uid, email),
+    graph.saveString('private-key', user.uid, privateKey),
+    graph.saveString('username', user.uid, preferredUsername),
   ]);
 
   res.status(200).json({

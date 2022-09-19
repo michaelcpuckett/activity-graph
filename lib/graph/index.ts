@@ -21,18 +21,25 @@ export class Graph {
     return new Graph(db);
   }
 
+  // Get.
+
   private async findOne(collection: string, matchingObject: Object) {
-    // try {
     return JSON.parse(JSON.stringify(await this.db.collection(collection).findOne(matchingObject)));
-    // } catch (error: unknown) {
-    //   return null;
-    // }
+  }
+
+  public async findStringValueById(dbCollection: string, _id: string) {
+    return (await this.findOne(dbCollection, { _id }))?.value ?? '';
+  }
+
+  public async findStringIdByValue(dbCollection: string, value: string) {
+    return (await this.findOne(dbCollection, { value }))?._id ?? '';
   }
 
   public async getActorByPreferredUsername(preferredUsername: string) {
     return await this.findOne('actor', { preferredUsername });
   }
 
+  // Save.
 
   public async saveActivity(activity: APActivity) {
     return await Promise.all([
@@ -43,7 +50,39 @@ export class Graph {
     ]);
   }
 
-  getTypedThing(thing: AP.AnyThing) {
+  public async saveThing(thing: AP.AnyThing) {
+    const url = new URL(thing.id ?? '');
+    const isLocal = url.hostname === LOCAL_HOSTNAME;
+    const dbCollection = isLocal ? this.getTypedThing(thing)?.getCollectionType() ?? 'object' : 'foreign-object';
+
+    return await this.db.collection(dbCollection).replaceOne(
+        {
+          _id: isLocal ? url.pathname : url,
+        },
+        JSON.parse(JSON.stringify(thing)),
+        {
+          upsert: true,
+        }
+    );
+  }
+
+  public async saveString(dbCollection: string, _id: string, value: string) {
+    return await this.db.collection(dbCollection).replaceOne(
+        {
+          _id,
+        },
+        JSON.parse(JSON.stringify({
+          value
+        })),
+        {
+          upsert: true,
+        }
+    );
+  }
+
+  // Other
+
+  public getTypedThing(thing: AP.AnyThing) {
     for (const linkType of Object.values(AP.LinkTypes)) {
       if (thing.type === linkType) {
         return new APLink(thing);
@@ -81,21 +120,5 @@ export class Graph {
     }
 
     return null;
-  }
-
-  private async saveThing(thing: AP.AnyThing) {
-    const url = new URL(thing.id ?? '');
-    const isLocal = url.hostname === LOCAL_HOSTNAME;
-    const dbCollection = isLocal ? this.getTypedThing(thing)?.getCollectionType() ?? 'object' : 'foreign-object';
-
-    await this.db.collection(dbCollection).replaceOne(
-        {
-          _id: isLocal ? url.pathname : url,
-        },
-        JSON.parse(JSON.stringify(thing)),
-        {
-          upsert: true,
-        }
-    );
   }
 }

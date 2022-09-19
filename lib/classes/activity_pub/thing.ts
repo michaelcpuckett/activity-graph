@@ -109,7 +109,5 @@ export class APThing implements AP.Thing {
       }
       return '';
     }
-
   }
-
 }

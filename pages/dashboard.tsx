@@ -14,7 +14,8 @@ const PUBLIC_ACTOR = `${ACTIVITYSTREAMS_CONTEXT}#Public`;
 
 type Data = {
   actor: AP.Actor|null;
-  inbox?: AP.AnyThing[];
+  inbox?: Array<AP.AnyThing|null>;
+  outbox?: Array<AP.AnyThing|null>;
 }
 
 export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookies: { __session?: string; } }}) => {
@@ -30,7 +31,7 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
   }
 
   const inboxUrl = ('inbox' in actor && typeof actor.inbox === 'string') ? actor.inbox : (typeof actor.inbox === 'string') ? actor.inbox : ('url' in actor.inbox) ? typeof actor.inbox.url === 'string' ? actor.inbox.url : '' : '';
-  let inboxItems: Array<AP.Thing> = [];
+  let inboxItems: Array<AP.AnyThing|null> = [];
 
   if (inboxUrl) {
     const inbox = await graph.findOne('collection', { _id: inboxUrl });
@@ -38,7 +39,7 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
       const { orderedItems } = new APOrderedCollection(inbox);
 
       if (Array.isArray(orderedItems) && orderedItems.length) {
-        inboxItems = await Promise.all(orderedItems.map(async (orderedItem): Promise<AP.Thing> => {
+        inboxItems = await Promise.all(orderedItems.map(async (orderedItem): Promise<AP.AnyThing|null> => {
           if (typeof orderedItem === 'string') {
             const item = await graph.findOne(graph.getCollectionNameByUrl(orderedItem), {
               _id: orderedItem,
@@ -46,17 +47,39 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
             if (item && 'type' in item) {
               return item;
             }
-            return ({
-              type: 'Note',
-              id: orderedItem,
-            });
+            return null;
           } else if ('type' in orderedItem) {
             return orderedItem;
           } else {
-            return {
-              type: 'Note',
-              id: orderedItem,
+            return null;
+          }
+        }));
+      }
+    }
+  }
+
+  const outboxUrl = ('outbox' in actor && typeof actor.outbox === 'string') ? actor.outbox : (typeof actor.outbox === 'string') ? actor.outbox : ('url' in actor.outbox) ? typeof actor.outbox.url === 'string' ? actor.outbox.url : '' : '';
+  let outboxItems: Array<AP.AnyThing|null> = [];
+
+  if (outboxUrl) {
+    const outbox = await graph.findOne('collection', { _id: outboxUrl });
+    if (outbox && 'orderedItems' in outbox && outbox.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+      const { orderedItems } = new APOrderedCollection(outbox);
+
+      if (Array.isArray(orderedItems) && orderedItems.length) {
+        outboxItems = await Promise.all(orderedItems.map(async (orderedItem): Promise<AP.AnyThing|null> => {
+          if (typeof orderedItem === 'string') {
+            const item = await graph.findOne(graph.getCollectionNameByUrl(orderedItem), {
+              _id: orderedItem,
+            });
+            if (item && 'type' in item) {
+              return item;
             }
+            return null;
+          } else if ('type' in orderedItem) {
+            return orderedItem;
+          } else {
+            return null;
           }
         }));
       }
@@ -67,6 +90,7 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
     props: {
       actor,
       inbox: inboxItems,
+      outbox: outboxItems,
     }
   };
 }
@@ -74,6 +98,7 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
 function Dashboard({
   actor,
   inbox,
+  outbox,
 }: Data) {
 
   if (!actor) {
@@ -120,7 +145,22 @@ function Dashboard({
             ) : null}
           </ul>
         </nav>
-        <textarea defaultValue={JSON.stringify(inbox)}></textarea>
+        <h2>Inbox</h2>
+        <ul>
+          {inbox?.map(thing => thing ? (
+            <li key={thing.id}>
+              {thing.type}
+            </li>
+          ) : null)}
+        </ul>
+        <h2>Outbox</h2>
+        <ul>
+          {outbox?.map(thing => thing ? (
+            <li key={thing.id}>
+              {thing.type}
+            </li>
+          ) : null)}
+        </ul>
       </main>
     </div>
   )

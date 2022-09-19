@@ -135,7 +135,7 @@ export default async function handler(
       sharedInbox: `${LOCAL_DOMAIN}/inbox`,
     },
     publicKey: {
-        id: `${id}}#main-key`,
+        id: `${id}#main-key`,
         owner: id,
         publicKeyPem: publicKey
     },

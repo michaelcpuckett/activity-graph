@@ -1,10 +1,11 @@
 import { Db, MongoClient } from 'mongodb';
 import { APActivity, APActor, APCollection, APLink, APObject } from '../classes/activity_pub';
 import { APCollectionPage } from '../classes/activity_pub/collection_page';
-import { APCoreObject } from '../classes/activity_pub/core_object';
-import { APThing } from '../classes/activity_pub/thing';
 import { LOCAL_HOSTNAME } from '../globals';
 import * as AP from '../types/activity_pub';
+import * as firebaseAdmin from 'firebase-admin';
+import { AppOptions } from 'firebase-admin';
+import serviceAccount from '../../credentials';
 
 export class Graph {
   db: Db;
@@ -23,7 +24,7 @@ export class Graph {
 
   // Get.
 
-  private async findOne(collection: string, matchingObject: Object) {
+  public async findOne(collection: string, matchingObject: Object) {
     return JSON.parse(JSON.stringify(await this.db.collection(collection).findOne(matchingObject)));
   }
 
@@ -34,8 +35,42 @@ export class Graph {
   public async findStringIdByValue(dbCollection: string, value: string) {
     return (await this.findOne(dbCollection, { value }))?._id ?? '';
   }
+  
+  async getAuthenticatedUserIdByToken(token: string): Promise<string|null> {
+    if (!firebaseAdmin.apps.length) {
+      const appOptions: AppOptions = {
+        credential: firebaseAdmin.credential.cert(serviceAccount),
+        projectId: "socialweb-id",
+      };
+  
+      firebaseAdmin.initializeApp(appOptions);
+    }
+  
+    const user = !token ? null : await firebaseAdmin.auth().verifyIdToken(token)
+        .then(async (userCredential) => {
+            return userCredential ?? null;
+        })
+        .catch((error) => {
+            console.error(error);
+            return null;
+        });
+  
+    if (!user?.uid) {
+      return null;
+    }
 
-  public async getActorByPreferredUsername(preferredUsername: string) {
+    return user.uid;
+  }
+
+  async getActorByToken(token: string): Promise<string|null> {
+    const userId = await this.getAuthenticatedUserIdByToken(token);
+
+    if (!userId) {
+      return null;
+    }
+
+    const preferredUsername = await this.findStringValueById('username', userId);
+
     return await this.findOne('actor', { preferredUsername });
   }
 

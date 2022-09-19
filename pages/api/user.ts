@@ -31,7 +31,7 @@ export default async function handler(
     preferredUsername,
   } = JSON.parse(req.body);
 
-  const isUsernameTaken = !!(await graph.getActorByPreferredUsername(preferredUsername));
+  const isUsernameTaken = !!(await graph.findOne('actor', { preferredUsername }));
   
   const RESERVED_USERNAMES = [
     'owner',

@@ -32,68 +32,39 @@ export class Graph {
     return await this.findOne('actor', { preferredUsername });
   }
 
-  
-  async createCollection(objectUrl: string, collectionType: typeof AP.CollectionTypes[keyof typeof AP.CollectionTypes] = AP.CollectionTypes.COLLECTION) {
-    // try {
-      const [ , collectionName, parent, identifier ] = new URL(objectUrl).pathname.split('/');
-
-      const name = collectionName[0].toUpperCase() + collectionName.slice(1);
-
-      const collection = new APCollection({
-        "id": objectUrl,
-        "type": collectionType,
-        "name": name,
-        "url": objectUrl,
-        "items": [],
-      });
-
-      await this.db.collection(collectionName).updateOne({
-          identifier: `${parent}/${identifier}`
-      }, {
-          $set: collection.compress(),
-      }, {
-          upsert: true,
-      });
-    // } catch (error: unknown) {
-    //   console.error(error);
-    //   throw new Error(String(error));
-    // }
-  }
-
 
   public async saveActivity(activity: APActivity) {
     return await Promise.all([
       this.saveThing(activity.compress()),
-      ...Object.values(activity.getCompressedProps()).map(async (thing) => {
-        return await this.saveThing(thing as APThing);
+      ...Object.values(activity.getCompressedProps()).map(async thing => {
+        return await this.saveThing(thing);
       }),
     ]);
   }
 
-  private async saveThing(thing: APThing) {
-    try {
+  private async saveThing(thing: AP.Thing) {
+    // try {
       const url = new URL(thing.id ?? '');
       const isLocal = url.hostname === LOCAL_HOSTNAME;
 
       const [
         ,
-        collection,
-        guid,
+        dbCollection,
       ] = url.pathname.split('/');
 
-        await this.db.collection(isLocal ? collection : 'foreign-object').replaceOne(
+        await this.db.collection(isLocal ? dbCollection : 'foreign-object').replaceOne(
             {
-              _id: isLocal ? guid : url,
+              _id: url.pathname.split(`/${dbCollection}/`)[1],
             },
             JSON.parse(JSON.stringify(thing)),
             {
               upsert: true,
             }
         );
-    } catch (error: unknown) {
-        console.error(error);
-        throw new Error(String(error));
-    }
+    // } catch (error: unknown) {
+    //     console.error(error);
+    //     throw new Error(String(error));
+    // }
 }
 
 }

@@ -448,7 +448,8 @@ export type Collection = CoreObject & {
 }
 
 export type OrderedCollection = Collection & {
-  type: typeof CollectionTypes.ORDERED_COLLECTION; 
+  type: typeof CollectionTypes.ORDERED_COLLECTION;
+  orderedItems?: ObjectOrLinkReference;
 };
 
 export type AnyCollection = Collection | OrderedCollection;

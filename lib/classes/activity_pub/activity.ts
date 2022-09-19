@@ -1,6 +1,5 @@
 import * as AP from '../../types/activity_pub';
 import { APCoreObject } from './core_object';
-import { APThing } from './thing';
 
 export class APActivity extends APCoreObject implements AP.Activity {
   type: typeof AP.ActivityTypes[keyof typeof AP.ActivityTypes];

@@ -31,32 +31,57 @@ export class APThing implements AP.Thing {
     }
 
     Object.assign(this, thing);
-  }  
+  }
 
   getCompressedProps() {
-    const compressedProps = [];
+    return this.recursiveGetCompressedProps(this);
+  }
+
+  private recursiveGetCompressedProps(thing: APThing) {
+    const compressedProps: Array<AP.Thing> = [];
     
-    for (const key in this) {
-      const value = this[key];
+    for (const key of Object.keys(thing)) {
+      const value = thing[key as keyof APThing];
 
       if (value && typeof value === 'object' && 'type' in value) {
-        compressedProps.push([key, new APThing(value).compress()]);
+        const thing = new APThing(value);
+        compressedProps.push(thing.compress());
+        thing.getCompressedProps().map(compressedProp => {
+          compressedProps.push(compressedProp);
+        });
+      } else if (Array.isArray(value) && 'length' in value) {
+        value.forEach(item => {
+          if (item && typeof item === 'object' && 'type' in item) {
+            const thing = new APThing(item);
+            compressedProps.push(thing.compress());
+            thing.getCompressedProps().map(compressedProp => {
+              compressedProps.push(compressedProp);
+            });
+          }
+        });
       }
     }
 
-    return Object.fromEntries(compressedProps);
+    return compressedProps;
   }
 
-  public compress() {
+  public compress(): AP.Thing {
     const compressedThing = [];
 
     for (const prop in this) {
       const value = this[prop];
 
-      if (typeof value === 'string') {
-        compressedThing.push([prop, value]);
-      } else if (value && typeof value === 'object' && 'type' in value) {
+      if (value && typeof value === 'object' && 'type' in value) {
         compressedThing.push([prop, this.getUrlForm(value)]);
+      } else if (Array.isArray(value) && 'length' in value && value.length) {
+        compressedThing.push([prop, value.map(item => {
+          if (item && typeof item === 'object' && 'type' in item) {
+            return this.getUrlForm(item);
+          }
+          return item;
+        })]);
+      } else {
+        compressedThing.push([prop, value]);
       }
     }
 

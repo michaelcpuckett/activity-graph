@@ -23,3 +23,18 @@ export class APCollection extends APCoreObject implements AP.Collection {
     }
   }
 };
+
+export class APOrderedCollection extends APCollection implements AP.OrderedCollection {
+  type: typeof AP.CollectionTypes.ORDERED_COLLECTION;
+  orderedItems?: AP.ObjectOrLinkReference;
+
+  constructor(collection: AP.OrderedCollection) {
+    super(collection);
+
+    if (collection.type !== AP.CollectionTypes.ORDERED_COLLECTION) {
+      throw new Error('Must be an OrderedCollection.')
+    } else {
+      this.type = collection.type;
+    }
+  }
+}

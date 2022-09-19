@@ -9,8 +9,9 @@ import {
   LOCAL_DOMAIN
 } from '../../lib/globals';
 import * as AP from '../../lib/types/activity_pub'
-import { APActivity, APActor, APObject } from '../../lib/classes/activity_pub';
+import { APActivity, APActor, APCollection, APObject } from '../../lib/classes/activity_pub';
 import { generateKeyPair } from '../../lib/crypto';
+import { APOrderedCollection } from '../../lib/classes/activity_pub/collection';
 
 type Data = {
   error?: string;
@@ -86,18 +87,60 @@ export default async function handler(
     type: AP.ActorTypes.PERSON,
     name,
     preferredUsername,
-    inbox: `${id}/inbox`,
-    outbox: `${id}/outbox`,
+    inbox: new APOrderedCollection({
+      id: `${id}/inbox`,
+      url: `${id}/inbox`,
+      type: AP.CollectionTypes.ORDERED_COLLECTION,
+      totalItems: 0,
+      orderedItems: []
+    }),
+    outbox: new APOrderedCollection({
+      id: `${id}/outbox`,
+      url: `${id}/outbox`,
+      type: AP.CollectionTypes.ORDERED_COLLECTION,
+      totalItems: 0,
+      orderedItems: [],
+    }),
     published: new Date(),
-    "followers": `${id}/followers`,
-    "following": `${id}/following`,
-    "liked": `${id}/liked`,
+    followers: new APCollection({
+      id: `${id}/followers`,
+      url: `${id}/followers`,
+      type: AP.CollectionTypes.COLLECTION,
+      totalItems: 0,
+      items: [],
+    }),
+    following: new APCollection({
+      id: `${id}/following`,
+      url: `${id}/following`,
+      type: AP.CollectionTypes.COLLECTION,
+      totalItems: 0,
+      items: [],
+    }),
+    liked: new APOrderedCollection({
+      id: `${id}/liked`,
+      url: `${id}/liked`,
+      type: AP.CollectionTypes.ORDERED_COLLECTION,
+      totalItems: 0,
+      orderedItems: [],
+    }),
     "streams": [
-      `${id}/blocked`,
-      `${id}/groups`,
+      new APCollection({
+        id: `${id}/blocked`,
+        url: `${id}/blocked`,
+        type: AP.CollectionTypes.COLLECTION,
+        totalItems: 0,
+        items: [],
+      }),
+      new APCollection({
+        id: `${id}/groups`,
+        url: `${id}/groups`,
+        type: AP.CollectionTypes.COLLECTION,
+        totalItems: 0,
+        items: [],
+      }),
     ],
     "endpoints": {
-        "sharedInbox": `${LOCAL_DOMAIN}/inbox`,
+      "sharedInbox": `${LOCAL_DOMAIN}/inbox`,
     },
     "publicKey": {
         "id": `${id}}#main-key`,
@@ -112,11 +155,23 @@ export default async function handler(
     type: AP.ActivityTypes.CREATE,
     actor: new APActor({
       id: botServiceUrl,
+      url: botServiceUrl,
       type: AP.ActorTypes.APPLICATION,
       name: 'Bot',
-      url: botServiceUrl,
-      inbox: `${botServiceUrl}/inbox`,
-      outbox: `${botServiceUrl}/outbox`,
+      inbox: new APOrderedCollection({
+        id: `${botServiceUrl}/inbox`,
+        url: `${botServiceUrl}/inbox`,
+        type: AP.CollectionTypes.ORDERED_COLLECTION,
+        totalItems: 0,
+        orderedItems: []
+      }),
+      outbox: new APOrderedCollection({
+        id: `${botServiceUrl}/outbox`,
+        url: `${botServiceUrl}/outbox`,
+        type: AP.CollectionTypes.ORDERED_COLLECTION,
+        totalItems: 0,
+        orderedItems: [],
+      }),
     }),
     object: actor,
   });
@@ -129,29 +184,31 @@ export default async function handler(
     object: new APActor({
       type: AP.ActorTypes.GROUP,
       name: 'Friends',
+      id: `${id}/groups/friends`,
       url: `${id}/groups/friends`,
-      inbox: `${id}/groups/friends/inbox`,
-      outbox: `${id}/groups/friends/outbox`,
+      inbox: new APOrderedCollection({
+        id: `${id}/groups/friends/inbox`,
+        url: `${id}/groups/friends/inbox`,
+        type: AP.CollectionTypes.ORDERED_COLLECTION,
+        totalItems: 0,
+        orderedItems: []
+      }),
+      outbox: new APOrderedCollection({
+        id: `${id}/groups/friends/outbox`,
+        url: `${id}/groups/friends/outbox`,
+        type: AP.CollectionTypes.ORDERED_COLLECTION,
+        totalItems: 0,
+        orderedItems: [],
+      }),
     }),
   });
 
   await graph.saveActivity(createFriendsGroupActivity);
 
   await Promise.all([
-    // graph.setString(`${LOCAL_DOMAIN}/account/${user.uid}`, email),
-    // graph.setString(`${LOCAL_DOMAIN}/private-key/${user.uid}`, privateKey),
-    // graph.setString(`${LOCAL_DOMAIN}/username/${user.uid}`, preferredUsername),
-    
-    // TODO graph.saveThing(new Collection({})) ...
-    
-    graph.createCollection(`${id}/inbox`, AP.CollectionTypes.ORDERED_COLLECTION),
-    graph.createCollection(`${id}/outbox`, AP.CollectionTypes.ORDERED_COLLECTION),
-    graph.createCollection(`${id}/followers`),
-    graph.createCollection(`${id}/following`),
-    graph.createCollection(`${id}/liked`, AP.CollectionTypes.ORDERED_COLLECTION),
-    graph.createCollection(`${id}/blocked`),
-    graph.createCollection(`${id}/groups`),
-    graph.createCollection(`${id}/collections`),
+    // graph.saveString(`${LOCAL_DOMAIN}/account/${user.uid}`, email),
+    // graph.saveString(`${LOCAL_DOMAIN}/private-key/${user.uid}`, privateKey),
+    // graph.saveString(`${LOCAL_DOMAIN}/username/${user.uid}`, preferredUsername),
   ]);
 
   res.status(200).json({

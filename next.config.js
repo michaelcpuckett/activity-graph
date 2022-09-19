@@ -6,27 +6,35 @@ const nextConfig = {
     return [
       {
         source: '/actor/:path',
-        destination: '/api/actor/:path',
+        destination: '/api/thing/:path',
+      },
+      {
+        source: '/actor/:username/:path',
+        destination: '/api/thing/:path',
+      },
+      {
+        source: '/actor/:username/:collection/:path',
+        destination: '/api/thing/:path',
       },
       {
         source: '/object/:path',
-        destination: '/api/object/:path',
+        destination: '/api/thing/:path',
       },
       {
         source: '/activity/:path',
-        destination: '/api/activity/:path',
+        destination: '/api/thing/:path',
       },
       {
         source: '/collection/:path',
-        destination: '/api/collection/:path',
-      },
-      {
-        source: '/link/:path',
-        destination: '/api/link/:path',
+        destination: '/api/thing/:path',
       },
       {
         source: '/collection-page/:path',
-        destination: '/api/collection-page/:path',
+        destination: '/api/thing/:path',
+      },
+      {
+        source: '/link/:path',
+        destination: '/api/thing/:path',
       },
   ]}
 }

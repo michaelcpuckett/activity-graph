@@ -40,9 +40,9 @@ export class Graph {
   }
 
   public async findThingById(id: string) {
-    const [ , collectionName ] = new URL(id).pathname.split('/');
+    const [ , collectionName, identifier, nextIdentifier, finalIdentifier ] = new URL(id).pathname.split('/');
 
-    return await this.findOne(collectionName, { id });
+    return await this.findOne((nextIdentifier && !finalIdentifier) ? 'collection' : collectionName, { id });
   }
 
   public async findStringValueById(dbCollection: string, _id: string) {

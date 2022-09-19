@@ -83,20 +83,17 @@ export default async function handler(
 
   const actor = new APActor({
     id,
-    url: id,
     type: AP.ActorTypes.PERSON,
     name,
     preferredUsername,
     inbox: new APOrderedCollection({
       id: `${id}/inbox`,
-      url: `${id}/inbox`,
       type: AP.CollectionTypes.ORDERED_COLLECTION,
       totalItems: 0,
       orderedItems: []
     }),
     outbox: new APOrderedCollection({
       id: `${id}/outbox`,
-      url: `${id}/outbox`,
       type: AP.CollectionTypes.ORDERED_COLLECTION,
       totalItems: 0,
       orderedItems: [],
@@ -104,21 +101,18 @@ export default async function handler(
     published: new Date(),
     followers: new APCollection({
       id: `${id}/followers`,
-      url: `${id}/followers`,
       type: AP.CollectionTypes.COLLECTION,
       totalItems: 0,
       items: [],
     }),
     following: new APCollection({
       id: `${id}/following`,
-      url: `${id}/following`,
       type: AP.CollectionTypes.COLLECTION,
       totalItems: 0,
       items: [],
     }),
     liked: new APOrderedCollection({
       id: `${id}/liked`,
-      url: `${id}/liked`,
       type: AP.CollectionTypes.ORDERED_COLLECTION,
       totalItems: 0,
       orderedItems: [],
@@ -126,14 +120,12 @@ export default async function handler(
     "streams": [
       new APCollection({
         id: `${id}/blocked`,
-        url: `${id}/blocked`,
         type: AP.CollectionTypes.COLLECTION,
         totalItems: 0,
         items: [],
       }),
       new APCollection({
         id: `${id}/groups`,
-        url: `${id}/groups`,
         type: AP.CollectionTypes.COLLECTION,
         totalItems: 0,
         items: [],

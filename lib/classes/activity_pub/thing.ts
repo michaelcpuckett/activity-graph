@@ -34,14 +34,14 @@ export class APThing implements AP.Thing {
   }
 
   getCompressedProps() {
-    return this.recursiveGetCompressedProps(this);
+    return this.recursiveGetCompressedProps(JSON.parse(JSON.stringify(this)));
   }
 
-  private recursiveGetCompressedProps(thing: APThing) {
-    const compressedProps: Array<AP.Thing> = [];
+  private recursiveGetCompressedProps(thing: AP.AnyThing) {
+    const compressedProps: Array<AP.AnyThing> = [];
     
     for (const key of Object.keys(thing)) {
-      const value = thing[key as keyof APThing];
+      const value = thing[key as keyof AP.AnyThing];
 
       if (value && typeof value === 'object' && 'type' in value) {
         const thing = new APThing(value);
@@ -65,7 +65,7 @@ export class APThing implements AP.Thing {
     return compressedProps;
   }
 
-  public compress(): AP.Thing {
+  public compress(): AP.AnyThing {
     const compressedThing = [];
 
     for (const prop in this) {

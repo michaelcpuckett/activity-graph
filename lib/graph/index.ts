@@ -37,7 +37,7 @@ export class Graph {
     return await Promise.all([
       this.saveThing(activity.compress()),
       ...Object.values(activity.getCompressedProps()).map(async thing => {
-        return await this.saveThing(thing);
+        return await this.saveThing(new APThing(thing));
       }),
     ]);
   }

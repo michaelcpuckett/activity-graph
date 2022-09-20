@@ -88,58 +88,116 @@ function Dashboard({
           </ul>
         </nav>
         <h2>Inbox</h2>
-        {(actor.inbox && typeof actor.inbox !== 'string' && 'id' in actor.inbox && typeof actor.inbox?.id === 'string' && actor.inbox.orderedItems && typeof actor.inbox.orderedItems !== 'string' && 'orderedItems' in actor.inbox && Array.isArray(actor.inbox.orderedItems)) ? actor.inbox.orderedItems.map(thing => {          
-          if (typeof thing !== 'string' && 'actor' in thing) {
-            const activityTypeHtml = <>
-              <a href={thing.id ?? '#'}>
-                {thing.type}
-              </a>
-            </>;
-
-            let activityActorHtml = <></>;
-            const activityActor = thing.actor;
-
-            if (typeof activityActor !== 'string' && 'inbox' in activityActor) {
-              activityActorHtml = <>
-                <a href={activityActor.id ?? '#'}>
-                  @{activityActor.preferredUsername ?? activityActor.id}
+        <ul>
+          {(actor.inbox && typeof actor.inbox !== 'string' && 'id' in actor.inbox && typeof actor.inbox?.id === 'string' && actor.inbox.orderedItems && typeof actor.inbox.orderedItems !== 'string' && 'orderedItems' in actor.inbox && Array.isArray(actor.inbox.orderedItems)) ? actor.inbox.orderedItems.map(thing => {          
+            if (typeof thing !== 'string' && 'actor' in thing) {
+              const activityTypeHtml = <>
+                <a href={thing.id ?? '#'}>
+                  {thing.type}
                 </a>
-              </>
-            } else if (typeof activityActor === 'string') {
-              activityActorHtml = <>
-                <a href={activityActor}>
-                  {activityActor}
-                </a>
-              </>
+              </>;
+
+              let activityActorHtml = <></>;
+              const activityActor = thing.actor;
+
+              if (typeof activityActor !== 'string' && 'inbox' in activityActor) {
+                activityActorHtml = <>
+                  <a href={activityActor.id ?? '#'}>
+                    @{activityActor.preferredUsername ?? activityActor.id}
+                  </a>
+                </>
+              } else if (typeof activityActor === 'string') {
+                activityActorHtml = <>
+                  <a href={activityActor}>
+                    {activityActor}
+                  </a>
+                </>
+              }
+
+              let activityObjectHtml = <></>;
+              const activityObject = 'object' in thing ? thing.object : null;
+
+              if (activityObject && typeof activityObject !== 'string' && 'name' in activityObject) {
+                activityObjectHtml = <>
+                  <a href={activityObject.id ?? '#'}>
+                    {activityObject.name ?? activityObject.id}
+                  </a>
+                </>
+              } else if (typeof activityObject === 'string') {
+                activityObjectHtml = <>
+                  <a href={activityObject}>
+                    {activityObject}
+                  </a>
+                </>
+              }
+
+              return <li key={thing.id}>
+                {activityActorHtml}
+                {' '}
+                {activityTypeHtml}
+                {' '}
+                {activityObjectHtml}
+              </li>
             }
-
-            let activityObjectHtml = <></>;
-            const activityObject = 'object' in thing ? thing.object : null;
-
-            if (activityObject && typeof activityObject !== 'string' && 'name' in activityObject) {
-              activityObjectHtml = <>
-                <a href={activityObject.id ?? '#'}>
-                  {activityObject.name ?? activityObject.id}
+            return null;
+          }) : null}
+        </ul>
+        
+        <h2>Outbox</h2>
+        <ul>
+          {(actor.outbox && typeof actor.outbox !== 'string' && 'id' in actor.outbox && typeof actor.outbox?.id === 'string' && actor.outbox.orderedItems && typeof actor.outbox.orderedItems !== 'string' && 'orderedItems' in actor.outbox && Array.isArray(actor.outbox.orderedItems)) ? actor.outbox.orderedItems.map(thing => {          
+            if (typeof thing !== 'string' && 'actor' in thing) {
+              const activityTypeHtml = <>
+                <a href={thing.id ?? '#'}>
+                  {thing.type}
                 </a>
-              </>
-            } else if (typeof activityObject === 'string') {
-              activityObjectHtml = <>
-                <a href={activityObject}>
-                  {activityObject}
-                </a>
-              </>
+              </>;
+
+              let activityActorHtml = <></>;
+              const activityActor = thing.actor;
+
+              if (typeof activityActor !== 'string' && 'inbox' in activityActor) {
+                activityActorHtml = <>
+                  <a href={activityActor.id ?? '#'}>
+                    @{activityActor.preferredUsername ?? activityActor.id}
+                  </a>
+                </>
+              } else if (typeof activityActor === 'string') {
+                activityActorHtml = <>
+                  <a href={activityActor}>
+                    {activityActor}
+                  </a>
+                </>
+              }
+
+              let activityObjectHtml = <></>;
+              const activityObject = 'object' in thing ? thing.object : null;
+
+              if (activityObject && typeof activityObject !== 'string' && 'name' in activityObject) {
+                activityObjectHtml = <>
+                  <a href={activityObject.id ?? '#'}>
+                    {activityObject.name ?? activityObject.id}
+                  </a>
+                </>
+              } else if (typeof activityObject === 'string') {
+                activityObjectHtml = <>
+                  <a href={activityObject}>
+                    {activityObject}
+                  </a>
+                </>
+              }
+
+              return <li key={thing.id}>
+                {activityActorHtml}
+                {' '}
+                {activityTypeHtml}
+                {' '}
+                {activityObjectHtml}
+              </li>
             }
-
-            return <>
-              {activityActorHtml}
-              {' '}
-              {activityTypeHtml}
-              {' '}
-              {activityObjectHtml}
-            </>
-          }
-          return null;
-       }) : null}
+            return null;
+          }) : null}
+        </ul>
       </main>
     </div>
   )

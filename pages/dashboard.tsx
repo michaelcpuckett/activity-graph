@@ -120,7 +120,11 @@ const getFormHtml = (actor: AP.AnyActor) => <>
   <form
     onSubmit={handleOutboxSubmit(AP.ActivityTypes.CREATE, actor)}
     noValidate>
-    <input type="hidden" name="type" value="Note" />
+    <select name="type" defaultValue={'Note'}>
+      {Object.values(AP.ObjectTypes).map(type =>
+        <option key={type}>{type}</option>
+      )}
+    </select>
     <label>
       <span>Content</span>
       <textarea required name="content"></textarea>
@@ -156,7 +160,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing) => {
   if (typeof thing !== 'string' && 'actor' in thing) {
     const activityTypeHtml = <>
       <a href={thing.id ?? '#'}>
-        {thing.type}d
+        {thing.type.toLowerCase()}d
       </a>
     </>;
 
@@ -178,27 +182,13 @@ const getBoxItemHtml = (thing: string|AP.AnyThing) => {
     }
 
     let activityObjectHtml = <></>;
-    const activityObject = 'object' in thing ? thing.object : null;
+    const activityObject = ('object' in thing && thing.object && typeof thing.object !== 'string' && 'type' in thing.object) ? thing.object : null;
 
-    if (activityObject && typeof activityObject !== 'string' && 'type' in activityObject) {
+    if (activityObject) {
       activityObjectHtml = <>
         a <a href={activityObject.id ?? '#'}>
-          {activityObject.type}
+          {activityObject.type.toLowerCase()}
         </a>
-        <figure>
-          <dl>
-            {Object.entries(activityObject).map(([key, value]) => ['id', 'url'].includes(key) ? <></> : <>
-              <dt>
-                {key}
-              </dt>
-              <dd>
-                {typeof value === 'string' ? (value === PUBLIC_ACTOR ? 'Public' : value) : <>
-                  <textarea defaultValue={JSON.stringify(value)}></textarea>
-                </>}
-              </dd>
-            </>)}
-          </dl>
-        </figure>
       </>
     } else if (typeof activityObject === 'string') {
       activityObjectHtml = <>
@@ -213,8 +203,8 @@ const getBoxItemHtml = (thing: string|AP.AnyThing) => {
       {' '}
       {activityTypeHtml}
       {' '}
-      {activityObjectHtml}
-
+      {activityObjectHtml}.
+        
       <figure>
         <dl>
           {Object.entries(thing).map(([key, value]) => ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
@@ -227,6 +217,21 @@ const getBoxItemHtml = (thing: string|AP.AnyThing) => {
               </>}
             </dd>
           </>)}
+          <dt>
+            object
+          </dt>
+          <dd>
+            {Object.entries(activityObject ?? {}).map(([key, value]) => ['id', 'url'].includes(key) ? <></> : <>
+              <dt>
+                {key}
+              </dt>
+              <dd>
+                {typeof value === 'string' ? (value === PUBLIC_ACTOR ? 'Public' : value) : <>
+                  <textarea defaultValue={JSON.stringify(value)}></textarea>
+                </>}
+              </dd>
+            </>)}
+          </dd>
         </dl>
       </figure>
     </li>
@@ -271,7 +276,7 @@ function Dashboard({
 
         {getNavHtml(actor)}
 
-        <h2>Create Note</h2>
+        <h2>Create</h2>
         {getFormHtml(actor)}
 
         <h2>Inbox</h2>

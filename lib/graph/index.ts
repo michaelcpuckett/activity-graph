@@ -177,8 +177,8 @@ export class Graph {
     await this.db.collection('collection').updateOne({
       _id: path
     }, {
-      $set: {
-        totalItems: (collection.totalItems ?? 0) + 1,
+      $inc: {
+        totalItems: 1,
       },
       $push: {
         orderedItems: {

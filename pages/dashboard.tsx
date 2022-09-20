@@ -25,6 +25,117 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
   }
 }
 
+const getBox = (box: string|AP.OrderedCollection) => {
+  return (
+    box &&
+    typeof box !== 'string' &&
+    'id' in box &&
+    typeof box?.id === 'string' &&
+    box.orderedItems &&
+    typeof box.orderedItems !== 'string' &&
+    'orderedItems' in box &&
+    Array.isArray(box.orderedItems)
+  ) ? box.orderedItems : null;
+};
+
+const getBoxItemHtml = (thing: string|AP.AnyThing) => {          
+  if (typeof thing !== 'string' && 'actor' in thing) {
+    const activityTypeHtml = <>
+      <a href={thing.id ?? '#'}>
+        {thing.type}d
+      </a>
+    </>;
+
+    let activityActorHtml = <></>;
+    const activityActor = thing.actor;
+
+    if (typeof activityActor !== 'string' && 'inbox' in activityActor) {
+      activityActorHtml = <>
+        <a href={activityActor.id ?? '#'}>
+          @{activityActor.preferredUsername ?? activityActor.id}
+        </a>
+      </>
+    } else if (typeof activityActor === 'string') {
+      activityActorHtml = <>
+        <a href={activityActor}>
+          {activityActor}
+        </a>
+      </>
+    }
+
+    let activityObjectHtml = <></>;
+    const activityObject = 'object' in thing ? thing.object : null;
+
+    if (activityObject && typeof activityObject !== 'string' && 'type' in activityObject) {
+      activityObjectHtml = <>
+        a <a href={activityObject.id ?? '#'}>
+          {activityObject.type}
+        </a>
+        <figure>
+          <dl>
+            {Object.entries(activityObject).map(([key, value]) => ['id', 'url'].includes(key) ? <></> : <>
+              <dt>
+                {key}
+              </dt>
+              <dd>
+                {typeof value === 'string' ? (value === PUBLIC_ACTOR ? 'Public' : value) : <>
+                  <textarea defaultValue={JSON.stringify(value)}></textarea>
+                </>}
+              </dd>
+            </>)}
+          </dl>
+        </figure>
+      </>
+    } else if (typeof activityObject === 'string') {
+      activityObjectHtml = <>
+        <a href={activityObject}>
+          {activityObject}
+        </a>
+      </>
+    }
+
+    return <li key={thing.id}>
+      {activityActorHtml}
+      {' '}
+      {activityTypeHtml}
+      {' '}
+      {activityObjectHtml}
+
+      <figure>
+        <dl>
+          {Object.entries(thing).map(([key, value]) => ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
+            <dt>
+              {key}
+            </dt>
+            <dd>
+              {typeof value === 'string' ? value : <>
+                <textarea defaultValue={JSON.stringify(value)}></textarea>
+              </>}
+            </dd>
+          </>)}
+        </dl>
+      </figure>
+    </li>
+  }
+  return null;
+}
+
+const getBoxLinkHtml = (collection: string|AP.OrderedCollection, slotText: string) => {
+  return typeof collection === 'string' ? (
+    <li>
+      <a href={collection}>
+        {slotText}
+      </a>
+    </li>
+  ) : typeof collection.url === 'string' ? (
+    <li>
+      <a href={collection.url}>
+        {slotText}
+      </a>
+    </li>
+  ) : null
+}
+
 function Dashboard({
   actor,
 }: Data) {
@@ -110,128 +221,12 @@ function Dashboard({
     });
   };
 
-  const getBox = (box: string|AP.OrderedCollection) => {
-    return (
-      box &&
-      typeof box !== 'string' &&
-      'id' in box &&
-      typeof box?.id === 'string' &&
-      box.orderedItems &&
-      typeof box.orderedItems !== 'string' &&
-      'orderedItems' in box &&
-      Array.isArray(box.orderedItems)
-    ) ? box.orderedItems : null;
-  };
-
-  const getBoxItemHtml = (thing: string|AP.AnyThing) => {          
-    if (typeof thing !== 'string' && 'actor' in thing) {
-      const activityTypeHtml = <>
-        <a href={thing.id ?? '#'}>
-          {thing.type}d
-        </a>
-      </>;
-
-      let activityActorHtml = <></>;
-      const activityActor = thing.actor;
-
-      if (typeof activityActor !== 'string' && 'inbox' in activityActor) {
-        activityActorHtml = <>
-          <a href={activityActor.id ?? '#'}>
-            @{activityActor.preferredUsername ?? activityActor.id}
-          </a>
-        </>
-      } else if (typeof activityActor === 'string') {
-        activityActorHtml = <>
-          <a href={activityActor}>
-            {activityActor}
-          </a>
-        </>
-      }
-
-      let activityObjectHtml = <></>;
-      const activityObject = 'object' in thing ? thing.object : null;
-
-      if (activityObject && typeof activityObject !== 'string' && 'type' in activityObject) {
-        activityObjectHtml = <>
-          a <a href={activityObject.id ?? '#'}>
-            {activityObject.type}
-          </a>
-          <figure>
-            <dl>
-              {Object.entries(activityObject).map(([key, value]) => ['id', 'url'].includes(key) ? <></> : <>
-                <dt>
-                  {key}
-                </dt>
-                <dd>
-                  {typeof value === 'string' ? (value === PUBLIC_ACTOR ? 'Public' : value) : <>
-                    <textarea defaultValue={JSON.stringify(value)}></textarea>
-                  </>}
-                </dd>
-              </>)}
-            </dl>
-          </figure>
-        </>
-      } else if (typeof activityObject === 'string') {
-        activityObjectHtml = <>
-          <a href={activityObject}>
-            {activityObject}
-          </a>
-        </>
-      }
-
-      return <li key={thing.id}>
-        {activityActorHtml}
-        {' '}
-        {activityTypeHtml}
-        {' '}
-        {activityObjectHtml}
-
-        <figure>
-          <dl>
-            {Object.entries(thing).map(([key, value]) => ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
-              <dt>
-                {key}
-              </dt>
-              <dd>
-                {typeof value === 'string' ? value : <>
-                  <textarea defaultValue={JSON.stringify(value)}></textarea>
-                </>}
-              </dd>
-            </>)}
-          </dl>
-        </figure>
-      </li>
-    }
-    return null;
-  }
-
-  const getBoxLinkHtml = (collection: string|AP.OrderedCollection, slotText: string) => {
-    return typeof collection === 'string' ? (
-      <li>
-        <a href={collection}>
-          {slotText}
-        </a>
-      </li>
-    ) : typeof collection.url === 'string' ? (
-      <li>
-        <a href={collection.url}>
-          {slotText}
-        </a>
-      </li>
-    ) : null
-  }
-
   return (
     <div>
       <Head>
         <title>Create Next App</title>
         <meta name="description" content="Generated by create next app" />
         <link rel="icon" href="/favicon.ico" />
-        <style>{`
-          label {
-            display: block;
-          }
-        `}</style>
       </Head>
 
       <main>

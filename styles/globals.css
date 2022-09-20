@@ -2,8 +2,7 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 a {
@@ -15,12 +14,34 @@ a {
   box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-  body {
-    color: white;
-    background: black;
-  }
+main {
+  padding: 10px;
+}
+
+dt {
+  font-weight: bold;
+}
+
+dd {
+  margin-left: 10px;
+}
+
+.box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 0;
+  list-style: none;
+  padding: 0;
+}
+
+.box li {
+  display: block;
+  border: 1px solid gray;
+  padding: 20px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  width: 480px;
+  box-shadow: 1px 1px 3px gray;
+  flex: 1 0 auto;
 }

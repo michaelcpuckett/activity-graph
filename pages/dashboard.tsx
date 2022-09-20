@@ -127,7 +127,7 @@ function Dashboard({
     if (typeof thing !== 'string' && 'actor' in thing) {
       const activityTypeHtml = <>
         <a href={thing.id ?? '#'}>
-          {thing.type}
+          {thing.type}d
         </a>
       </>;
 
@@ -152,21 +152,25 @@ function Dashboard({
       const activityObject = 'object' in thing ? thing.object : null;
 
       if (activityObject && typeof activityObject !== 'string' && 'type' in activityObject) {
-        switch (activityObject.type) {
-          case (AP.ObjectTypes.NOTE): {
-            activityObjectHtml = <>
-              NOTE!!!
-            </>
-          }
-          break;
-          default: {
-            activityObjectHtml = <>
-              <a href={activityObject.id ?? '#'}>
-                {activityObject.id}....
-              </a>
-            </>
-          }
-        }
+        activityObjectHtml = <>
+          a <a href={activityObject.id ?? '#'}>
+            {activityObject.type}
+          </a>
+          <figure>
+            <dl>
+              {Object.entries(activityObject).map(([key, value]) => ['id', 'url'].includes(key) ? <></> : <>
+                <dt>
+                  {key}
+                </dt>
+                <dd>
+                  {typeof value === 'string' ? (value === PUBLIC_ACTOR ? 'Public' : value) : <>
+                    <textarea defaultValue={JSON.stringify(value)}></textarea>
+                  </>}
+                </dd>
+              </>)}
+            </dl>
+          </figure>
+        </>
       } else if (typeof activityObject === 'string') {
         activityObjectHtml = <>
           <a href={activityObject}>
@@ -181,6 +185,21 @@ function Dashboard({
         {activityTypeHtml}
         {' '}
         {activityObjectHtml}
+
+        <figure>
+          <dl>
+            {Object.entries(thing).map(([key, value]) => ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
+              <dt>
+                {key}
+              </dt>
+              <dd>
+                {typeof value === 'string' ? value : <>
+                  <textarea defaultValue={JSON.stringify(value)}></textarea>
+                </>}
+              </dd>
+            </>)}
+          </dl>
+        </figure>
       </li>
     }
     return null;
@@ -253,11 +272,11 @@ function Dashboard({
           </button>
         </form>
         <h2>Inbox</h2>
-        <ul>
+        <ul className="box">
           {getBox(actor.inbox)?.map(getBoxItemHtml) ?? null}
         </ul>
         <h2>Outbox</h2>
-        <ul>
+        <ul className="box">
           {getBox(actor.outbox)?.map(getBoxItemHtml) ?? null}
         </ul>
       </main>

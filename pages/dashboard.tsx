@@ -207,30 +207,46 @@ const getBoxItemHtml = (thing: string|AP.AnyThing) => {
         
       <figure>
         <dl>
-          {Object.entries(thing).map(([key, value]) => ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
-            <dt>
-              {key}
-            </dt>
-            <dd>
-              {typeof value === 'string' ? value : <>
-                <textarea defaultValue={JSON.stringify(value)}></textarea>
-              </>}
-            </dd>
-          </>)}
+          {Object.entries(thing).map(([key, value]) => {
+            if (Object.hasOwn(thing, key)) {
+              return ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
+                <dt>
+                  {key}
+                </dt>
+                <dd>
+                  {typeof value === 'string' ? value : <>
+                    <textarea defaultValue={JSON.stringify(value)}></textarea>
+                  </>}
+                </dd>
+              </>
+            } else {
+              return <></>;
+            }
+          })}
           <dt>
             object
           </dt>
           <dd>
-            {Object.entries(activityObject ?? {}).map(([key, value]) => ['id', 'url'].includes(key) ? <></> : <>
-              <dt>
-                {key}
-              </dt>
-              <dd>
-                {typeof value === 'string' ? (value === PUBLIC_ACTOR ? 'Public' : value) : <>
-                  <textarea defaultValue={JSON.stringify(value)}></textarea>
-                </>}
-              </dd>
-            </>)}
+            <dl>
+              {activityObject ? Object.entries(activityObject).map(([key, value]) => {
+                if (Object.hasOwn(activityObject, key)) {
+                  return ['id', 'url'].includes(key) ? <></> : <>
+                    <dt>
+                      {key}
+                    </dt>
+                    <dd>
+                      {typeof value === 'string' ? (value === PUBLIC_ACTOR ? 'Public' : value) : <>
+                        <textarea defaultValue={JSON.stringify(value)}></textarea>
+                      </>}
+                    </dd>
+                  </>
+                } else {
+                  return <>...</>;
+                }
+              }) : <>
+                No object!
+              </>}
+            </dl>
           </dd>
         </dl>
       </figure>

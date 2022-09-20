@@ -150,6 +150,7 @@ export default async function handler(
       url: botServiceUrl,
       type: AP.ActorTypes.APPLICATION,
       name: 'Bot',
+      preferredUsername: 'bot',
       inbox: new APOrderedCollection({
         id: `${botServiceUrl}/inbox`,
         url: `${botServiceUrl}/inbox`,

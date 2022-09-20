@@ -20,11 +20,9 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
   const graph = await Graph.connect();
   const actor = await graph.getActorByToken(req.cookies.__session ?? '');
 
-  if (!actor) {
-    return {
-      props: {
-        actor: null,
-      }
+  return {
+    props: {
+      actor: actor ? await graph.expandThing(actor) : null,
     }
   }
 }
@@ -67,6 +65,12 @@ function Dashboard({
                   Your Inbox
                 </a>
               </li>
+            ) : typeof actor.inbox.url === 'string' ? (
+              <li>
+                <a href={actor.inbox.url}>
+                  Your Inbox
+                </a>
+              </li>
             ) : null}
             {typeof actor.outbox === 'string' ? (
               <li>
@@ -74,9 +78,68 @@ function Dashboard({
                   Your Outbox
                 </a>
               </li>
+            ) : typeof actor.outbox.url === 'string' ? (
+              <li>
+                <a href={actor.outbox.url}>
+                  Your Outbox
+                </a>
+              </li>
             ) : null}
           </ul>
         </nav>
+        <h2>Inbox</h2>
+        {(actor.inbox && typeof actor.inbox !== 'string' && 'id' in actor.inbox && typeof actor.inbox?.id === 'string' && actor.inbox.orderedItems && typeof actor.inbox.orderedItems !== 'string' && 'orderedItems' in actor.inbox && Array.isArray(actor.inbox.orderedItems)) ? actor.inbox.orderedItems.map(thing => {          
+          if (typeof thing !== 'string' && 'actor' in thing) {
+            const activityTypeHtml = <>
+              <a href={thing.id ?? '#'}>
+                {thing.type}
+              </a>
+            </>;
+
+            let activityActorHtml = <></>;
+            const activityActor = thing.actor;
+
+            if (typeof activityActor !== 'string' && 'inbox' in activityActor) {
+              activityActorHtml = <>
+                <a href={activityActor.id ?? '#'}>
+                  @{activityActor.preferredUsername ?? activityActor.id}
+                </a>
+              </>
+            } else if (typeof activityActor === 'string') {
+              activityActorHtml = <>
+                <a href={activityActor}>
+                  {activityActor}
+                </a>
+              </>
+            }
+
+            let activityObjectHtml = <></>;
+            const activityObject = 'object' in thing ? thing.object : null;
+
+            if (activityObject && typeof activityObject !== 'string' && 'name' in activityObject) {
+              activityObjectHtml = <>
+                <a href={activityObject.id ?? '#'}>
+                  {activityObject.name ?? activityObject.id}
+                </a>
+              </>
+            } else if (typeof activityObject === 'string') {
+              activityObjectHtml = <>
+                <a href={activityObject}>
+                  {activityObject}
+                </a>
+              </>
+            }
+
+            return <>
+              {activityActorHtml}
+              {' '}
+              {activityTypeHtml}
+              {' '}
+              {activityObjectHtml}
+            </>
+          }
+          return null;
+       }) : null}
       </main>
     </div>
   )

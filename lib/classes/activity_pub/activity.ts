@@ -29,4 +29,4 @@ export class APActivity extends APCoreObject implements AP.Activity {
       throw new Error('`actor` must be defined.');
     }
   }
-};
+}

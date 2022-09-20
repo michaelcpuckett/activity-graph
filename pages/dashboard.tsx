@@ -35,6 +35,88 @@ function Dashboard({
     return <Home />;
   }
 
+  const getBox = (box: string|AP.OrderedCollection) => {
+    return (
+      box &&
+      typeof box !== 'string' &&
+      'id' in box &&
+      typeof box?.id === 'string' &&
+      box.orderedItems &&
+      typeof box.orderedItems !== 'string' &&
+      'orderedItems' in box &&
+      Array.isArray(box.orderedItems)
+    ) ? box.orderedItems : null;
+  };
+
+  const getBoxItemHtml = (thing: string|AP.AnyThing) => {          
+    if (typeof thing !== 'string' && 'actor' in thing) {
+      const activityTypeHtml = <>
+        <a href={thing.id ?? '#'}>
+          {thing.type}
+        </a>
+      </>;
+
+      let activityActorHtml = <></>;
+      const activityActor = thing.actor;
+
+      if (typeof activityActor !== 'string' && 'inbox' in activityActor) {
+        activityActorHtml = <>
+          <a href={activityActor.id ?? '#'}>
+            @{activityActor.preferredUsername ?? activityActor.id}
+          </a>
+        </>
+      } else if (typeof activityActor === 'string') {
+        activityActorHtml = <>
+          <a href={activityActor}>
+            {activityActor}
+          </a>
+        </>
+      }
+
+      let activityObjectHtml = <></>;
+      const activityObject = 'object' in thing ? thing.object : null;
+
+      if (activityObject && typeof activityObject !== 'string' && 'name' in activityObject) {
+        activityObjectHtml = <>
+          <a href={activityObject.id ?? '#'}>
+            {activityObject.name ?? activityObject.id}
+          </a>
+        </>
+      } else if (typeof activityObject === 'string') {
+        activityObjectHtml = <>
+          <a href={activityObject}>
+            {activityObject}
+          </a>
+        </>
+      }
+
+      return <li key={thing.id}>
+        {activityActorHtml}
+        {' '}
+        {activityTypeHtml}
+        {' '}
+        {activityObjectHtml}
+      </li>
+    }
+    return null;
+  }
+
+  const getBoxLinkHtml = (collection: string|AP.OrderedCollection, slotText: string) => {
+    return typeof collection === 'string' ? (
+      <li>
+        <a href={collection}>
+          {slotText}
+        </a>
+      </li>
+    ) : typeof collection.url === 'string' ? (
+      <li>
+        <a href={collection.url}>
+          {slotText}
+        </a>
+      </li>
+    ) : null
+  }
+
   return (
     <div>
       <Head>
@@ -59,144 +141,17 @@ function Dashboard({
                 </a>
               </li>
             ) : null}
-            {typeof actor.inbox === 'string' ? (
-              <li>
-                <a href={actor.inbox}>
-                  Your Inbox
-                </a>
-              </li>
-            ) : typeof actor.inbox.url === 'string' ? (
-              <li>
-                <a href={actor.inbox.url}>
-                  Your Inbox
-                </a>
-              </li>
-            ) : null}
-            {typeof actor.outbox === 'string' ? (
-              <li>
-                <a href={actor.outbox}>
-                  Your Outbox
-                </a>
-              </li>
-            ) : typeof actor.outbox.url === 'string' ? (
-              <li>
-                <a href={actor.outbox.url}>
-                  Your Outbox
-                </a>
-              </li>
-            ) : null}
+            {getBoxLinkHtml(actor.inbox, 'Your Inbox')}
+            {getBoxLinkHtml(actor.outbox, 'Your Outbox')}
           </ul>
         </nav>
         <h2>Inbox</h2>
         <ul>
-          {(actor.inbox && typeof actor.inbox !== 'string' && 'id' in actor.inbox && typeof actor.inbox?.id === 'string' && actor.inbox.orderedItems && typeof actor.inbox.orderedItems !== 'string' && 'orderedItems' in actor.inbox && Array.isArray(actor.inbox.orderedItems)) ? actor.inbox.orderedItems.map(thing => {          
-            if (typeof thing !== 'string' && 'actor' in thing) {
-              const activityTypeHtml = <>
-                <a href={thing.id ?? '#'}>
-                  {thing.type}
-                </a>
-              </>;
-
-              let activityActorHtml = <></>;
-              const activityActor = thing.actor;
-
-              if (typeof activityActor !== 'string' && 'inbox' in activityActor) {
-                activityActorHtml = <>
-                  <a href={activityActor.id ?? '#'}>
-                    @{activityActor.preferredUsername ?? activityActor.id}
-                  </a>
-                </>
-              } else if (typeof activityActor === 'string') {
-                activityActorHtml = <>
-                  <a href={activityActor}>
-                    {activityActor}
-                  </a>
-                </>
-              }
-
-              let activityObjectHtml = <></>;
-              const activityObject = 'object' in thing ? thing.object : null;
-
-              if (activityObject && typeof activityObject !== 'string' && 'name' in activityObject) {
-                activityObjectHtml = <>
-                  <a href={activityObject.id ?? '#'}>
-                    {activityObject.name ?? activityObject.id}
-                  </a>
-                </>
-              } else if (typeof activityObject === 'string') {
-                activityObjectHtml = <>
-                  <a href={activityObject}>
-                    {activityObject}
-                  </a>
-                </>
-              }
-
-              return <li key={thing.id}>
-                {activityActorHtml}
-                {' '}
-                {activityTypeHtml}
-                {' '}
-                {activityObjectHtml}
-              </li>
-            }
-            return null;
-          }) : null}
+          {getBox(actor.inbox)?.map(getBoxItemHtml) ?? null}
         </ul>
-        
         <h2>Outbox</h2>
         <ul>
-          {(actor.outbox && typeof actor.outbox !== 'string' && 'id' in actor.outbox && typeof actor.outbox?.id === 'string' && actor.outbox.orderedItems && typeof actor.outbox.orderedItems !== 'string' && 'orderedItems' in actor.outbox && Array.isArray(actor.outbox.orderedItems)) ? actor.outbox.orderedItems.map(thing => {          
-            if (typeof thing !== 'string' && 'actor' in thing) {
-              const activityTypeHtml = <>
-                <a href={thing.id ?? '#'}>
-                  {thing.type}
-                </a>
-              </>;
-
-              let activityActorHtml = <></>;
-              const activityActor = thing.actor;
-
-              if (typeof activityActor !== 'string' && 'inbox' in activityActor) {
-                activityActorHtml = <>
-                  <a href={activityActor.id ?? '#'}>
-                    @{activityActor.preferredUsername ?? activityActor.id}
-                  </a>
-                </>
-              } else if (typeof activityActor === 'string') {
-                activityActorHtml = <>
-                  <a href={activityActor}>
-                    {activityActor}
-                  </a>
-                </>
-              }
-
-              let activityObjectHtml = <></>;
-              const activityObject = 'object' in thing ? thing.object : null;
-
-              if (activityObject && typeof activityObject !== 'string' && 'name' in activityObject) {
-                activityObjectHtml = <>
-                  <a href={activityObject.id ?? '#'}>
-                    {activityObject.name ?? activityObject.id}
-                  </a>
-                </>
-              } else if (typeof activityObject === 'string') {
-                activityObjectHtml = <>
-                  <a href={activityObject}>
-                    {activityObject}
-                  </a>
-                </>
-              }
-
-              return <li key={thing.id}>
-                {activityActorHtml}
-                {' '}
-                {activityTypeHtml}
-                {' '}
-                {activityObjectHtml}
-              </li>
-            }
-            return null;
-          }) : null}
+          {getBox(actor.outbox)?.map(getBoxItemHtml) ?? null}
         </ul>
       </main>
     </div>

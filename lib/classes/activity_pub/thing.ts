@@ -1,6 +1,8 @@
 import * as AP from '../../types/activity_pub';
 import { getGuid } from "../../crypto";
 import { ACTIVITYSTREAMS_CONTEXT, CONTEXT, LOCAL_DOMAIN } from '../../globals';
+import { getTypedThing } from '../../utilities/getTypedThing';
+import { APAnyThing } from '.';
 
 export class APThing implements AP.Thing {
   id: string | null;
@@ -31,6 +33,38 @@ export class APThing implements AP.Thing {
     }
 
     Object.assign(this, thing);
+
+    this.createChildren();
+  }
+
+  createChildren() {
+    const props: Array<[string, APAnyThing|APAnyThing[]]> = [];
+
+    for (const key of Object.keys(this)) {
+      const value = this[key as keyof AP.Thing];
+
+      if (value && typeof value === 'object' && 'type' in value) {
+        const thing = getTypedThing(value);
+
+        if (thing) {
+          props.push([key, thing]);
+        }
+      } else if (Array.isArray(value) && 'length' in value) {
+        const thingArray: APAnyThing[] = [];
+        
+        value.forEach(item => {
+          if (item && typeof item === 'object' && 'type' in item) {
+            return getTypedThing(item);
+          }
+        });
+        
+        if (thingArray.length === value.length) {
+          props.push([key, thingArray]);
+        }
+      }
+    }
+
+    Object.assign(this, Object.fromEntries(props));
   }
 
   getCompressedProps() {
@@ -107,7 +141,8 @@ export class APThing implements AP.Thing {
           return prop.href;
         }
       }
-      return '';
+
+      return prop.id;
     }
   }
 

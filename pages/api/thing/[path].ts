@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Graph } from '../../../lib/graph';
 import { CONTEXT, LOCAL_DOMAIN } from '../../../lib/globals';
 import * as AP from '../../../lib/types/activity_pub';
+import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 
 export default async function handler(
   req: NextApiRequest,
@@ -30,7 +31,7 @@ export default async function handler(
     });
   }
 
-  const typedThing = graph.getTypedThing(thing);
+  const typedThing = getTypedThing(thing);
 
   if (!typedThing) {
     return res.status(400).json({

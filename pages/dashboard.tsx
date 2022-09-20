@@ -7,8 +7,6 @@ import { FormEventHandler, MouseEventHandler } from 'react';
 import { ACTIVITYSTREAMS_CONTEXT } from '../lib/globals';
 import * as AP from '../lib/types/activity_pub';
 import { Graph } from '../lib/graph';
-import { APAnyThing, APActivity, APOrderedCollection, APActor } from '../lib/classes/activity_pub';
-import { APThing } from '../lib/classes/activity_pub/thing';
 
 const PUBLIC_ACTOR = `${ACTIVITYSTREAMS_CONTEXT}#Public`;
 
@@ -34,6 +32,83 @@ function Dashboard({
   if (!actor) {
     return <Home />;
   }
+
+  const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof AP.ActivityTypes]): FormEventHandler<HTMLFormElement> => event => {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    const { elements } = formElement;
+
+    if (!(formElement instanceof HTMLFormElement)) {
+      return;
+    }
+
+    let formElements: Array<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement> = [];
+
+    for (const element of elements) {
+      if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
+        formElements.push(element);
+      }
+    }
+
+    const isValid = formElements.find(element => element.checkValidity());
+
+    if (!isValid) {
+      return;
+    }
+
+    const body = Object.fromEntries(formElements.map(formElement => [
+      formElement.getAttribute('name'),
+      formElement.value
+    ]));
+
+    for (const element of elements) {
+      if (element instanceof HTMLFieldSetElement) {
+        const fieldsetValue = [];
+
+        for (const inputElement of element.elements) {
+          if (inputElement instanceof HTMLInputElement && inputElement.checked) {
+            fieldsetValue.push(inputElement.value);
+          }
+        }
+
+        body[element.name] = fieldsetValue;
+      }
+    }
+
+    const actorId = actor.id;
+
+    if (!actorId) {
+      return;
+    }
+
+    const activity: AP.Activity = {
+      type: activityType,
+      actor: actorId,
+      object: {
+        ...body.url ? {
+          url: body.url,
+        } : null,
+        type: body.type,
+        content: body.content,
+        ...body.to ? {
+          to: body.to,
+        } : null,
+      },
+    };
+
+    fetch(`/api/${actor.preferredUsername}/outbox`, {
+      method: 'POST',
+      body: JSON.stringify(activity)
+    })
+    .then(response => response.json())
+    .then(({ error }: { error?: string; }) => {
+      if (error) {
+        throw new Error(error);
+      }
+
+      window.location.reload();
+    });
+  };
 
   const getBox = (box: string|AP.OrderedCollection) => {
     return (
@@ -76,12 +151,22 @@ function Dashboard({
       let activityObjectHtml = <></>;
       const activityObject = 'object' in thing ? thing.object : null;
 
-      if (activityObject && typeof activityObject !== 'string' && 'name' in activityObject) {
-        activityObjectHtml = <>
-          <a href={activityObject.id ?? '#'}>
-            {activityObject.name ?? activityObject.id}
-          </a>
-        </>
+      if (activityObject && typeof activityObject !== 'string' && 'type' in activityObject) {
+        switch (activityObject.type) {
+          case (AP.ObjectTypes.NOTE): {
+            activityObjectHtml = <>
+              NOTE!!!
+            </>
+          }
+          break;
+          default: {
+            activityObjectHtml = <>
+              <a href={activityObject.id ?? '#'}>
+                {activityObject.id}....
+              </a>
+            </>
+          }
+        }
       } else if (typeof activityObject === 'string') {
         activityObjectHtml = <>
           <a href={activityObject}>
@@ -145,6 +230,28 @@ function Dashboard({
             {getBoxLinkHtml(actor.outbox, 'Your Outbox')}
           </ul>
         </nav>
+        
+        <h2>Create Note</h2>
+        <form
+          onSubmit={handleOutboxSubmit(AP.ActivityTypes.CREATE)}
+          noValidate>
+          <input type="hidden" name="type" value="Note" />
+          <label>
+            <span>Content</span>
+            <textarea required name="content"></textarea>
+          </label>
+          <label>
+            <span>To</span>
+            <select name="to" defaultValue={PUBLIC_ACTOR}>
+              <option value={PUBLIC_ACTOR}>
+                Public
+              </option>
+            </select>
+          </label>
+          <button type="submit">
+            Submit
+          </button>
+        </form>
         <h2>Inbox</h2>
         <ul>
           {getBox(actor.inbox)?.map(getBoxItemHtml) ?? null}

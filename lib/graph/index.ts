@@ -1,12 +1,11 @@
 import { Db, MongoClient } from 'mongodb';
-import { APActivity, APActor, APCollection, APLink, APObject, APOrderedCollection } from '../classes/activity_pub';
-import { APCollectionPage } from '../classes/activity_pub/collection_page';
-import { LOCAL_HOSTNAME } from '../globals';
-import * as AP from '../types/activity_pub';
 import * as firebaseAdmin from 'firebase-admin';
 import { AppOptions } from 'firebase-admin';
+
+import { APActivity, APCollection, APOrderedCollection } from '../classes/activity_pub';
 import serviceAccount from '../../credentials';
-import { APThing } from '../classes/activity_pub/thing';
+import { getCollectionNameByUrl } from '../utilities/getCollectionNameByUrl';
+import * as AP from '../types/activity_pub';
 
 export class Graph {
   db: Db;
@@ -41,7 +40,7 @@ export class Graph {
   }
 
   public async findThingById(_id: string): Promise<AP.AnyThing|null> {
-    const collectionName = this.getCollectionNameByUrl(_id);
+    const collectionName = getCollectionNameByUrl(_id);
     return await this.findOne(collectionName, { _id });
   }
 
@@ -132,7 +131,7 @@ export class Graph {
       throw new Error('No ID.');
     }
 
-    const collectionName = this.getCollectionNameByUrl(thing.id);
+    const collectionName = getCollectionNameByUrl(thing.id);
     const _id = thing.id;
 
     return await this.db.collection(collectionName).replaceOne(
@@ -174,13 +173,19 @@ export class Graph {
     }
 
     const collection = new APOrderedCollection(collectionItem);
-    console.log(collection.totalItems);
 
     await this.db.collection('collection').updateOne({
       _id: path
     }, {
-      $set: { totalItems: (collection.totalItems ?? 0) + 1, },
-      $push: { "orderedItems": url },
+      $set: {
+        totalItems: (collection.totalItems ?? 0) + 1,
+      },
+      $push: {
+        orderedItems: {
+           $each: [url],
+           $position: 0
+        }
+      },
     }, {
       upsert: true,
     });
@@ -198,7 +203,6 @@ export class Graph {
     }
 
     const collection = new APOrderedCollection(collectionItem);
-    console.log(collection.totalItems);
 
     await this.db.collection('collection').updateOne({
       _id: path
@@ -243,7 +247,6 @@ export class Graph {
       throw new Error('Error');
     }
     const collection = new APCollection(collectionItem);
-    console.log(collection.totalItems);
 
     await this.db.collection('collection').updateOne({
       _id: path
@@ -258,51 +261,6 @@ export class Graph {
   // Other
 
   // TODO?
-  public getCollectionNameByUrl(url: string) {
-    const [ , collectionName, identifier, nextIdentifier, finalIdentifier ] = new URL(url).pathname.split('/');
-
-    return (!finalIdentifier && nextIdentifier) ? 'collection' : collectionName;
-  }
-
-  public getTypedThing(thing: AP.AnyThing) {
-    for (const linkType of Object.values(AP.LinkTypes)) {
-      if (thing.type === linkType) {
-        return new APLink(thing);
-      }
-    }
-
-    for (const activityType of Object.values(AP.ActivityTypes)) {
-      if (thing.type === activityType) {
-        return new APActivity(thing);
-      }
-    }
-    
-    for (const actorType of Object.values(AP.ActorTypes)) {
-      if (thing.type === actorType) {
-        return new APActor(thing);
-      }
-    }
-    
-    for (const collectionType of Object.values(AP.CollectionTypes)) {
-      if (thing.type === collectionType) {
-        return new APCollection(thing);
-      }
-    }
-    
-    for (const collectionPageType of Object.values(AP.CollectionPageTypes)) {
-      if (thing.type === collectionPageType) {
-        return new APCollectionPage(thing);
-      }
-    }
-    
-    for (const objectType of Object.values(AP.ObjectTypes)) {
-      if (thing.type === objectType) {
-        return new APObject(thing);
-      }
-    }
-
-    return null;
-  }
 
   async expandThing(thing: AP.AnyThing, depth: number = 2, processedUrls: string[] = [], processedThings: Array<null|AP.AnyThing> = []): Promise<AP.AnyThing> {
     const compressedProps: Array<[string, string|AP.StringReferenceMap|AP.AnyThing]> = [];
@@ -384,8 +342,6 @@ export class Graph {
         compressedProps.push([key, value]);
       }
     }
-
-    // console.log(processedUrls);
 
     return JSON.parse(JSON.stringify(Object.fromEntries(compressedProps)));
   }

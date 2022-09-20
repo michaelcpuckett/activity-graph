@@ -13,7 +13,7 @@ export class APCollection extends APCoreObject implements AP.Collection {
     return 'collection';
   }
 
-  constructor(collection: AP.AnyCollection) {
+  constructor(collection: AP.Collection) {
     super(collection);
 
     if (Object.values(AP.CollectionTypes).includes(collection.type)) {

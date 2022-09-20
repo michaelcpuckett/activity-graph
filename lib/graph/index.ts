@@ -6,6 +6,7 @@ import * as AP from '../types/activity_pub';
 import * as firebaseAdmin from 'firebase-admin';
 import { AppOptions } from 'firebase-admin';
 import serviceAccount from '../../credentials';
+import { APThing } from '../classes/activity_pub/thing';
 
 export class Graph {
   db: Db;
@@ -39,7 +40,7 @@ export class Graph {
     return one;
   }
 
-  public async findThingById(_id: string) {
+  public async findThingById(_id: string): Promise<AP.AnyThing|null> {
     const collectionName = this.getCollectionNameByUrl(_id);
     return await this.findOne(collectionName, { _id });
   }

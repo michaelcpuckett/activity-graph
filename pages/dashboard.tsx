@@ -74,10 +74,7 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
   const activity: AP.Activity = {
     type: activityType,
     actor: actor.id,
-    object: {
-      ...body.url ? {
-        url: body.url,
-      } : null,
+    object: body.id ?? {
       type: body.type,
       content: body.content,
       ...body.to ? {
@@ -156,7 +153,7 @@ const getBoxHtml = (box: string|AP.OrderedCollection) => {
   ) ? box.orderedItems : null;
 };
 
-const getBoxItemHtml = (thing: string|AP.AnyThing) => {          
+const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {          
   if (typeof thing !== 'string' && 'actor' in thing) {
     const activityTypeHtml = <>
       <a href={thing.id ?? '#'}>
@@ -248,6 +245,17 @@ const getBoxItemHtml = (thing: string|AP.AnyThing) => {
           </dd>
         </dl>
       </figure>
+
+      {activityObject && activityObject.type !== AP.ObjectTypes.TOMBSTONE ? <>
+        <form
+          onSubmit={handleOutboxSubmit(AP.ActivityTypes.DELETE, actor)}
+          noValidate>
+          <input type="hidden" name="id" value={activityObject.id ?? ''} />
+          <button type="submit">
+            Delete
+          </button>
+        </form>
+      </> : <></>}
     </li>
   }
   return null;
@@ -295,12 +303,12 @@ function Dashboard({
 
         <h2>Inbox</h2>
         <ul className="box">
-          {getBoxHtml(actor.inbox)?.map(getBoxItemHtml) ?? null}
+          {getBoxHtml(actor.inbox)?.map(item => getBoxItemHtml(item, actor)) ?? null}
         </ul>
 
         <h2>Outbox</h2>
         <ul className="box">
-          {getBoxHtml(actor.outbox)?.map(getBoxItemHtml) ?? null}
+          {getBoxHtml(actor.outbox)?.map(item => getBoxItemHtml(item, actor)) ?? null}
         </ul>
       </main>
     </div>

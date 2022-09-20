@@ -33,6 +33,34 @@ export default async function handler(
       const activityId = activity.id;
       const activityActorOutboxId = activity.actor && typeof activity.actor !== 'string' && 'outbox' in activity.actor ? typeof activity.actor.outbox === 'string' ? activity.actor.outbox : activity.actor.outbox.id : '';
 
+      switch (activity.type) {
+        case AP.ActivityTypes.DELETE: {
+          const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+          if (!activityObjectId) {
+            throw new Error('Bad request')
+          }
+
+          const objectToDelete = await graph.findThingById(activityObjectId);
+
+          if (!objectToDelete || !objectToDelete.type) {
+            throw new Error('bad request');
+          }
+
+          activity.object = {
+            id: activityObjectId,
+            url: activityObjectId,
+            type: AP.ObjectTypes.TOMBSTONE,
+            deleted: new Date(),
+            formerType: objectToDelete.type,
+          };
+        }
+        break;
+        default: {
+
+        }
+      }
+
       if (activityActorOutboxId && activityId) {
         await graph.saveActivity(activity);
         await graph.insertOrderedItem(activityActorOutboxId, activityId);

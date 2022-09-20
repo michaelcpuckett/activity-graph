@@ -194,7 +194,7 @@ export type Object = CoreObject & {
 
 export type Tombstone = Object & {
   type: typeof ObjectTypes.TOMBSTONE,
-  formerType?: typeof ObjectTypes[keyof typeof ObjectTypes] | Array<typeof ObjectTypes[keyof typeof ObjectTypes]>;
+  formerType?: typeof AllTypes[keyof typeof AllTypes] | Array<typeof AllTypes[keyof typeof AllTypes]>;
   deleted?: Date;
 };
 

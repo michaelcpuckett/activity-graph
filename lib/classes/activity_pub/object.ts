@@ -5,7 +5,7 @@ export class APObject extends APThing implements AP.Object {
   type: typeof AP.ObjectTypes[keyof typeof AP.ObjectTypes];
 
   deleted?: Date;
-  formerType?: typeof AP.ObjectTypes[keyof typeof AP.ObjectTypes] | Array<typeof AP.ObjectTypes[keyof typeof AP.ObjectTypes]>;
+  formerType?: typeof AP.AllTypes[keyof typeof AP.AllTypes] | Array<typeof AP.AllTypes[keyof typeof AP.AllTypes]>;
   
   subject?: string | AP.CoreObject | AP.Link;
   object?: AP.ObjectOrLinkReference;

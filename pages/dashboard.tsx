@@ -91,11 +91,11 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
     body: JSON.stringify(activity)
   })
   .then(response => response.json())
-  .then(({ error }: { error?: string; }) => {
-    if (error) {
-      throw new Error(error);
+  .then((result: { error?: string; }) => {
+    if (result.error) {
+      throw new Error(result.error);
     }
-
+    console.log(result);
     window.location.reload();
   });
 };
@@ -210,10 +210,10 @@ const getBoxItemHtml = (thing: string|AP.AnyThing) => {
           {Object.entries(thing).map(([key, value]) => {
             if (Object.hasOwn(thing, key)) {
               return ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
-                <dt>
+                <dt key={`dt_${key}`}>
                   {key}
                 </dt>
-                <dd>
+                <dd key={`dd_${key}`}>
                   {typeof value === 'string' ? value : <>
                     <textarea defaultValue={JSON.stringify(value)}></textarea>
                   </>}
@@ -231,21 +231,19 @@ const getBoxItemHtml = (thing: string|AP.AnyThing) => {
               {activityObject ? Object.entries(activityObject).map(([key, value]) => {
                 if (Object.hasOwn(activityObject, key)) {
                   return ['id', 'url'].includes(key) ? <></> : <>
-                    <dt>
+                    <dt key={`dt_${key}`}>
                       {key}
                     </dt>
-                    <dd>
+                    <dd key={`dd_${key}`}>
                       {typeof value === 'string' ? (value === PUBLIC_ACTOR ? 'Public' : value) : <>
                         <textarea defaultValue={JSON.stringify(value)}></textarea>
                       </>}
                     </dd>
                   </>
                 } else {
-                  return <>...</>;
+                  return <></>;
                 }
-              }) : <>
-                No object!
-              </>}
+              }) : <></>}
             </dl>
           </dd>
         </dl>

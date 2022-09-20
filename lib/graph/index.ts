@@ -183,7 +183,7 @@ export class Graph {
       $push: {
         orderedItems: {
            $each: [url],
-           $position: 0
+           $position: 0,
         }
       },
     }, {

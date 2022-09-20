@@ -34,10 +34,8 @@ export default async function handler(
       const activityActorOutboxId = activity.actor && typeof activity.actor !== 'string' && 'outbox' in activity.actor ? typeof activity.actor.outbox === 'string' ? activity.actor.outbox : activity.actor.outbox.id : '';
 
       if (activityActorOutboxId && activityId) {
-        await Promise.all([
-          graph.saveActivity(activity),
-          graph.insertOrderedItem(activityActorOutboxId, activityId),
-        ]);
+        await graph.saveActivity(activity);
+        await graph.insertOrderedItem(activityActorOutboxId, activityId);
       }
 
       return res.status(200).json(activity.formatPublicObject());

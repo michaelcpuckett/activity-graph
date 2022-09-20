@@ -162,20 +162,8 @@ export class Graph {
   // Insert/Remove
 
   async insertOrderedItem(path: string, url: string) {
-    const collectionItem = await this.findOne('collection', { _id: path });
-
-    if (!collectionItem || !('orderedItems' in collectionItem)) {
-      throw new Error('Error');
-    }
-
-    if (collectionItem.type === AP.CollectionPageTypes.ORDERED_COLLECTION_PAGE) {
-      throw new Error('Error');
-    }
-
-    const collection = new APOrderedCollection(collectionItem);
-
     await this.db.collection('collection').updateOne({
-      _id: path
+      _id: path,
     }, {
       $inc: {
         totalItems: 1,

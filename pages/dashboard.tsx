@@ -85,7 +85,7 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
     }
   }
 
-  const outboxItems = (await Promise.all(outbox.orderedItems.map(async item => {
+  const outboxItems = await Promise.all(outbox.orderedItems.map(async item => {
     if (!item) {
       return null;
     }
@@ -99,7 +99,7 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
     const expandedItem = await graph.expandThing(foundItem);
 
     return expandedItem;
-  })));
+  }));
 
   return {
     props: {
@@ -159,9 +159,14 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
   const activity: AP.Activity = {
     type: activityType,
     actor: actor.id,
-    object: body.id ?? {
+    object: {
+      ...body.id ? {
+        id: body.id,
+      } : null,
       type: body.type,
-      content: body.content,
+      ...body.content ? {
+        content: body.content,
+      } : null,
       ...body.to ? {
         to: body.to,
       } : null,
@@ -225,19 +230,6 @@ const getFormHtml = (actor: AP.AnyActor) => <>
   </form>
 </>
 
-const getBoxHtml = (box: string|AP.OrderedCollection) => {
-  return (
-    box &&
-    typeof box !== 'string' &&
-    'id' in box &&
-    typeof box?.id === 'string' &&
-    box.orderedItems &&
-    typeof box.orderedItems !== 'string' &&
-    'orderedItems' in box &&
-    Array.isArray(box.orderedItems)
-  ) ? box.orderedItems : null;
-};
-
 const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {          
   if (typeof thing !== 'string' && 'actor' in thing) {
     const activityTypeHtml = <>
@@ -267,11 +259,19 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
     const activityObject = ('object' in thing && thing.object && typeof thing.object !== 'string' && 'type' in thing.object) ? thing.object : null;
 
     if (activityObject) {
-      activityObjectHtml = <>
-        a <a href={activityObject.id ?? '#'}>
-          {activityObject.type.toLowerCase()}
-        </a>
+      if (activityObject.type === AP.ObjectTypes.TOMBSTONE) {
+        activityObjectHtml = <>
+          a <a href={activityObject.id ?? '#'}>
+            {typeof activityObject.formerType === 'string' ? activityObject.formerType.toLowerCase() : 'deleted thing'}
+          </a>
+        </>
+      } else {
+        activityObjectHtml = <>
+          a <a href={activityObject.id ?? '#'}>
+            {activityObject.type.toLowerCase()}
+          </a>
       </>
+      }
     } else if (typeof activityObject === 'string') {
       activityObjectHtml = <>
         <a href={activityObject}>
@@ -286,50 +286,92 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
       {activityTypeHtml}
       {' '}
       {activityObjectHtml}.
-        
-      <figure>
-        <dl>
-          {Object.entries(thing).map(([key, value]) => {
-            if (Object.hasOwn(thing, key)) {
-              return ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
-                <dt key={`dt_${key}`}>
-                  {key}
-                </dt>
-                <dd key={`dd_${key}`}>
-                  {typeof value === 'string' ? value : <>
-                    <textarea defaultValue={JSON.stringify(value)}></textarea>
-                  </>}
-                </dd>
-              </>
-            } else {
-              return <></>;
-            }
-          })}
-          <dt>
-            object
-          </dt>
-          <dd>
-            <dl>
-              {activityObject ? Object.entries(activityObject).map(([key, value]) => {
-                if (Object.hasOwn(activityObject, key)) {
-                  return ['id', 'url'].includes(key) ? <></> : <>
-                    <dt key={`dt_${key}`}>
-                      {key}
-                    </dt>
-                    <dd key={`dd_${key}`}>
-                      {typeof value === 'string' ? (value === PUBLIC_ACTOR ? 'Public' : value) : <>
-                        <textarea defaultValue={JSON.stringify(value)}></textarea>
-                      </>}
-                    </dd>
-                  </>
-                } else {
-                  return <></>;
-                }
-              }) : <></>}
-            </dl>
-          </dd>
-        </dl>
-      </figure>
+      
+      {activityObject && 'content' in activityObject && activityObject.content ? <>
+        <blockquote>
+          {'> '}
+          {activityObject.content}
+        </blockquote>
+      </> : activityObject && 'preferredUsername' in activityObject && activityObject.preferredUsername ? <>
+        <blockquote>
+          @{activityObject.preferredUsername}
+        </blockquote>
+      </> : <></>}
+
+      <details>
+        <summary>
+          Details
+        </summary>
+        <figure>
+           <textarea defaultValue={JSON.stringify(thing)}></textarea>
+          <dl>
+            {Object.entries(thing).map(([key, value]) => {
+              if (Object.hasOwn(thing, key)) {
+                return ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
+                  <dt key={`dt_${key}`}>
+                    {key}
+                  </dt>
+                  <dd key={`dd_${key}`}>
+                    {typeof value === 'string' ? value : <>
+                      <textarea defaultValue={JSON.stringify(value)}></textarea>
+                    </>}
+                  </dd>
+                </>
+              } else {
+                return <></>;
+              }
+            })}
+            <dt>
+              object
+            </dt>
+            <dd>
+              <dl>
+                {activityObject ? Object.entries(activityObject).map(([key, value]) => {
+                  if (Object.hasOwn(activityObject, key)) {
+                    return ['id', 'url'].includes(key) ? <></> : <>
+                      <dt key={`dt_${key}`}>
+                        {key}
+                      </dt>
+                      <dd key={`dd_${key}`}>
+                        {typeof value === 'string' ? (value === PUBLIC_ACTOR ? 'Public' : value) : <>
+                          <textarea defaultValue={JSON.stringify(value)}></textarea>
+                        </>}
+                      </dd>
+                    </>
+                  } else {
+                    return <></>;
+                  }
+                }) : <></>}
+              </dl>
+            </dd>
+          </dl>
+        </figure>
+      </details>
+
+      {activityObject && activityObject.type !== AP.ObjectTypes.TOMBSTONE ? <>
+        <details>
+          <summary>
+            Edit
+          </summary>
+          <form
+            onSubmit={handleOutboxSubmit(AP.ActivityTypes.UPDATE, actor)}
+            noValidate>
+            <input type="hidden" name="id" value={activityObject.id ?? ''} />
+            <label>
+              <span>Content</span>
+              {'content' in activityObject ? <>
+                  <textarea required name="content" defaultValue={activityObject.content}></textarea>
+                </> : <>
+                  <textarea required name="content"></textarea>
+                </>
+              }
+            </label>
+            <button type="submit">
+              Update
+            </button>
+          </form>
+        </details>
+      </> : <></>}
 
       {activityObject && activityObject.type !== AP.ObjectTypes.TOMBSTONE ? <>
         <form
@@ -342,7 +384,6 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
         </form>
       </> : <></>}
 
-      <textarea defaultValue={JSON.stringify(thing)}></textarea>
     </li>
   }
   return null;
@@ -374,6 +415,8 @@ function Dashboard({
     return <Home />;
   }
 
+  const getBoxHtml = (item: AP.AnyThing) => getBoxItemHtml(item, actor);
+
   return (
     <div>
       <Head>
@@ -392,12 +435,12 @@ function Dashboard({
 
         <h2>Inbox</h2>
         <ul className="box">
-          {inboxItems?.map(item => getBoxItemHtml(item, actor)) ?? null}
+          {inboxItems?.map(getBoxHtml) ?? null}
         </ul>
 
         <h2>Outbox</h2>
         <ul className="box">
-          {outboxItems?.map(item => getBoxItemHtml(item, actor)) ?? null}
+          {outboxItems?.map(getBoxHtml) ?? null}
         </ul>
       </main>
     </div>

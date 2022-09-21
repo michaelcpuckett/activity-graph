@@ -33,6 +33,7 @@ dd {
   margin: 0;
   list-style: none;
   padding: 0;
+  max-width: 640px;
 }
 
 .box li {
@@ -41,9 +42,9 @@ dd {
   padding: 20px;
   margin-bottom: 10px;
   border-radius: 6px;
-  width: 480px;
   box-shadow: 1px 1px 3px gray;
   flex: 1 0 auto;
+  width: 100%;
 }
 
 label {
@@ -52,4 +53,12 @@ label {
 
 textarea {
   width: 100%;
+}
+
+blockquote {
+  margin-left: 20px;
+  padding: 20px;
+  border-radius: 6px;
+  border: 1px solid gray;
+  background-color: lightcyan;
 }

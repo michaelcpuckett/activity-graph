@@ -45,6 +45,8 @@ export default async function handler(
         throw new Error('No actor.');
       }
 
+      // Side effects.
+
       switch (activity.type) {
         case AP.ActivityTypes.CREATE: {
           if (activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object)) {
@@ -53,6 +55,7 @@ export default async function handler(
             if (!typedThing) {
               throw new Error('Bad request.')
             }
+
             activity.object = typedThing.compress();
           }
         }
@@ -79,6 +82,29 @@ export default async function handler(
           };
         }
         break;
+        case AP.ActivityTypes.UPDATE: {
+          if (typeof activity.object !== 'object' || Array.isArray(activity.object)) {
+            throw new Error('bad request');
+          }
+
+          const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+          if (!activityObjectId) {
+            throw new Error('Bad request')
+          }
+
+          const objectToUpdate = await graph.findThingById(activityObjectId);
+
+          if (!objectToUpdate || !objectToUpdate.type) {
+            throw new Error('bad request');
+          }
+
+          activity.object = {
+            ...objectToUpdate,
+            ...activity.object,
+          };
+        }
+        break;
         default: {
           if (activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object) && activity.object.id) {
             activity.object = activity.object.id;
@@ -89,6 +115,7 @@ export default async function handler(
       const actorOutboxId = actor && 'outbox' in actor && actor.outbox ? typeof actor.outbox === 'string' ? actor.outbox : !Array.isArray(actor.outbox) ? actor.outbox.id : '' : '';
 
       if (actorOutboxId && activityId) {
+        // TODO throw here.
         await graph.saveThing(activity.compress());
         await graph.insertOrderedItem(actorOutboxId, activityId);
       }
@@ -96,6 +123,7 @@ export default async function handler(
       const activityObject = (activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object)) ? activity.object : null;
 
       if (activityObject) {
+        console.log(activityObject)
         await graph.saveThing(activityObject);
       }
 

@@ -36,26 +36,36 @@ export class APThing implements AP.Thing {
   }
 
   public compress(): AP.AnyThing {
-    const compressedThing = [];
+    const compressed = [];
 
-    for (const prop in this) {
-      const value = this[prop];
-
-      if (value && typeof value === 'object' && 'type' in value) {
-        compressedThing.push([prop, this.getUrlForm(value)]);
-      } else if (Array.isArray(value) && 'length' in value && value.length) {
-        compressedThing.push([prop, value.map(item => {
-          if (item && typeof item === 'object' && 'type' in item) {
-            return this.getUrlForm(item);
-          }
-          return item;
-        })]);
+    for (const [key, value] of Object.entries(this)) {
+      if (typeof value === 'string' || key === 'id' || key === 'type') {
+        compressed.push([key, value]);
+      } else if (Array.isArray(value)) {
+        const array = [...value];
+        if (array.every((item: unknown) => typeof item === 'string')) {
+          compressed.push([key, array]);
+        } else {
+          compressed.push([key, array.map(item => {
+            if (typeof item === 'string') {
+              return item;
+            } else if (Array.isArray(item)) {
+              return item;
+            } else if ('id' in item && item.id) {
+              return item.id;
+            } else {
+              return item;
+            }
+          })]);
+        }
+      } else if ('id' in value && value.id) {
+        compressed.push([key, value.id]);
       } else {
-        compressedThing.push([prop, value]);
+        compressed.push([key, value]);
       }
     }
 
-    return Object.fromEntries(compressedThing);
+    return Object.fromEntries(compressed);
   }
 
   private getUrlForm(prop: AP.AnyThing) {

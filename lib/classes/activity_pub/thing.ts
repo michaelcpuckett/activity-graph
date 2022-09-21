@@ -58,7 +58,7 @@ export class APThing implements AP.Thing {
             }
           })]);
         }
-      } else if ('id' in value && value.id) {
+      } else if (value && typeof value === 'object' && 'id' in value && value.id) {
         compressed.push([key, value.id]);
       } else {
         compressed.push([key, value]);

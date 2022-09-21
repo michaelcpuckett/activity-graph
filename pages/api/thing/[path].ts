@@ -39,5 +39,7 @@ export default async function handler(
     });
   }
 
+  console.log(typedThing);
+
   return res.status(200).json(typedThing.formatPublicObject());
 }

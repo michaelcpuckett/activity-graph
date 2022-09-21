@@ -105,6 +105,27 @@ export default async function handler(
           };
         }
         break;
+        case AP.ActivityTypes.LIKE: {
+          if (!activity.object) {
+            throw new Error('Bad request.')
+          }
+
+          const actorLikedId = actor && 'liked' in actor && actor.liked ? typeof actor.liked === 'string' ? actor.liked : !Array.isArray(actor.liked) ? actor.liked.id : '' : '';
+
+          if (!actorLikedId) {
+            throw new Error('Bad request');
+          }
+
+          if (activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object) && activity.object.id) {
+            activity.object = activity.object.id;
+            await graph.insertOrderedItem(actorLikedId, activity.object);
+          } else if (activity.object && typeof activity.object === 'string') {
+            await graph.insertOrderedItem(actorLikedId, activity.object);
+          } else {
+            throw new Error('bad request')
+          }
+        }
+        break;
         default: {
           if (activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object) && activity.object.id) {
             activity.object = activity.object.id;

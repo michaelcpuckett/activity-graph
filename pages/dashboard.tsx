@@ -199,6 +199,7 @@ const getNavHtml = (actor: AP.AnyActor) => <>
       ) : null}
       {getBoxLinkHtml(actor.inbox, 'Your Inbox')}
       {getBoxLinkHtml(actor.outbox, 'Your Outbox')}
+      {actor.liked ? getBoxLinkHtml(actor.liked, 'Your Liked Collection') : <></>}
     </ul>
   </nav>
 </>;
@@ -348,7 +349,16 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
         </figure>
       </details>
 
+
       {activityObject && activityObject.type !== AP.ObjectTypes.TOMBSTONE ? <>
+        <form
+          onSubmit={handleOutboxSubmit(AP.ActivityTypes.LIKE, actor)}
+          noValidate>
+          <input type="hidden" name="id" value={activityObject.id ?? ''} />
+          <button type="submit">
+            Like
+          </button>
+        </form>
         <details>
           <summary>
             Edit
@@ -389,7 +399,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
   return null;
 }
 
-const getBoxLinkHtml = (collection: string|AP.OrderedCollection, slotText: string) => {
+const getBoxLinkHtml = (collection: string|AP.AnyCollection, slotText: string) => {
   return typeof collection === 'string' ? (
     <li>
       <a href={collection}>

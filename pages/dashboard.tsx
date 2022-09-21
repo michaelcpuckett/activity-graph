@@ -12,15 +12,100 @@ const PUBLIC_ACTOR = `${ACTIVITYSTREAMS_CONTEXT}#Public`;
 
 type Data = {
   actor: AP.Actor|null;
+  inboxItems?: AP.AnyThing[];
+  outboxItems?: AP.AnyThing[];
 }
 
 export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookies: { __session?: string; } }}) => {
   const graph = await Graph.connect();
   const actor = await graph.getActorByToken(req.cookies.__session ?? '');
 
+  if (!actor) {
+    return {
+      props: {
+        actor,
+      }
+    }
+  }
+
+  const inboxId = actor.inbox ? (typeof actor.inbox === 'string' ? actor.inbox : 'id' in actor.inbox ? actor.inbox.id : '') : '';
+  
+  if (!inboxId) {
+    return {
+      props: {
+        actor,
+      }
+    }
+  }
+
+  const inbox = await graph.findThingById(inboxId);
+
+  if (!inbox || !('orderedItems' in inbox) || !Array.isArray(inbox.orderedItems)) {
+    return {
+      props: {
+        actor,
+      }
+    }
+  }
+
+  const inboxItems = await Promise.all(inbox.orderedItems.map(async item => {
+    if (!item) {
+      return null;
+    }
+
+    const foundItem = typeof item === 'string' ? await graph.findThingById(item) : item;
+
+    if (!foundItem) {
+      return item;
+    }
+
+    const expandedItem = await graph.expandThing(foundItem);
+
+    return expandedItem;
+}));
+
+
+  const outboxId = actor.outbox ? (typeof actor.outbox === 'string' ? actor.outbox : 'id' in actor.outbox ? actor.outbox.id : '') : '';
+  
+  if (!outboxId) {
+    return {
+      props: {
+        actor,
+      }
+    }
+  }
+
+  const outbox = await graph.findThingById(outboxId);
+
+  if (!outbox || !('orderedItems' in outbox) || !Array.isArray(outbox.orderedItems)) {
+    return {
+      props: {
+        actor,
+      }
+    }
+  }
+
+  const outboxItems = (await Promise.all(outbox.orderedItems.map(async item => {
+    if (!item) {
+      return null;
+    }
+
+    const foundItem = typeof item === 'string' ? await graph.findThingById(item) : item;
+
+    if (!foundItem) {
+      return item;
+    }
+
+    const expandedItem = await graph.expandThing(foundItem);
+
+    return expandedItem;
+  })));
+
   return {
     props: {
-      actor: actor ? await graph.expandThing(actor) : null,
+      actor,
+      outboxItems,
+      inboxItems,
     }
   }
 }
@@ -256,6 +341,8 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
           </button>
         </form>
       </> : <></>}
+
+      <textarea defaultValue={JSON.stringify(thing)}></textarea>
     </li>
   }
   return null;
@@ -279,6 +366,8 @@ const getBoxLinkHtml = (collection: string|AP.OrderedCollection, slotText: strin
 
 function Dashboard({
   actor,
+  inboxItems,
+  outboxItems,
 }: Data) {
 
   if (!actor) {
@@ -303,12 +392,12 @@ function Dashboard({
 
         <h2>Inbox</h2>
         <ul className="box">
-          {getBoxHtml(actor.inbox)?.map(item => getBoxItemHtml(item, actor)) ?? null}
+          {inboxItems?.map(item => getBoxItemHtml(item, actor)) ?? null}
         </ul>
 
         <h2>Outbox</h2>
         <ul className="box">
-          {getBoxHtml(actor.outbox)?.map(item => getBoxItemHtml(item, actor)) ?? null}
+          {outboxItems?.map(item => getBoxItemHtml(item, actor)) ?? null}
         </ul>
       </main>
     </div>

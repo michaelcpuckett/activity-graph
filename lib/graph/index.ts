@@ -240,88 +240,29 @@ export class Graph {
   // Other
 
   // TODO?
+  
+  async expandThing(thing: AP.AnyThing): Promise<AP.AnyThing> {
+    const expanded = [];
 
-  async expandThing(thing: AP.AnyThing, depth: number = 2, processedUrls: string[] = [], processedThings: Array<null|AP.AnyThing> = []): Promise<AP.AnyThing> {
-    const compressedProps: Array<[string, string|AP.StringReferenceMap|AP.AnyThing]> = [];
-
-    if (thing.id) {
-      processedUrls.push(thing.id);
-      processedThings.push(thing);
-    }
-    
-    for (const key of Object.keys(thing)) {
-      const value = thing[key as keyof AP.AnyThing];
-
-      if ((key === 'id' || key === 'url') && typeof value === 'string') {
-        compressedProps.push([key, value]);
-      } else if (value && typeof value === 'object' && 'type' in value) {
-        compressedProps.push([key, depth ? await this.expandThing(value, Math.max(0, depth - 1), processedUrls, processedThings) : value]);
+    for (const [key, value] of Object.entries(thing)) {
+      if (key === 'id' || key === 'type') {
+        expanded.push([key, value]);
       } else if (typeof value === 'string') {
-        if (processedUrls.includes(value)) {
-          const processedThing = processedThings[processedUrls.indexOf(value)];
-
-          if (processedThing) {
-            compressedProps.push([key, processedThing]);
-          } else {
-            compressedProps.push([key, value]);
-          }
-        } else {
-          try {
-            const foundThing = await this.findThingById(value);
-            processedUrls.push(value);
-
-            if (foundThing) {
-              const expandedFoundThing = depth ? await this.expandThing(foundThing, Math.max(0, depth - 1), processedUrls, processedThings) : foundThing;
-              compressedProps.push([key, expandedFoundThing]);
-              processedThings.push(expandedFoundThing);
-            } else {
-              compressedProps.push([key, value]);
-              processedThings.push(null);
-            }
-          } catch (error: unknown) {
-            compressedProps.push([key, value]);
-          }
-        }
+        expanded.push([key, await this.findThingById(value)]);
       } else if (Array.isArray(value)) {
-        const compressedArray = await Promise.all(value.map(async item => {
-          if (item && typeof item === 'object' && 'type' in item) {
-            return depth ? await this.expandThing(item, Math.max(0, depth - 1), processedUrls, processedThings) : item;
-          } else if (typeof item === 'string') {
-            if (processedUrls.includes(item)) {
-              const processedThing = processedThings[processedUrls.indexOf(item)];
-
-              if (processedThing) {
-                return processedThing;
-              } else {
-                return item;
-              }
-            } else {
-              try {
-                const foundItem = await this.findThingById(item);
-                processedUrls.push(item);
-      
-                if (foundItem) {
-                  const expandedFoundThing = depth ? await this.expandThing(foundItem, Math.max(0, depth - 1), processedUrls, processedThings) : foundItem;
-                  processedThings.push(expandedFoundThing);
-                  return expandedFoundThing;
-                } else {
-                  processedThings.push(null);
-                  return item;
-                }
-              } catch (error: unknown) {
-                return item;
-              }
+        const array = [...value];
+        if (array.every((item: unknown) => typeof item === 'string')) {
+          expanded.push([key, await Promise.all(array.map(async item => {
+            if (typeof item === 'string') {
+              return await this.findThingById(item);
             }
-          } else if (value) {
-            return value;
-          }
-        }));
-        compressedProps.push([key, JSON.parse(JSON.stringify(compressedArray))]);
-      } else if (value) {
-        compressedProps.push([key, value]);
+          }))]);
+        }
+      } else {
+        expanded.push([key, value]);
       }
     }
 
-    return JSON.parse(JSON.stringify(Object.fromEntries(compressedProps)));
+    return JSON.parse(JSON.stringify(Object.fromEntries(expanded)));
   }
 }

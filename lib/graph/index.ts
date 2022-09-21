@@ -117,15 +117,6 @@ export class Graph {
 
   // Save.
 
-  public async saveActivity(activity: APActivity) {
-    return await Promise.all([
-      this.saveThing(activity.compress()),
-      ...Object.values(activity.getCompressedProps()).map(async thing => {
-        return await this.saveThing(thing);
-      }),
-    ]);
-  }
-
   public async saveThing(thing: AP.AnyThing) {
     if (!thing.id) {
       throw new Error('No ID.');

@@ -140,7 +140,7 @@ export type Actor = CoreObject & {
   outbox: string | OrderedCollection;
   following?: string | Collection;
   followers?: string | Collection;
-  liked?: string | Collection;
+  liked?: string | AnyCollection;
   preferredUsername?: string;
   preferredUsernameMap?: { (key: string): string; };
   streams?: CollectionReference;

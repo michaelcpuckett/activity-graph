@@ -122,6 +122,7 @@ export default async function handler(
   const userInbox: AP.OrderedCollection = {
     id: `${id}/inbox`,
     url: `${id}/inbox`,
+    name: 'Inbox',
     type: AP.CollectionTypes.ORDERED_COLLECTION,
     totalItems: 0,
     orderedItems: []
@@ -130,6 +131,7 @@ export default async function handler(
   const userOutbox: AP.OrderedCollection = {
     id: `${id}/outbox`,
     url: `${id}/outbox`,
+    name: 'Outbox',
     type: AP.CollectionTypes.ORDERED_COLLECTION,
     totalItems: 0,
     orderedItems: [],
@@ -138,6 +140,7 @@ export default async function handler(
   const userFollowers: AP.Collection = {
     id: `${id}/followers`,
     url: `${id}/followers`,
+    name: 'Followers',
     type: AP.CollectionTypes.COLLECTION,
     totalItems: 0,
     items: [],
@@ -146,6 +149,7 @@ export default async function handler(
   const userFollowing: AP.Collection = {
     id: `${id}/following`,
     url: `${id}/following`,
+    name: 'Following',
     type: AP.CollectionTypes.COLLECTION,
     totalItems: 0,
     items: [],
@@ -154,6 +158,16 @@ export default async function handler(
   const userLiked: AP.OrderedCollection = {
     id: `${id}/liked`,
     url: `${id}/liked`,
+    name: 'Liked',
+    type: AP.CollectionTypes.ORDERED_COLLECTION,
+    totalItems: 0,
+    orderedItems: [],
+  };
+
+  const userShared: AP.OrderedCollection = {
+    id: `${id}/shared`,
+    url: `${id}/shared`,
+    name: 'Shared',
     type: AP.CollectionTypes.ORDERED_COLLECTION,
     totalItems: 0,
     orderedItems: [],
@@ -162,6 +176,7 @@ export default async function handler(
   const userBlocked: AP.Collection = {
     id: `${id}/blocked`,
     url: `${id}/blocked`,
+    name: 'Blocked',
     type: AP.CollectionTypes.COLLECTION,
     totalItems: 0,
     items: [],
@@ -170,6 +185,7 @@ export default async function handler(
   const userGroups: AP.Collection = {
     id: `${id}/groups`,
     url: `${id}/groups`,
+    name: 'Groups',
     type: AP.CollectionTypes.COLLECTION,
     totalItems: 0,
     items: [],
@@ -187,7 +203,7 @@ export default async function handler(
     followers: userFollowers,
     following: userFollowing,
     liked: userLiked,
-    streams: [userBlocked, userGroups],
+    streams: [userShared, userBlocked, userGroups],
     endpoints: {
       sharedInbox: `${LOCAL_DOMAIN}/inbox`,
     },
@@ -212,6 +228,7 @@ export default async function handler(
     graph.saveThing(userLiked),
     graph.saveThing(userFollowers),
     graph.saveThing(userFollowing),
+    graph.saveThing(userShared),
     graph.saveThing(userBlocked),
     graph.saveThing(userGroups),
     graph.saveString('account', user.uid, email),

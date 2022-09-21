@@ -7,6 +7,7 @@ import { FormEventHandler, MouseEventHandler } from 'react';
 import { ACTIVITYSTREAMS_CONTEXT } from '../lib/globals';
 import * as AP from '../lib/types/activity_pub';
 import { Graph } from '../lib/graph';
+import { APAnyThing, APCollection, APOrderedCollection } from '../lib/classes/activity_pub';
 
 const PUBLIC_ACTOR = `${ACTIVITYSTREAMS_CONTEXT}#Public`;
 
@@ -14,6 +15,7 @@ type Data = {
   actor: AP.Actor|null;
   inboxItems?: AP.AnyThing[];
   outboxItems?: AP.AnyThing[];
+  streams?: AP.AnyCollection[];
 }
 
 export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookies: { __session?: string; } }}) => {
@@ -101,6 +103,81 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
     return expandedItem;
   }));
 
+  if (Array.isArray(actor.streams) && [...actor.streams].every(stream => typeof stream === 'string')) {
+
+    const streams: AP.Collection[]|AP.OrderedCollection[] = [];
+
+    for (const stream of actor.streams) {
+      if (typeof stream !== 'string') {
+        continue;
+      }
+      
+      const foundStream = await graph.findThingById(stream);
+
+      if (!foundStream) {
+        continue;
+      }
+
+      if ('orderedItems' in foundStream && Array.isArray(foundStream.orderedItems) && foundStream.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+        const orderedItems: AP.ObjectOrLinkReference = [];
+
+        for (const orderedItem of [...foundStream.orderedItems]) {
+          if (typeof orderedItem === 'string') {
+            const foundItem = await graph.findThingById(orderedItem);
+
+            if (!foundItem) {
+              continue;
+            }
+
+            orderedItems.push(foundItem as never); // TODO
+          }
+        };
+
+        const collection = new APOrderedCollection({
+          ...foundStream,
+          orderedItems,
+        });
+
+        streams.push(JSON.parse(JSON.stringify(collection)));
+
+        continue;
+      }      
+      
+      if ('items' in foundStream && Array.isArray(foundStream.items) && foundStream.type === AP.CollectionTypes.COLLECTION) {
+        const items: AP.ObjectOrLinkReference = [];
+
+        for (const item of [...foundStream.items]) {
+          if (typeof item === 'string') {
+            const foundItem = await graph.findThingById(item);
+
+            if (foundItem) {
+              items.push(foundItem as never); // TODO
+            }
+          }
+        };
+
+        const collection = new APCollection({
+          ...foundStream,
+          items,
+        });
+
+        streams.push(JSON.parse(JSON.stringify(collection)));
+
+        continue;
+      }
+
+    }
+
+    return {
+      props: {
+        actor,
+        outboxItems,
+        inboxItems,
+        streams,
+      }
+    }
+  }
+
   return {
     props: {
       actor,
@@ -187,22 +264,25 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
   });
 };
 
-const getNavHtml = (actor: AP.AnyActor) => <>
-  <nav>
-    <ul>
-      {typeof actor.url === 'string' ? (
-        <li>
-          <a href={actor.url}>
-            You
-          </a>
-        </li>
-      ) : null}
-      {getBoxLinkHtml(actor.inbox, 'Your Inbox')}
-      {getBoxLinkHtml(actor.outbox, 'Your Outbox')}
-      {actor.liked ? getBoxLinkHtml(actor.liked, 'Your Liked Collection') : <></>}
-    </ul>
-  </nav>
-</>;
+const getNavHtml = (actor: AP.AnyActor, streams?: AP.AnyCollection[]) => {
+  return <>
+    <nav>
+      <ul>
+        {typeof actor.url === 'string' ? (
+          <li>
+            <a href={actor.url}>
+              You
+            </a>
+          </li>
+        ) : null}
+        {getBoxLinkHtml(actor.inbox, 'Inbox')}
+        {getBoxLinkHtml(actor.outbox, 'Outbox')}
+        {actor.liked ? getBoxLinkHtml(actor.liked, 'Liked') : <></>}
+        {streams ? streams.map(stream => (typeof stream !== 'string' && 'id' in stream && stream.id && 'name' in stream && stream.name && !Array.isArray(stream.name)) ? getBoxLinkHtml(stream.id, stream.name) : <></>) : <></>}
+      </ul>
+    </nav>
+  </>
+};
 
 const getFormHtml = (actor: AP.AnyActor) => <>
   <form
@@ -419,6 +499,7 @@ function Dashboard({
   actor,
   inboxItems,
   outboxItems,
+  streams,
 }: Data) {
 
   if (!actor) {
@@ -438,7 +519,7 @@ function Dashboard({
       <main>
         <h1>Welcome, @{actor.preferredUsername}</h1>
 
-        {getNavHtml(actor)}
+        {getNavHtml(actor, streams)}
 
         <h2>Create</h2>
         {getFormHtml(actor)}

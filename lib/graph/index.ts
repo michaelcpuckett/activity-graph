@@ -194,22 +194,17 @@ export class Graph {
   }
 
   async insertItem(path: string, url: string) {
-    const collectionItem = await this.findOne('collection', { _id: path });
-
-    if (!collectionItem || !('orderedItems' in collectionItem)) {
-      throw new Error('Error');
-    }
-
-    if (collectionItem.type === AP.CollectionPageTypes.ORDERED_COLLECTION_PAGE) {
-      throw new Error('Error');
-    }
-    const collection = new APCollection(collectionItem);
-
     await this.db.collection('collection').updateOne({
-      _id: path
+      _id: path,
     }, {
-      $set: { totalItems: (collection.totalItems ?? 0) + 1, },
-      $push: { "items": url },
+      $inc: {
+        totalItems: 1,
+      },
+      $push: {
+        items: {
+           $each: [url],
+        }
+      },
     }, {
       upsert: true,
     });

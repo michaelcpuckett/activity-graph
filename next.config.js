@@ -17,6 +17,10 @@ const nextConfig = {
         destination: '/api/thing/:path',
       },
       {
+        source: '/actor/:username/:thing/:collection/:path',
+        destination: '/api/thing/:path',
+      },
+      {
         source: '/object/:path',
         destination: '/api/thing/:path',
       },

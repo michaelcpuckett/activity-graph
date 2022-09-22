@@ -262,6 +262,100 @@ export default async function handler(
     graph.saveString('username', user.uid, preferredUsername),
   ]);
 
+  const friendsGroupId = `${id}/groups/friends`;
+
+  const friendsGroupInbox: AP.OrderedCollection = {
+    id: `${friendsGroupId}/inbox`,
+    url: `${friendsGroupId}/inbox`,
+    name: 'Inbox',
+    type: AP.CollectionTypes.ORDERED_COLLECTION,
+    totalItems: 0,
+    orderedItems: []
+  };
+
+  const friendsGroupOutbox: AP.OrderedCollection = {
+    id: `${friendsGroupId}/outbox`,
+    url: `${friendsGroupId}/outbox`,
+    name: 'Outbox',
+    type: AP.CollectionTypes.ORDERED_COLLECTION,
+    totalItems: 0,
+    orderedItems: [],
+  };
+
+  const friendsGroupLikes: AP.OrderedCollection = {
+    id: `${friendsGroupId}/likes`,
+    url: `${friendsGroupId}/likes`,
+    name: 'Likes',
+    type: AP.CollectionTypes.ORDERED_COLLECTION,
+    totalItems: 0,
+    orderedItems: [],
+  };
+
+  const friendsGroupShares: AP.OrderedCollection = {
+    id: `${friendsGroupId}/shares`,
+    url: `${friendsGroupId}/shares`,
+    name: 'Shares',
+    type: AP.CollectionTypes.ORDERED_COLLECTION,
+    totalItems: 0,
+    orderedItems: [],
+  };
+
+  const friendsGroupMembers: AP.Collection = {
+    id: `${friendsGroupId}/members`,
+    url: `${friendsGroupId}/members`,
+    name: 'Members',
+    type: AP.CollectionTypes.COLLECTION,
+    totalItems: 0,
+    items: [],
+  };
+
+  const friendsGroupActor = new APActor({
+    id: friendsGroupId,
+    url: friendsGroupId,
+    type: AP.ActorTypes.GROUP,
+    name: 'Friends',
+    inbox: friendsGroupInbox,
+    outbox: friendsGroupOutbox,
+    published: new Date(),
+    likes: friendsGroupLikes,
+    shares: friendsGroupShares,
+    streams: [
+      friendsGroupMembers, // TODO. Or relationships instead of all this?
+    ],
+    endpoints: {
+      sharedInbox: `${LOCAL_DOMAIN}/inbox`,
+    },
+  }).compress();
+
+  const createFriendsGroupActorActivity = new APActivity({
+    type: AP.ActivityTypes.CREATE,
+    actor: botServiceId,
+    object: friendsGroupActor,
+  }).compress();
+
+  await Promise.all([
+    graph.saveThing(friendsGroupActor),
+    graph.saveThing(friendsGroupInbox),
+    graph.saveThing(friendsGroupOutbox),
+    graph.saveThing(friendsGroupLikes),
+    graph.saveThing(friendsGroupShares),
+    graph.saveThing(friendsGroupMembers),
+    graph.saveThing(createFriendsGroupActorActivity)
+  ]);
+
+  if (userGroups.id) {
+    await Promise.all([
+      graph.insertItem(userGroups.id, friendsGroupId),
+    ]);
+  }
+
+  if (createFriendsGroupActorActivity.id && friendsGroupInbox.id) {
+    await Promise.all([
+      graph.insertOrderedItem(`${botServiceId}/outbox`, createFriendsGroupActorActivity.id),
+      graph.insertOrderedItem(friendsGroupInbox.id, createFriendsGroupActorActivity.id),
+    ]);
+  }
+
   if (createActorActivity.id && userInbox.id) {
     await Promise.all([
       graph.insertOrderedItem(`${botServiceId}/outbox`, createActorActivity.id),

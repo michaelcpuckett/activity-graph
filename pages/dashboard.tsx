@@ -386,12 +386,28 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
           a <a href={activityObject.id ?? '#'}>
             {typeof activityObject.formerType === 'string' ? activityObject.formerType.toLowerCase() : 'deleted thing'}
           </a>
+          {'target' in thing && thing.target ? <>
+            {' '}
+            to
+            {' '}
+            <a href={(typeof thing.target === 'string' ? thing.target : 'id' in thing.target ? thing.target.id : '') ?? ''}>
+              {(typeof thing.target === 'string' ? thing.target : 'name' in thing.target ? thing.target.name : '') ?? ''}
+            </a>
+          </> : <></>}
         </>
       } else {
         activityObjectHtml = <>
           a <a href={activityObject.id ?? '#'}>
             {activityObject.type.toLowerCase()}
           </a>
+          {'target' in thing && thing.target ? <>
+            {' '}
+            to
+            {' '}
+            <a href={(typeof thing.target === 'string' ? thing.target : 'id' in thing.target ? thing.target.id : '') ?? ''}>
+              {(typeof thing.target === 'string' ? thing.target : 'name' in thing.target ? thing.target.name : '') ?? ''}
+            </a>
+          </> : <></>}
       </>
       }
     } else if (typeof activityObject === 'string') {
@@ -494,8 +510,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
         <form
           onSubmit={handleOutboxSubmit(AP.ActivityTypes.ADD, actor)}
           noValidate>
-          <input type="hidden" name="id" value={actor.id ?? ''} />
-          <textarea defaultValue={JSON.stringify(streams)}></textarea>
+          <input type="hidden" name="id" value={activityObject.id ?? ''} />
           <input type="hidden" name="target" value={Array.isArray(streams) ? [...streams].map((stream: AP.CollectionReference) => typeof stream === 'object' && !Array.isArray(stream) && stream.name === 'Bookmarks' ? stream.id : '').join('') : ''} />
           <button type="submit">
             Bookmark

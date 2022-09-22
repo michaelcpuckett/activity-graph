@@ -283,6 +283,9 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
       ...body.to ? {
         to: body.to,
       } : null,
+      ...body.target ? {
+        target: body.target,
+      } : null,
     },
   };
 
@@ -481,6 +484,15 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
           <input type="hidden" name="id" value={activityObject.id ?? ''} />
           <button type="submit">
             Share
+          </button>
+          <span>{'shares' in activityObject && activityObject.shares && typeof activityObject.shares === 'object' && 'totalItems' in activityObject.shares ? activityObject.shares.totalItems : '0'} shares</span>
+        </form>
+        <form
+          onSubmit={handleOutboxSubmit(AP.ActivityTypes.ADD, actor)}
+          noValidate>
+          { /* TODO */ }
+          <button type="submit">
+            Add Actor to Friends Group
           </button>
           <span>{'shares' in activityObject && activityObject.shares && typeof activityObject.shares === 'object' && 'totalItems' in activityObject.shares ? activityObject.shares.totalItems : '0'} shares</span>
         </form>

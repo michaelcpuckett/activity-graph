@@ -191,6 +191,24 @@ export default async function handler(
     items: [],
   };
 
+  const userLikes: AP.OrderedCollection = {
+    id: `${id}/likes`,
+    url: `${id}/likes`,
+    name: 'Likes',
+    type: AP.CollectionTypes.ORDERED_COLLECTION,
+    totalItems: 0,
+    orderedItems: [],
+  };
+
+  const userShares: AP.OrderedCollection = {
+    id: `${id}/shares`,
+    url: `${id}/shares`,
+    name: 'Shares',
+    type: AP.CollectionTypes.ORDERED_COLLECTION,
+    totalItems: 0,
+    orderedItems: [],
+  };
+
   const userActor = new APActor({
     id,
     url: id,
@@ -203,7 +221,13 @@ export default async function handler(
     followers: userFollowers,
     following: userFollowing,
     liked: userLiked,
-    streams: [userShared, userBlocked, userGroups],
+    likes: userLikes,
+    shares: userShares,
+    streams: [
+      userShared,
+      userBlocked,
+      userGroups,
+    ],
     endpoints: {
       sharedInbox: `${LOCAL_DOMAIN}/inbox`,
     },
@@ -226,6 +250,8 @@ export default async function handler(
     graph.saveThing(userInbox),
     graph.saveThing(userOutbox),
     graph.saveThing(userLiked),
+    graph.saveThing(userLikes),
+    graph.saveThing(userShares),
     graph.saveThing(userFollowers),
     graph.saveThing(userFollowing),
     graph.saveThing(userShared),

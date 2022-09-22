@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Graph } from '../../../lib/graph';
 import { CONTEXT, LOCAL_DOMAIN } from '../../../lib/globals';
 import * as AP from '../../../lib/types/activity_pub';
-import { APActivity, APActor } from '../../../lib/classes/activity_pub';
+import { APActivity, APActor, APLink, APObject } from '../../../lib/classes/activity_pub';
 import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 import { APCoreObject } from '../../../lib/classes/activity_pub/core_object';
 
@@ -50,13 +50,52 @@ export default async function handler(
       switch (activity.type) {
         case AP.ActivityTypes.CREATE: {
           if (activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object)) {
-            const typedThing = getTypedThing(activity.object);
+            const object = getTypedThing(activity.object);
 
-            if (!typedThing) {
-              throw new Error('Bad request.')
+            if (!object) {
+              throw new Error('Bad request.');
             }
 
-            activity.object = typedThing.compress();
+            if (!('id' in object)) {
+              throw new Error('Bad request')
+            }
+
+            const objectLikes: AP.OrderedCollection = {
+              id: `${object.id}/likes`,
+              url: `${object.id}/likes`,
+              name: 'Likes',
+              type: AP.CollectionTypes.ORDERED_COLLECTION,
+              totalItems: 0,
+              orderedItems: [],
+            };
+
+            const objectShares: AP.OrderedCollection = {
+              id: `${object.id}/shares`,
+              url: `${object.id}/shares`,
+              name: 'Shares',
+              type: AP.CollectionTypes.ORDERED_COLLECTION,
+              totalItems: 0,
+              orderedItems: [],
+            };
+
+            if (!('id' in object) || !object.id) {
+              throw new Error('Bad request');
+            }
+
+            if (object instanceof APLink) {
+              throw new Error('Bad request')
+            }
+
+            object.likes = objectLikes;
+            object.shares = objectShares;
+
+            await Promise.all([
+              graph.saveThing(object.compress()),
+              graph.saveThing(objectLikes),
+              graph.saveThing(objectShares),
+            ]);
+
+            activity.object = object.id;
           }
         }
         break;
@@ -80,6 +119,8 @@ export default async function handler(
             deleted: new Date(),
             formerType: objectToDelete.type,
           };
+          
+          await graph.saveThing(activity.object);
         }
         break;
         case AP.ActivityTypes.UPDATE: {
@@ -103,27 +144,58 @@ export default async function handler(
             ...objectToUpdate,
             ...activity.object,
           };
+
+          await graph.saveThing(activity.object);
         }
         break;
         case AP.ActivityTypes.LIKE: {
-          if (!activity.object) {
-            throw new Error('Bad request.')
+          const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+          if (!activityObjectId) {
+            throw new Error('Bad request 1');
           }
 
-          const actorLikedId = actor && 'liked' in actor && actor.liked ? typeof actor.liked === 'string' ? actor.liked : !Array.isArray(actor.liked) ? actor.liked.id : '' : '';
+          const object = await graph.findThingById(activityObjectId);
+
+          if (!object) {
+            throw new Error('Bad request 2')
+          }
+
+          if (!('id' in object) || !object.id) {
+            throw new Error('Bad request 3')
+          }
+
+          console.log(object)
+
+          if (!('likes' in object) || !object.likes) {
+            throw new Error('Bad request 4');
+          }
+
+          const objectLikesId = typeof object.likes === 'string' ? object.likes : object.likes.id;
+
+          if (!objectLikesId) {
+            throw new Error('Bad request 5');
+          }
+
+          if (!activity.id) {
+            throw new Error('Bad request 6')
+          }
+
+          await graph.insertOrderedItem(objectLikesId, activity.id);
+
+          if (!('liked' in actor) || !actor.liked) {
+            throw new Error('bad request 9');
+          }
+
+          const actorLikedId = typeof actor.liked === 'string' ? actor.liked : actor.liked.id;
 
           if (!actorLikedId) {
-            throw new Error('Bad request');
+            throw new Error('bad request 10');
           }
 
-          if (activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object) && activity.object.id) {
-            activity.object = activity.object.id;
-            await graph.insertOrderedItem(actorLikedId, activity.object);
-          } else if (activity.object && typeof activity.object === 'string') {
-            await graph.insertOrderedItem(actorLikedId, activity.object);
-          } else {
-            throw new Error('bad request')
-          }
+          await graph.insertOrderedItem(actorLikedId, object.id);
+
+          activity.object = object.id;
         }
         break;
         default: {
@@ -139,13 +211,6 @@ export default async function handler(
         // TODO throw here.
         await graph.saveThing(activity.compress());
         await graph.insertOrderedItem(actorOutboxId, activityId);
-      }
-
-      const activityObject = (activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object)) ? activity.object : null;
-
-      if (activityObject) {
-        console.log(activityObject)
-        await graph.saveThing(activityObject);
       }
 
       return res.status(200).json(activity.formatPublicObject());

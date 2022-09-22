@@ -1,7 +1,7 @@
 import * as AP from '../../types/activity_pub';
-import { APThing } from './thing';
+import { APCoreObject } from './core_object';
 
-export class APObject extends APThing implements AP.Object {
+export class APObject extends APCoreObject implements AP.Object {
   type: typeof AP.ObjectTypes[keyof typeof AP.ObjectTypes];
 
   deleted?: Date;

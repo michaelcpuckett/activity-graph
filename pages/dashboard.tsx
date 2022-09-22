@@ -61,6 +61,8 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
       return item;
     }
 
+    console.log(item)
+
     const expandedItem = await graph.expandThing(foundItem);
 
     return expandedItem;
@@ -236,10 +238,7 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
   const activity: AP.Activity = {
     type: activityType,
     actor: actor.id,
-    object: {
-      ...body.id ? {
-        id: body.id,
-      } : null,
+    object: activityType === AP.ActivityTypes.LIKE ? body.id : {
       type: body.type,
       ...body.content ? {
         content: body.content,
@@ -249,6 +248,8 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
       } : null,
     },
   };
+
+  console.log(body)
 
   fetch(`/api/${actor.preferredUsername}/outbox`, {
     method: 'POST',

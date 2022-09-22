@@ -508,11 +508,13 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
         </form>
         
         <form
-          onSubmit={handleOutboxSubmit(AP.ActivityTypes.ADD, actor)}
+          onSubmit={handleOutboxSubmit(thing.type === AP.ActivityTypes.ADD ? AP.ActivityTypes.REMOVE : AP.ActivityTypes.ADD, actor)}
           noValidate>
           <input type="hidden" name="id" value={activityObject.id ?? ''} />
           <input type="hidden" name="target" value={Array.isArray(streams) ? [...streams].map((stream: AP.CollectionReference) => typeof stream === 'object' && !Array.isArray(stream) && stream.name === 'Bookmarks' ? stream.id : '').join('') : ''} />
           <button type="submit">
+            {thing.type === AP.ActivityTypes.ADD ? 'Remove' : 'Add'}
+            {' '}
             Bookmark
           </button>
         </form>

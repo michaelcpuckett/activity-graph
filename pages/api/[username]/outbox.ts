@@ -275,6 +275,28 @@ export default async function handler(
           activity.object = activityObjectId;
         }
         break;
+        case AP.ActivityTypes.REMOVE: {
+          const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+          if (!activityObjectId) {
+            throw new Error('Bad request 1');
+          }
+
+          if (!activity.target) {
+            throw new Error('Must have target.')
+          }
+
+          const activityTargetId = typeof activity.target === 'string' ? activity.target : (activity.target && 'id' in activity.target) ? activity.target.id : '';
+
+          if (!activityTargetId) {
+            throw new Error('Bad request 2')
+          }
+          
+          await graph.removeOrderedItem(activityTargetId, activityObjectId);
+
+          activity.object = activityObjectId;
+        }
+        break;
         default: {
           if (activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object) && activity.object.id) {
             activity.object = activity.object.id;

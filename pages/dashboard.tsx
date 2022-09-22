@@ -238,7 +238,10 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
   const activity: AP.Activity = {
     type: activityType,
     actor: actor.id,
-    object: activityType === AP.ActivityTypes.LIKE ? body.id : {
+    object: (
+      AP.ActivityTypes.LIKE === activityType || 
+      AP.ActivityTypes.ANNOUNCE === activityType
+    ) ? body.id : {
       type: body.type,
       ...body.content ? {
         content: body.content,
@@ -437,6 +440,14 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
           <input type="hidden" name="id" value={activityObject.id ?? ''} />
           <button type="submit">
             Like
+          </button>
+        </form>
+        <form
+          onSubmit={handleOutboxSubmit(AP.ActivityTypes.ANNOUNCE, actor)}
+          noValidate>
+          <input type="hidden" name="id" value={activityObject.id ?? ''} />
+          <button type="submit">
+            Share
           </button>
         </form>
         <details>

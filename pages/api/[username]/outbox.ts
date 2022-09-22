@@ -165,8 +165,6 @@ export default async function handler(
             throw new Error('Bad request 3')
           }
 
-          console.log(object)
-
           if (!('likes' in object) || !object.likes) {
             throw new Error('Bad request 4');
           }
@@ -194,6 +192,63 @@ export default async function handler(
           }
 
           await graph.insertOrderedItem(actorLikedId, object.id);
+
+          activity.object = object.id;
+        }
+        break;
+        case AP.ActivityTypes.ANNOUNCE: {
+          const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+          if (!activityObjectId) {
+            throw new Error('Bad request 1');
+          }
+
+          const object = await graph.findThingById(activityObjectId);
+
+          if (!object) {
+            throw new Error('Bad request 2')
+          }
+
+          if (!('id' in object) || !object.id) {
+            throw new Error('Bad request 3')
+          }
+
+          if (!('shares' in object) || !object.shares) {
+            throw new Error('Bad request 4');
+          }
+
+          const objectSharesId = typeof object.shares === 'string' ? object.shares : object.shares.id;
+
+          if (!objectSharesId) {
+            throw new Error('Bad request 5');
+          }
+
+          if (!activity.id) {
+            throw new Error('Bad request 6')
+          }
+
+          await graph.insertOrderedItem(objectSharesId, activity.id);
+
+
+          if (!('streams' in actor) || !actor.streams || !Array.isArray(actor.streams)) {
+            throw new Error('bad request 9');
+          }
+
+          const actorStreams = await Promise.all(actor.streams.map(stream => typeof stream === 'string' ? stream : stream.id).map(async id => id ? await graph.findThingById(id) : null));
+         
+          const actorSharedCollection = actorStreams.find(stream => {
+            if (stream && 'name' in stream) {
+              if (stream.name === 'Shared') {
+                return true;
+              }
+            }
+          });
+
+          if (!actorSharedCollection || !actorSharedCollection.id) {
+            throw new Error('bad request');
+          }
+
+          await graph.insertOrderedItem(actorSharedCollection.id, object.id);
 
           activity.object = object.id;
         }

@@ -61,11 +61,25 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
       return item;
     }
 
-    console.log(item)
-
     const expandedItem = await graph.expandThing(foundItem);
 
-    return expandedItem;
+    const foundItemLikes = ('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.findThingById(expandedItem.object.likes) : null;
+    const foundItemShares = ('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.findThingById(expandedItem.object.shares) : null;
+
+    return {
+      ...expandedItem,
+      ...('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object)) ? {
+        object: {
+          ...expandedItem.object,
+          ...foundItemLikes ? {
+            likes: foundItemLikes,
+          } : null,
+          ...foundItemShares ? {
+            shares: foundItemShares,
+          } : null
+        },
+      } : null,
+    };
 }));
 
 
@@ -102,7 +116,23 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
 
     const expandedItem = await graph.expandThing(foundItem);
 
-    return expandedItem;
+    const foundItemLikes = ('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.findThingById(expandedItem.object.likes) : null;
+    const foundItemShares = ('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.findThingById(expandedItem.object.shares) : null;
+
+    return {
+      ...expandedItem,
+      ...('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object)) ? {
+        object: {
+          ...expandedItem.object,
+          ...foundItemLikes ? {
+            likes: foundItemLikes,
+          } : null,
+          ...foundItemShares ? {
+            shares: foundItemShares,
+          } : null,
+        }
+      } : null,
+    };
   }));
 
   if (Array.isArray(actor.streams) && [...actor.streams].every(stream => typeof stream === 'string')) {
@@ -240,8 +270,12 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
     actor: actor.id,
     object: (
       AP.ActivityTypes.LIKE === activityType || 
-      AP.ActivityTypes.ANNOUNCE === activityType
+      AP.ActivityTypes.ANNOUNCE === activityType ||
+      AP.ActivityTypes.DELETE === activityType
     ) ? body.id : {
+      ...body.id ? {
+        id: body.id
+      } : null,
       type: body.type,
       ...body.content ? {
         content: body.content,
@@ -251,8 +285,6 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
       } : null,
     },
   };
-
-  console.log(body)
 
   fetch(`/api/${actor.preferredUsername}/outbox`, {
     method: 'POST',
@@ -441,6 +473,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
           <button type="submit">
             Like
           </button>
+          <span>{'likes' in activityObject && activityObject.likes && typeof activityObject.likes === 'object' && 'totalItems' in activityObject.likes ? activityObject.likes.totalItems : '0'} likes</span>
         </form>
         <form
           onSubmit={handleOutboxSubmit(AP.ActivityTypes.ANNOUNCE, actor)}
@@ -449,6 +482,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
           <button type="submit">
             Share
           </button>
+          <span>{'shares' in activityObject && activityObject.shares && typeof activityObject.shares === 'object' && 'totalItems' in activityObject.shares ? activityObject.shares.totalItems : '0'} shares</span>
         </form>
         <details>
           <summary>

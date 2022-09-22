@@ -209,6 +209,15 @@ export default async function handler(
     orderedItems: [],
   };
 
+  const userBookmarks: AP.OrderedCollection = {
+    id: `${id}/bookmarks`,
+    url: `${id}/bookmarks`,
+    name: 'Bookmarks',
+    type: AP.CollectionTypes.ORDERED_COLLECTION,
+    totalItems: 0,
+    orderedItems: [],
+  };
+
   const userActor = new APActor({
     id,
     url: id,
@@ -227,6 +236,7 @@ export default async function handler(
       userShared,
       userBlocked,
       userGroups,
+      userBookmarks,
     ],
     endpoints: {
       sharedInbox: `${LOCAL_DOMAIN}/inbox`,
@@ -257,6 +267,7 @@ export default async function handler(
     graph.saveThing(userShared),
     graph.saveThing(userBlocked),
     graph.saveThing(userGroups),
+    graph.saveThing(userBookmarks),
     graph.saveString('account', user.uid, email),
     graph.saveString('private-key', user.uid, privateKey),
     graph.saveString('username', user.uid, preferredUsername),

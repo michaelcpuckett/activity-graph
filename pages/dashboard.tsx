@@ -268,10 +268,15 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
   const activity: AP.Activity = {
     type: activityType,
     actor: actor.id,
+    ...body.target ? {
+      target: body.target
+    } : null,
     object: (
       AP.ActivityTypes.LIKE === activityType || 
       AP.ActivityTypes.ANNOUNCE === activityType ||
-      AP.ActivityTypes.DELETE === activityType
+      AP.ActivityTypes.DELETE === activityType||
+      AP.ActivityTypes.ADD === activityType ||
+      AP.ActivityTypes.REMOVE === activityType
     ) ? body.id : {
       ...body.id ? {
         id: body.id
@@ -282,9 +287,6 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
       } : null,
       ...body.to ? {
         to: body.to,
-      } : null,
-      ...body.target ? {
-        target: body.target,
       } : null,
     },
   };
@@ -350,7 +352,7 @@ const getFormHtml = (actor: AP.AnyActor) => <>
   </form>
 </>
 
-const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {          
+const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: AP.Collection[]) => {          
   if (typeof thing !== 'string' && 'actor' in thing) {
     const activityTypeHtml = <>
       <a href={thing.id ?? '#'}>
@@ -478,6 +480,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
           </button>
           <span>{'likes' in activityObject && activityObject.likes && typeof activityObject.likes === 'object' && 'totalItems' in activityObject.likes ? activityObject.likes.totalItems : '0'} likes</span>
         </form>
+
         <form
           onSubmit={handleOutboxSubmit(AP.ActivityTypes.ANNOUNCE, actor)}
           noValidate>
@@ -487,15 +490,18 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
           </button>
           <span>{'shares' in activityObject && activityObject.shares && typeof activityObject.shares === 'object' && 'totalItems' in activityObject.shares ? activityObject.shares.totalItems : '0'} shares</span>
         </form>
+        
         <form
           onSubmit={handleOutboxSubmit(AP.ActivityTypes.ADD, actor)}
           noValidate>
-          { /* TODO */ }
+          <input type="hidden" name="id" value={actor.id ?? ''} />
+          <textarea defaultValue={JSON.stringify(streams)}></textarea>
+          <input type="hidden" name="target" value={Array.isArray(streams) ? [...streams].map((stream: AP.CollectionReference) => typeof stream === 'object' && !Array.isArray(stream) && stream.name === 'Bookmarks' ? stream.id : '').join('') : ''} />
           <button type="submit">
-            Add Actor to Friends Group
+            Bookmark
           </button>
-          <span>{'shares' in activityObject && activityObject.shares && typeof activityObject.shares === 'object' && 'totalItems' in activityObject.shares ? activityObject.shares.totalItems : '0'} shares</span>
         </form>
+
         <details>
           <summary>
             Edit
@@ -556,14 +562,14 @@ function Dashboard({
   actor,
   inboxItems,
   outboxItems,
-  streams,
+  streams = [],
 }: Data) {
 
   if (!actor) {
     return <Home />;
   }
 
-  const getBoxHtml = (item: AP.AnyThing) => getBoxItemHtml(item, actor);
+  const getBoxHtml = (item: AP.AnyThing) => getBoxItemHtml(item, actor, streams);
 
   return (
     <div>

@@ -47,6 +47,8 @@ async function handleCreate(activity: AP.Activity, graph: Graph, actor: AP.Actor
 
   object.likes = objectLikes;
   object.shares = objectShares;
+  object.published = new Date();
+  object.attributedTo = activity.actor;
 
   await Promise.all([
     graph.saveThing(object.compress()),
@@ -101,6 +103,9 @@ async function handleUpdate(activity: AP.Activity, graph: Graph, actor: AP.Actor
   activity.object = {
     ...objectToUpdate,
     ...activity.object,
+    ...(objectToUpdate.type !== 'Link' && objectToUpdate.type !== 'Mention') ? {
+      updated: new Date(),
+    } : null
   };
 
   await graph.saveThing(activity.object);
@@ -274,6 +279,7 @@ export default async function handler(
     }
 
     const activity = new APActivity(thing);
+    activity.published = new Date();
     const activityId = activity.id;
     const activityActorId = activity.actor ? (typeof activity.actor === 'string' ? activity.actor : !Array.isArray(activity.actor) ? activity.actor.id : '') : '';
 

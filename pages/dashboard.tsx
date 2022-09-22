@@ -2,12 +2,13 @@ import Head from 'next/head'
 import { IncomingMessage } from 'http';
 import Home from '.';
 
-import { FormEventHandler, MouseEventHandler } from 'react';
+import { ChangeEvent, ChangeEventHandler, FormEventHandler, MouseEventHandler, useState } from 'react';
 
 import { ACTIVITYSTREAMS_CONTEXT } from '../lib/globals';
 import * as AP from '../lib/types/activity_pub';
 import { Graph } from '../lib/graph';
 import { APAnyThing, APCollection, APOrderedCollection } from '../lib/classes/activity_pub';
+import Link from 'next/link';
 
 const PUBLIC_ACTOR = `${ACTIVITYSTREAMS_CONTEXT}#Public`;
 
@@ -60,6 +61,8 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
     if (!foundItem) {
       return item;
     }
+
+    console.log(foundItem)
 
     const expandedItem = await graph.expandThing(foundItem);
 
@@ -285,6 +288,12 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
       ...body.content ? {
         content: body.content,
       } : null,
+      ...body.summary ? {
+        summary: body.summary,
+      } : null,
+      ...body.location ? {
+        location: body.location,
+      } : null,
       ...body.to ? {
         to: body.to,
       } : null,
@@ -296,11 +305,14 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
     body: JSON.stringify(activity)
   })
   .then(response => response.json())
-  .then((result: { error?: string; }) => {
+  .then((result: { error?: string; type?: string; }) => {
     if (result.error) {
       throw new Error(result.error);
     }
     console.log(result);
+    if ('type' in result && result.type === AP.ActivityTypes.CREATE) {
+      window.location.hash = 'outbox';
+    }
     window.location.reload();
   });
 };
@@ -329,14 +341,27 @@ const getFormHtml = (actor: AP.AnyActor) => <>
   <form
     onSubmit={handleOutboxSubmit(AP.ActivityTypes.CREATE, actor)}
     noValidate>
-    <select name="type" defaultValue={'Note'}>
-      {Object.values(AP.ObjectTypes).map(type =>
-        <option key={type}>{type}</option>
-      )}
-    </select>
+    <label>
+      <span>
+        Type
+      </span>
+      <select name="type" defaultValue={'Note'}>
+        {Object.values(AP.ObjectTypes).map(type =>
+          <option key={type}>{type}</option>
+        )}
+      </select>
+    </label>
+    <label>
+      <span>Summary</span>
+      <textarea name="summary"></textarea>
+    </label>
     <label>
       <span>Content</span>
       <textarea required name="content"></textarea>
+    </label>
+    <label>
+      <span>Location</span>
+      <input type="text" name="location" />
     </label>
     <label>
       <span>To</span>
@@ -352,8 +377,14 @@ const getFormHtml = (actor: AP.AnyActor) => <>
   </form>
 </>
 
-const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: AP.Collection[]) => {          
+const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: AP.Collection[], filter: string) => {          
   if (typeof thing !== 'string' && 'actor' in thing) {
+    if (filter === AP.ActivityTypes.CREATE) {
+      if (thing.type !== AP.ActivityTypes.CREATE) {
+        return <></>;
+      }
+    }
+
     const activityTypeHtml = <>
       <a href={thing.id ?? '#'}>
         {thing.type.toLowerCase()}d
@@ -418,17 +449,18 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
       </>
     }
 
-    return <li key={thing.id}>
-      {activityActorHtml}
-      {' '}
-      {activityTypeHtml}
-      {' '}
-      {activityObjectHtml}.
+    return <li className="card" key={thing.id}>
+      <p>
+        {activityActorHtml}
+        {' '}
+        {activityTypeHtml}
+        {' '}
+        {activityObjectHtml}.
+      </p>
       
-      {activityObject && 'content' in activityObject && activityObject.content ? <>
+      {activityObject && 'summary' in activityObject && activityObject.summary ? <>
         <blockquote>
-          {'> '}
-          {activityObject.content}
+          {activityObject.summary}
         </blockquote>
       </> : activityObject && 'preferredUsername' in activityObject && activityObject.preferredUsername ? <>
         <blockquote>
@@ -436,33 +468,103 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
         </blockquote>
       </> : <></>}
 
-      <details>
-        <summary>
-          Details
-        </summary>
-        <figure>
-           <textarea defaultValue={JSON.stringify(thing)}></textarea>
-          <dl>
-            {Object.entries(thing).map(([key, value]) => {
-              if (Object.hasOwn(thing, key)) {
-                return ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
-                  <dt key={`dt_${key}`}>
-                    {key}
-                  </dt>
-                  <dd key={`dd_${key}`}>
-                    {typeof value === 'string' ? value : <>
-                      <textarea defaultValue={JSON.stringify(value)}></textarea>
-                    </>}
-                  </dd>
-                </>
-              } else {
-                return <></>;
-              }
-            })}
-            <dt>
-              object
-            </dt>
-            <dd>
+      {activityObject && activityObject.type !== AP.ObjectTypes.TOMBSTONE ? <>
+        <dl>
+          <dt>Likes</dt>
+          <dd>
+            {'likes' in activityObject && activityObject.likes && typeof activityObject.likes === 'object' && 'totalItems' in activityObject.likes ? activityObject.likes.totalItems : '0'}
+          </dd>
+
+          <dt>Shares</dt>
+          <dd>{'shares' in activityObject && activityObject.shares && typeof activityObject.shares === 'object' && 'totalItems' in activityObject.shares ? activityObject.shares.totalItems : '0'}</dd>
+        </dl>
+
+        <div className="form-buttons">
+          <a className="a-button primary" href={activityObject.id ?? '#'}>
+            Read More
+          </a>
+          <form
+            onSubmit={handleOutboxSubmit(AP.ActivityTypes.LIKE, actor)}
+            noValidate>
+            <input type="hidden" name="id" value={activityObject.id ?? ''} />
+            <button type="submit" className="action">
+              Like
+            </button>
+          </form>
+
+          <form
+            onSubmit={handleOutboxSubmit(AP.ActivityTypes.ANNOUNCE, actor)}
+            noValidate>
+            <input type="hidden" name="id" value={activityObject.id ?? ''} />
+            <button type="submit" className="action">
+              Share
+            </button>
+          </form>
+          
+          <form
+            onSubmit={handleOutboxSubmit(thing.type === AP.ActivityTypes.ADD ? AP.ActivityTypes.REMOVE : AP.ActivityTypes.ADD, actor)}
+            noValidate>
+            <input type="hidden" name="id" value={activityObject.id ?? ''} />
+            <input type="hidden" name="target" value={Array.isArray(streams) ? [...streams].map((stream: AP.CollectionReference) => typeof stream === 'object' && !Array.isArray(stream) && stream.name === 'Bookmarks' ? stream.id : '').join('') : ''} />
+            <button type="submit" className="action">
+              {thing.type === AP.ActivityTypes.ADD ? 'Remove ' : ''}
+              Bookmark
+            </button>
+          </form>
+
+          <details>
+            <summary className="secondary">
+              Edit
+            </summary>
+            <form
+              onSubmit={handleOutboxSubmit(AP.ActivityTypes.UPDATE, actor)}
+              noValidate>
+              <input type="hidden" name="id" value={activityObject.id ?? ''} />
+              <label>
+                <span>Summary</span>
+                <textarea name="summary" defaultValue={'summary' in activityObject ? activityObject.summary : ''}></textarea>
+              </label>
+              <label>
+                <span>Content</span>
+                {'content' in activityObject ? <>
+                    <textarea required name="content" defaultValue={activityObject.content}></textarea>
+                  </> : <>
+                    <textarea required name="content"></textarea>
+                  </>
+                }
+              </label>
+              <button type="submit">
+                Update
+              </button>
+            </form>
+          </details>
+          
+          <details>
+            <summary className="secondary">
+              Details
+            </summary>
+            <figure>
+              <textarea defaultValue={JSON.stringify(thing)}></textarea>
+              <h2>Activity Details</h2>
+              <dl>
+                {Object.entries(thing).map(([key, value]) => {
+                  if (Object.hasOwn(thing, key)) {
+                    return ['id', 'url', 'type', 'actor', 'object'].includes(key) ? <></> : <>
+                      <dt key={`dt_${key}`}>
+                        {key}
+                      </dt>
+                      <dd key={`dd_${key}`}>
+                        {typeof value === 'string' ? value : <>
+                          <textarea defaultValue={JSON.stringify(value)}></textarea>
+                        </>}
+                      </dd>
+                    </>
+                  } else {
+                    return <></>;
+                  }
+                })}
+              </dl>
+              <h2>Object Details</h2>
               <dl>
                 {activityObject ? Object.entries(activityObject).map(([key, value]) => {
                   if (Object.hasOwn(activityObject, key)) {
@@ -481,79 +583,23 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
                   }
                 }) : <></>}
               </dl>
-            </dd>
-          </dl>
-        </figure>
-      </details>
+            </figure>
+          </details>
 
-      {activityObject && activityObject.type !== AP.ObjectTypes.TOMBSTONE ? <>
-        <form
-          onSubmit={handleOutboxSubmit(AP.ActivityTypes.LIKE, actor)}
-          noValidate>
-          <input type="hidden" name="id" value={activityObject.id ?? ''} />
-          <button type="submit">
-            Like
-          </button>
-          <span>{'likes' in activityObject && activityObject.likes && typeof activityObject.likes === 'object' && 'totalItems' in activityObject.likes ? activityObject.likes.totalItems : '0'} likes</span>
-        </form>
-
-        <form
-          onSubmit={handleOutboxSubmit(AP.ActivityTypes.ANNOUNCE, actor)}
-          noValidate>
-          <input type="hidden" name="id" value={activityObject.id ?? ''} />
-          <button type="submit">
-            Share
-          </button>
-          <span>{'shares' in activityObject && activityObject.shares && typeof activityObject.shares === 'object' && 'totalItems' in activityObject.shares ? activityObject.shares.totalItems : '0'} shares</span>
-        </form>
-        
-        <form
-          onSubmit={handleOutboxSubmit(thing.type === AP.ActivityTypes.ADD ? AP.ActivityTypes.REMOVE : AP.ActivityTypes.ADD, actor)}
-          noValidate>
-          <input type="hidden" name="id" value={activityObject.id ?? ''} />
-          <input type="hidden" name="target" value={Array.isArray(streams) ? [...streams].map((stream: AP.CollectionReference) => typeof stream === 'object' && !Array.isArray(stream) && stream.name === 'Bookmarks' ? stream.id : '').join('') : ''} />
-          <button type="submit">
-            {thing.type === AP.ActivityTypes.ADD ? 'Remove' : 'Add'}
-            {' '}
-            Bookmark
-          </button>
-        </form>
-
-        <details>
-          <summary>
-            Edit
-          </summary>
           <form
-            onSubmit={handleOutboxSubmit(AP.ActivityTypes.UPDATE, actor)}
+            onSubmit={handleOutboxSubmit(AP.ActivityTypes.DELETE, actor)}
             noValidate>
             <input type="hidden" name="id" value={activityObject.id ?? ''} />
-            <label>
-              <span>Content</span>
-              {'content' in activityObject ? <>
-                  <textarea required name="content" defaultValue={activityObject.content}></textarea>
-                </> : <>
-                  <textarea required name="content"></textarea>
-                </>
-              }
-            </label>
-            <button type="submit">
-              Update
+            <button type="submit" className="danger">
+              Delete
             </button>
           </form>
-        </details>
-      </> : <></>}
-
-      {activityObject && activityObject.type !== AP.ObjectTypes.TOMBSTONE ? <>
-        <form
-          onSubmit={handleOutboxSubmit(AP.ActivityTypes.DELETE, actor)}
-          noValidate>
-          <input type="hidden" name="id" value={activityObject.id ?? ''} />
-          <button type="submit">
-            Delete
-          </button>
-        </form>
-      </> : <></>}
-
+        </div>
+      </> : <>
+        <blockquote>
+          {'<'}Deleted{'>'}
+        </blockquote>
+      </>}
     </li>
   }
   return null;
@@ -582,39 +628,96 @@ function Dashboard({
   streams = [],
 }: Data) {
 
+  const [filter, setFilter]: [filter: string, setFilter: Function] = useState(AP.ActivityTypes.CREATE);
+
   if (!actor) {
     return <Home />;
   }
 
-  const getBoxHtml = (item: AP.AnyThing) => getBoxItemHtml(item, actor, streams);
+  const getBoxHtml = (item: AP.AnyThing) => getBoxItemHtml(item, actor, streams, filter);
+
+  const handleFilterChange: ChangeEventHandler<HTMLSelectElement> = (event: ChangeEvent<HTMLSelectElement>) => {
+    setFilter(event.currentTarget.value);
+  }
 
   return (
-    <div>
+    <>
       <Head>
-        <title>Create Next App</title>
-        <meta name="description" content="Generated by create next app" />
+        <title>ActivityWeb</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main>
-        <h1>Welcome, @{actor.preferredUsername}</h1>
+        <header>
+          <Link href="/dashboard">
+            {'ActivityWeb'}
+          </Link>
+        </header>
 
-        {getNavHtml(actor, streams)}
+        <div className="tabs">
+          <a href="#welcome">Welcome</a>
+          <a href="#create">Create</a>
+          <a href="#inbox">Inbox</a>
+          <a href="#outbox">Outbox</a>
+        </div>
 
-        <h2>Create</h2>
-        {getFormHtml(actor)}
+        <div className="tabpanels">
+          <div className="tabpanel" id="welcome">
+            <div className="card">
+              <h1>Welcome, @{actor.preferredUsername}</h1>
+              {getNavHtml(actor, streams)}
+            </div>
+          </div>
 
-        <h2>Inbox</h2>
-        <ul className="box">
-          {inboxItems?.map(getBoxHtml) ?? null}
-        </ul>
+          <div className="tabpanel" id="create">
+            <div className="card">
+              <h2>Create</h2>
+              {getFormHtml(actor)}
+            </div>
+          </div>
 
-        <h2>Outbox</h2>
-        <ul className="box">
-          {outboxItems?.map(getBoxHtml) ?? null}
-        </ul>
+          <div className="tabpanel" id="inbox">
+            <div className="intro">
+              <h2>Intro</h2>
+              <form>
+                <label>
+                  <span>
+                    Filter
+                  </span>
+                  <select onChange={handleFilterChange} value={filter}>
+                    <option>All Activity</option>
+                    <option value={AP.ActivityTypes.CREATE}>All Creations</option>
+                  </select>
+                </label>
+              </form>
+            </div>
+            <ol>
+              {inboxItems?.map(getBoxHtml) ?? null}
+            </ol>
+          </div>
+
+          <div className="tabpanel" id="outbox">
+            <div className="intro">
+              <h2>Outbox</h2>
+              <form>
+                <label>
+                  <span>
+                    Filter
+                  </span>
+                  <select onChange={handleFilterChange} value={filter}>
+                    <option>All Activity</option>
+                    <option value={AP.ActivityTypes.CREATE}>All Creations</option>
+                  </select>
+                </label>
+              </form>
+            </div>
+            <ol>
+              {outboxItems?.map(getBoxHtml) ?? null}
+            </ol>
+          </div>
+        </div>
       </main>
-    </div>
+    </>
   )
 }
 

@@ -228,13 +228,23 @@ export class Graph {
       if (key === 'id' || key === 'type') {
         expanded.push([key, value]);
       } else if (typeof value === 'string') {
-        expanded.push([key, await this.findThingById(value)]);
+        try {
+          const url = new URL(value);
+          expanded.push([key, await this.findThingById(url.toString())]);
+        } catch (error) {
+          expanded.push([key, value]);
+        }
       } else if (Array.isArray(value)) {
         const array = [...value];
         if (array.every((item: unknown) => typeof item === 'string')) {
           expanded.push([key, await Promise.all(array.map(async item => {
             if (typeof item === 'string') {
-              return await this.findThingById(item);
+              try {
+                const url = new URL(item);
+                return await this.findThingById(url.toString());
+              } catch (error) {
+                return item;
+              }
             }
           }))]);
         }

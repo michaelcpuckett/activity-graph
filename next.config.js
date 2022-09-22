@@ -21,6 +21,10 @@ const nextConfig = {
         destination: '/api/thing/:path',
       },
       {
+        source: '/object/:thing/:path',
+        destination: '/api/thing/:path',
+      },
+      {
         source: '/activity/:path',
         destination: '/api/thing/:path',
       },

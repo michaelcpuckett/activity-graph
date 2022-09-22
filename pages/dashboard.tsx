@@ -430,7 +430,6 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor) => {
         </figure>
       </details>
 
-
       {activityObject && activityObject.type !== AP.ObjectTypes.TOMBSTONE ? <>
         <form
           onSubmit={handleOutboxSubmit(AP.ActivityTypes.LIKE, actor)}

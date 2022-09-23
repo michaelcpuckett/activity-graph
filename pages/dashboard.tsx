@@ -659,6 +659,7 @@ function Dashboard({
           <a href="#create">Create</a>
           <a href="#inbox">Inbox</a>
           <a href="#outbox">Outbox</a>
+          <a href="#search">Search</a>
         </div>
 
         <div className="tabpanels">
@@ -684,7 +685,7 @@ function Dashboard({
                   <span>
                     Filter
                   </span>
-                  <select onChange={handleFilterChange} value={filter}>
+                  <select onChange={handleFilterChange} defaultValue={filter}>
                     <option>All Activity</option>
                     <option value={AP.ActivityTypes.CREATE}>All Creations</option>
                   </select>
@@ -714,6 +715,22 @@ function Dashboard({
             <ol>
               {outboxItems?.map(getBoxHtml) ?? null}
             </ol>
+          </div>
+          <div className="tabpanel" id="search">
+            <div className="intro">
+              <h2>Follow a User</h2>
+              <form
+                onSubmit={handleOutboxSubmit(AP.ActivityTypes.FOLLOW, actor)}
+                noValidate>
+                <label>
+                  <span>URL</span>
+                  <input name="id" />                  
+                </label>
+                <button type="submit">
+                  Follow
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </main>

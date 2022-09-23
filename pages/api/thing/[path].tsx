@@ -427,7 +427,8 @@ export default async function handler(
   }
 
   if (req.headers[ACCEPT_HEADER]?.includes(ACTIVITYSTREAMS_CONTENT_TYPE)) {
-    return res.status(200).json(JSON.stringify(typedThing));
+    res.setHeader(CONTENT_TYPE_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE);
+    return res.status(200).json(JSON.stringify(typedThing.formatPublicObject()));
   }
 
   const html = renderToString(

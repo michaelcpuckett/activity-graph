@@ -6,6 +6,8 @@ import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 import { renderToString } from 'react-dom/server';
 import { APAnyThing } from '../../../lib/classes/activity_pub';
 import Link from 'next/link';
+import inboxHandler from '../[username]/inbox';
+import outboxHandler from '../[username]/outbox';
 
 async function renderActivity(activity: AP.Activity) {
   const graph = await Graph.connect();
@@ -380,10 +382,14 @@ export default async function handler(
 
   console.log(url);
 
-  if (typeof url !== 'string') {
-    return res.status(400).json({
-      error: 'Could not locate thing.',
-    });
+  const [, , collection] = new URL(url).pathname.split('/');
+
+  if (collection === 'inbox') {
+    return await inboxHandler(req, res);
+  }
+  
+  if (collection === 'outbox') {
+    return await outboxHandler(req, res);
   }
 
   const graph = await Graph.connect();

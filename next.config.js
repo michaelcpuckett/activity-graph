@@ -9,6 +9,10 @@ const nextConfig = {
         destination: '/api/thing/:path',
       },
       {
+        source: '/actor/:path',
+        destination: '/api/thing/:path',
+      },
+      {
         source: '/actor/:username/:path',
         destination: '/api/thing/:path',
       },

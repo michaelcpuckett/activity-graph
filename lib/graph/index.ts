@@ -258,7 +258,9 @@ export class Graph {
     return JSON.parse(JSON.stringify(Object.fromEntries(expanded)));
   }
 
-  async signAndSendToForeignActorInbox(foreignActorInbox: string, actor: AP.Actor, activity: AP.Activity) {
+  async signAndSendToForeignActorInbox(foreignActorInbox: string, actor: AP.Actor, activity: AP.AnyThing & {
+    [CONTEXT]: AP.StringReference
+  }) {
     if (!actor.preferredUsername) {
       return;
     }
@@ -299,21 +301,17 @@ export class Graph {
     });
   }
 
-  async broadcastActivity(activity: AP.Activity & {
-    [CONTEXT]: string|string[];
-  }, actor: AP.Actor) {
+  async broadcastActivity(activity: APActivity, actor: AP.Actor) {
     const recipients = await this.getRecipientInboxUrls(activity);
 
     console.log(recipients);
 
     return await Promise.all(recipients.map(async recipient => {
-      return await this.signAndSendToForeignActorInbox(recipient, actor, activity);
+      return await this.signAndSendToForeignActorInbox(recipient, actor, activity.formatPublicObject());
     }));
   }
   
-  async getRecipientInboxUrls(activity: AP.Activity & {
-    [CONTEXT]: string|string[];
-  }): Promise<string[]> {
+  async getRecipientInboxUrls(activity: AP.Activity): Promise<string[]> {
     const recipients: string[] = [
       ...activity.to ? await this.getRecipientsList(activity.to) : [],
       ...activity.cc ? await this.getRecipientsList(activity.cc) : [],

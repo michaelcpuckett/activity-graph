@@ -263,12 +263,6 @@ export default async function handler(
 
   console.log(url);
 
-  if (typeof url !== 'string') {
-    return res.status(400).json({
-      error: 'Could not locate thing.',
-    });
-  }
-
   const graph = await Graph.connect();
 
   try {
@@ -322,7 +316,7 @@ export default async function handler(
 
     await graph.saveThing(activity.compress());
     await graph.insertOrderedItem(actorOutboxId, activityId);
-    await graph.broadcastActivity(activity.formatPublicObject(), actor);
+    await graph.broadcastActivity(activity, actor);
 
     return res.status(200).json(activity.formatPublicObject());
   } catch (error) {

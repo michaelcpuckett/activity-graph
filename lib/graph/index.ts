@@ -266,7 +266,7 @@ export class Graph {
     const expanded = [];
 
     for (const [key, value] of Object.entries(thing)) {
-      if (key === 'id' || key === 'url' || key === 'type') {
+      if (key === 'id' || key === 'url' || key === 'type' || key === CONTEXT) {
         expanded.push([key, value]);
       } else if (typeof value === 'string') {
         try {

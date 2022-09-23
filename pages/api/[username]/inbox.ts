@@ -97,6 +97,8 @@ async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.A
     throw new Error('bad request');
   }
 
+  // Now we're in outbox, because this is auto-generated:
+
   const acceptActivity = new APActivity({
     type: AP.ActivityTypes.ACCEPT,
     actor: followee.id,
@@ -116,10 +118,17 @@ async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.A
   if (!followeeOutboxId) {
     throw new Error('bad request');
   }
+  
+  const followeeFollowersId = followee.followers ? typeof followee.followers === 'string' ? followee.followers : !Array.isArray(followee.followers) && 'id' in followee.followers ? followee.followers.id : '' : '';
+    
+  if (!followeeFollowersId) {
+    throw new Error('bad request 6');
+  }
 
   await Promise.all([
     graph.saveThing(acceptActivity.compress()),
-    graph.insertOrderedItem(followeeOutboxId, acceptActivity.id),      
+    graph.insertOrderedItem(followeeOutboxId, acceptActivity.id),
+    graph.insertItem(followeeFollowersId, follower.id), // ugh I guesss
   ]);
 
   await graph.broadcastActivity(acceptActivity, followee);

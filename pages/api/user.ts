@@ -86,6 +86,11 @@ export default async function handler(
   const isBotCreated = !!(await graph.findOne('actor', { preferredUsername: botServiceUsername }));
 
   if (!isBotCreated) {
+    const {
+      publicKey: botPublicKey,
+      privateKey: botPrivateKey,
+    } = await generateKeyPair();
+
     const botInbox: AP.OrderedCollection = {
       id: `${botServiceId}/inbox`,
       url: `${botServiceId}/inbox`,
@@ -102,6 +107,24 @@ export default async function handler(
       orderedItems: [],
     };
 
+    const botFollowers: AP.Collection = {
+      id: `${botServiceId}/followers`,
+      url: `${botServiceId}/followers`,
+      name: 'Followers',
+      type: AP.CollectionTypes.COLLECTION,
+      totalItems: 0,
+      items: [],
+    };
+
+    const botFollowing: AP.Collection = {
+      id: `${botServiceId}/following`,
+      url: `${botServiceId}/following`,
+      name: 'Following',
+      type: AP.CollectionTypes.COLLECTION,
+      totalItems: 0,
+      items: [],
+    };
+
     const botActor = new APActor({
       id: botServiceId,
       url: botServiceId,
@@ -110,12 +133,26 @@ export default async function handler(
       preferredUsername: botServiceUsername,
       inbox: botInbox,
       outbox: botOutbox,
+      following: botFollowing,
+      followers: botFollowers,
+      endpoints: {
+        sharedInbox: `${LOCAL_DOMAIN}/inbox`,
+      },
+      publicKey: {
+          id: `${id}#main-key`,
+          owner: id,
+          publicKeyPem: botPublicKey
+      },
     }).compress();
 
     await Promise.all([
       graph.saveThing(botActor),
       graph.saveThing(botInbox),
       graph.saveThing(botOutbox),
+      graph.saveThing(botFollowing),
+      graph.saveThing(botFollowers),
+      graph.saveString('username', 'bot', 'bot'),
+      graph.saveString('private-key', 'bot', botPrivateKey),
     ]);
   }
 

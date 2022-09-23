@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Graph } from '../../../lib/graph';
 import { CONTEXT, LOCAL_DOMAIN } from '../../../lib/globals';
 import * as AP from '../../../lib/types/activity_pub';
-import { APActivity, APLink, APObject } from '../../../lib/classes/activity_pub';
+import { APActivity, APActor, APLink, APObject } from '../../../lib/classes/activity_pub';
 import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 
 async function handleCreate(activity: AP.Activity, graph: Graph, actor: AP.Actor) {

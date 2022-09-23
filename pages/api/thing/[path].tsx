@@ -136,6 +136,23 @@ async function renderActor(actor: AP.Actor) {
           </a>
         </li>
       </>)}
+      
+      {[actor.following ? (typeof actor.following === 'string' ? actor.following : actor.following.id) : ''].map(id => <>
+        <li>
+          <a href={id ?? '#'}>
+            Following
+          </a>
+        </li>
+      </>)}
+      
+      {[actor.followers ? (typeof actor.followers === 'string' ? actor.followers : actor.followers.id) : ''].map(id => <>
+        <li>
+          <a href={id ?? '#'}>
+            Followers
+          </a>
+        </li>
+      </>)}
+
       {[typeof actor.liked === 'string' ? actor.liked : actor.liked?.id ?? ''].map(id => <>
         <li>
           <a href={id ?? '#'}>
@@ -382,7 +399,7 @@ export default async function handler(
 
   console.log(url);
 
-  const [, , collection] = new URL(url).pathname.split('/');
+  const [, , , collection] = new URL(url).pathname.split('/');
 
   if (collection === 'inbox') {
     return await inboxHandler(req, res);

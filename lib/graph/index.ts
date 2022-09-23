@@ -286,6 +286,8 @@ export class Graph {
     const signature_b64 = signature.toString('base64');
     const signatureHeader = `keyId="${actor.url}#main-key",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="${signature_b64}"`;
     
+    console.log('SENDING...')
+
     // send
     return await fetch(foreignActorInbox, {
         method: 'post',

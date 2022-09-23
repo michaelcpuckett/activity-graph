@@ -328,6 +328,8 @@ const getNavHtml = (actor: AP.AnyActor, streams?: AP.AnyCollection[]) => {
         ) : null}
         {getBoxLinkHtml(actor.inbox, 'Inbox')}
         {getBoxLinkHtml(actor.outbox, 'Outbox')}
+        {actor.following ? getBoxLinkHtml(actor.following, 'Following') : <></>}
+        {actor.followers ? getBoxLinkHtml(actor.followers, 'Followers') : <></>}
         {actor.liked ? getBoxLinkHtml(actor.liked, 'Liked') : <></>}
         {streams ? streams.map(stream => (typeof stream !== 'string' && 'id' in stream && stream.id && 'name' in stream && stream.name && !Array.isArray(stream.name)) ? getBoxLinkHtml(stream.id, stream.name) : <></>) : <></>}
       </ul>
@@ -509,6 +511,18 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
               Bookmark
             </button>
           </form>
+
+          {activityActor ? <>
+            <form
+              onSubmit={handleOutboxSubmit(AP.ActivityTypes.FOLLOW, actor)}
+              noValidate>
+              <input type="hidden" name="id" value={typeof activityActor === 'string' ? activityActor : 'id' in activityActor ? activityActor.id ?? '' : ''} />
+              <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor: 'id' in activityActor ? activityActor.id ?? '' : ''} />
+              <button type="submit" className="action">
+                Follow
+              </button>
+            </form>
+          </> : <></>}
 
           <details>
             <summary className="secondary">

@@ -429,6 +429,8 @@ export default async function handler(
   const expandedThing = await graph.expandThing(typedThing.formatPublicObject());
 
   if (req.headers[ACCEPT_HEADER]?.includes(ACTIVITYSTREAMS_CONTENT_TYPE)) {
+    console.log('ACCEPT HEADER MATCH')
+    console.log(expandedThing);
     res.setHeader(CONTENT_TYPE_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE);
     return res.status(200).json(JSON.stringify(expandedThing));
   }

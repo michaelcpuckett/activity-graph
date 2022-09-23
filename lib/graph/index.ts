@@ -228,8 +228,8 @@ export class Graph {
     const fetchedThing = await fetch(id, {
         headers: {
             [CONTENT_TYPE_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
-            [ACCEPT_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE
-        }
+            [ACCEPT_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
+        },
     })
     .then(async response => await response.json())
     .catch(error => {
@@ -251,6 +251,8 @@ export class Graph {
   }
 
   async queryById(id: string): Promise<AP.AnyThing|null> {
+    console.log('QUERY', id, getCollectionNameByUrl(id));
+
     try {
       return await this.findThingById(id) ?? await this.fetchThingById(id);
     } catch (error: unknown) {

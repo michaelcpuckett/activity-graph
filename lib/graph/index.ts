@@ -8,6 +8,7 @@ import serviceAccount from '../../credentials';
 import { getCollectionNameByUrl } from '../utilities/getCollectionNameByUrl';
 import * as AP from '../types/activity_pub';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, CONTENT_TYPE_HEADER, CONTEXT, PUBLIC_ACTOR } from '../globals';
+import { dbName } from '../../config';
 
 export class Graph {
   db: Db;
@@ -17,7 +18,6 @@ export class Graph {
   }
 
   static async connect() {
-    const dbName = 'activitypub';
     const client = new MongoClient("mongodb://testing:testing@localhost:27017");
     await client.connect();
     const db = client.db(dbName);

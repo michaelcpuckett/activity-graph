@@ -169,12 +169,12 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
       throw new Error('bad request 6');
     }
 
-    await graph.insertItem(followeeFollowersId, followerId);
-
-    console.log({
+    console.log('!', {
+      followeeFollowersId,
       followerId,
-      'recipientId': recipient.id,
     })
+
+    await graph.insertItem(followeeFollowersId, followerId);
 
     if (followerId === recipient.id) {
       const followerFollowingId = recipient.following ? typeof recipient.following === 'string' ? recipient.following : !Array.isArray(recipient.following) && 'id' in recipient.following ? recipient.following.id : '' : '';

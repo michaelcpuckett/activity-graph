@@ -389,9 +389,7 @@ async function renderThing(thing: APAnyThing) {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<string|AP.AnyThing & {
-    [CONTEXT]: string|string[];
-  } | {
+  res: NextApiResponse<string|AP.AnyThing| {
     error?: string;
   }>
 ) {
@@ -428,11 +426,9 @@ export default async function handler(
 
   const expandedThing = await graph.expandThing(typedThing.formatPublicObject());
 
-  console.log('ACCEPTS', req.headers[ACCEPT_HEADER]);
-  
-  if (req.headers[ACCEPT_HEADER]?.includes(ACTIVITYSTREAMS_CONTENT_TYPE) || req.headers[ACCEPT_HEADER]?.includes(LINKED_DATA_CONTENT_TYPE) || req.headers[ACCEPT_HEADER]?.includes(JSON_CONTENT_TYPE)) {
+  if (req.headers.accept?.includes(ACTIVITYSTREAMS_CONTENT_TYPE) || req.headers.accept?.includes(LINKED_DATA_CONTENT_TYPE) || req.headers.accept?.includes(JSON_CONTENT_TYPE)) {
     res.setHeader(CONTENT_TYPE_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE);
-    return res.status(200).json(JSON.stringify(expandedThing));
+    return res.status(200).json(expandedThing);
   }
 
   const html = renderToString(
@@ -576,7 +572,6 @@ export default async function handler(
     </html>
   );
 
+  res.setHeader(CONTENT_TYPE_HEADER, 'text/html');
   return res.status(200).send(html)
-
-  // return res.status(200).json(typedThing.formatPublicObject());
 }

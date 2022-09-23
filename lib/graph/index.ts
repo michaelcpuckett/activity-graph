@@ -237,10 +237,6 @@ export class Graph {
       return null;
     });
 
-    console.log({
-      fetchedThing
-    })
-
     if (!(typeof fetchedThing === 'object' && fetchedThing && 'type' in fetchedThing)) {
       return null;
     }
@@ -261,8 +257,6 @@ export class Graph {
   }
 
   async queryById(id: string): Promise<AP.AnyThing|null> {
-    console.log('QUERY', id, getCollectionNameByUrl(id));
-
     try {
       return await this.findThingById(id) ?? await this.fetchThingById(id);
     } catch (error: unknown) {
@@ -278,7 +272,6 @@ export class Graph {
     const expanded = [];
 
     for (const [key, value] of Object.entries(thing)) {
-      console.log(key);
       if (key === 'id' || key === 'url' || key === 'type' || key === CONTEXT || key === '_id' || key === 'publicKey') {
         expanded.push([key, value]);
       } else if (typeof value === 'string') {

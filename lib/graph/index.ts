@@ -9,7 +9,6 @@ import { getCollectionNameByUrl } from '../utilities/getCollectionNameByUrl';
 import * as AP from '../types/activity_pub';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, CONTENT_TYPE_HEADER, CONTEXT, LOCAL_HOSTNAME, PUBLIC_ACTOR } from '../globals';
 import { dbName } from '../../config';
-import fetch from 'node-fetch';
 import { getTypedThing } from '../utilities/getTypedThing';
 
 export class Graph {
@@ -241,21 +240,17 @@ export class Graph {
     if (!(typeof fetchedThing === 'object' && fetchedThing && 'type' in fetchedThing)) {
       return null;
     }
+    
+    const thing = fetchedThing as AP.AnyThing;
+    
+    await this.saveThing(thing);
 
-    // TODO cache...
-
-    return fetchedThing as AP.AnyThing;
+    return fetchedThing;
   }
 
   async queryForId(id: string): Promise<AP.AnyThing|null> {
     try {
-      const isLocal = new URL(id).hostname === LOCAL_HOSTNAME;
-
-      if (isLocal) {     
-        return await this.findThingById(id);
-      } else {
-        return await this.fetchThingById(id);
-      }
+      return await this.findThingById(id) ?? await this.fetchThingById(id);
     } catch (error: unknown) {
       throw new Error(String(error));
     }

@@ -1,3 +1,4 @@
+export { PORT } from '../config';
 import { PORT } from "../config";
 
 export const LOCAL_HOSTNAME = 'localhost'

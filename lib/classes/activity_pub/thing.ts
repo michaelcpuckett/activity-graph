@@ -65,8 +65,6 @@ export class APThing implements AP.Thing {
       }
     }
 
-    console.log(compressed);
-
     return Object.fromEntries(compressed);
   }
 

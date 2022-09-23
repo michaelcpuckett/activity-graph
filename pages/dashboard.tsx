@@ -62,8 +62,6 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
       return item;
     }
 
-    console.log(foundItem)
-
     const expandedItem = await graph.expandThing(foundItem);
 
     const foundItemLikes = ('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.findThingById(expandedItem.object.likes) : null;
@@ -294,10 +292,10 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
       ...body.location ? {
         location: body.location,
       } : null,
-      ...body.to ? {
-        to: body.to,
-      } : null,
     },
+    ...body.to ? {
+      to: body.to,
+    } : null,
   };
 
   fetch(`/api/${actor.preferredUsername}/outbox`, {
@@ -725,6 +723,10 @@ function Dashboard({
                 <label>
                   <span>URL</span>
                   <input name="id" />                  
+                </label>
+                <label>
+                  <span>To</span>
+                  <input name="to" />                  
                 </label>
                 <button type="submit">
                   Follow

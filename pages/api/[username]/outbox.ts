@@ -279,6 +279,9 @@ export default async function handler(
     }
 
     const activity = new APActivity(thing);
+
+    console.log(activity);
+
     activity.published = new Date();
     const activityId = activity.id;
     const activityActorId = activity.actor ? (typeof activity.actor === 'string' ? activity.actor : !Array.isArray(activity.actor) ? activity.actor.id : '') : '';
@@ -319,6 +322,7 @@ export default async function handler(
 
     await graph.saveThing(activity.compress());
     await graph.insertOrderedItem(actorOutboxId, activityId);
+    await graph.broadcastActivity(activity.formatPublicObject(), actor);
 
     return res.status(200).json(activity.formatPublicObject());
   } catch (error) {

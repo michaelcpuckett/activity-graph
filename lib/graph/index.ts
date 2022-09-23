@@ -1,11 +1,13 @@
 import { Db, MongoClient } from 'mongodb';
 import * as firebaseAdmin from 'firebase-admin';
 import { AppOptions } from 'firebase-admin';
+import * as crypto from 'crypto';
 
 import { APActivity, APCollection, APOrderedCollection } from '../classes/activity_pub';
 import serviceAccount from '../../credentials';
 import { getCollectionNameByUrl } from '../utilities/getCollectionNameByUrl';
 import * as AP from '../types/activity_pub';
+import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, CONTENT_TYPE_HEADER, CONTEXT, PUBLIC_ACTOR } from '../globals';
 
 export class Graph {
   db: Db;
@@ -254,5 +256,115 @@ export class Graph {
     }
 
     return JSON.parse(JSON.stringify(Object.fromEntries(expanded)));
+  }
+
+  async signAndSendToForeignActorInbox(foreignActorInbox: string, actor: AP.Actor, activity: AP.Activity) {
+    if (!actor.preferredUsername) {
+      return;
+    }
+
+    const userId = await this.findStringIdByValue('username', actor.preferredUsername);
+    const privateKey = await this.findStringValueById('private-key', userId);
+
+    if (!privateKey) {
+      throw new Error('User\'s private key not found.');
+    }
+
+    const foreignDomain = new URL(foreignActorInbox).hostname;
+    const foreignPathName = new URL(foreignActorInbox).pathname;
+
+    // sign
+    const digestHash = crypto.createHash('sha256').update(JSON.stringify(activity)).digest('base64');
+    const signer = crypto.createSign('sha256');
+    const dateString = new Date().toUTCString();
+    const stringToSign = `(request-target): post ${foreignPathName}\nhost: ${foreignDomain}\ndate: ${dateString}\ndigest: SHA-256=${digestHash}`;
+    signer.update(stringToSign);
+    signer.end();
+    const signature = signer.sign(privateKey);
+    const signature_b64 = signature.toString('base64');
+    const signatureHeader = `keyId="${actor.url}#main-key",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="${signature_b64}"`;
+    
+    // send
+    return await fetch(foreignActorInbox, {
+        method: 'post',
+        body: JSON.stringify(activity),
+        headers: {
+            [CONTENT_TYPE_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
+            [ACCEPT_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
+            'Host': foreignDomain,
+            'Date': dateString,
+            'Digest': `SHA-256=${digestHash}`,
+            'Signature': signatureHeader
+        }
+    });
+  }
+
+  async broadcastActivity(activity: AP.Activity & {
+    [CONTEXT]: string|string[];
+  }, actor: AP.Actor) {
+    const recipients = await this.getRecipientInboxUrls(activity);
+
+    console.log(recipients);
+
+    return await Promise.all(recipients.map(async recipient => {
+      return await this.signAndSendToForeignActorInbox(recipient, actor, activity);
+    }));
+  }
+  
+  async getRecipientInboxUrls(activity: AP.Activity & {
+    [CONTEXT]: string|string[];
+  }): Promise<string[]> {
+    const recipients: string[] = [
+      ...activity.to ? await this.getRecipientsList(activity.to) : [],
+      ...activity.cc ? await this.getRecipientsList(activity.cc) : [],
+      ...activity.bto ? await this.getRecipientsList(activity.bto) : [],
+      ...activity.bcc ? await this.getRecipientsList(activity.bcc) : [],
+    ];
+
+    // get inbox for each recipient
+    const recipientInboxes = await Promise.all(recipients.map(async recipient => {
+      const foundThing = await this.findThingById(recipient);
+
+      if (foundThing && 'inbox' in foundThing && foundThing.inbox) {
+        return foundThing.inbox;
+      }
+    }));
+
+    const recipientInboxUrls: string[] = [];
+
+    for (const recipientInbox of recipientInboxes) {
+      if (typeof recipientInbox === 'string') {
+        recipientInboxUrls.push(recipientInbox);
+      }
+    }
+
+    return [...new Set(recipientInboxUrls)];
+  }
+
+  async getRecipientsList(to: AP.ObjectOrLinkReference) {
+    const toArray = Array.isArray(to) ? to : [to];
+    const filteredToArray = toArray.filter(recipient => recipient !== PUBLIC_ACTOR);
+    return filteredToArray.map(reference => {
+      if (typeof reference === 'string') {
+        return reference;
+      }
+      if ('id' in reference) {
+        return reference.id;
+      }
+      if ('href' in reference) {
+        return reference.href;
+      }
+      if (Array.isArray(reference)) {
+        if (reference.every(item => typeof item === 'string')) {
+          return reference;
+        } else {
+          return reference.map(item => {
+            if (typeof item !== 'string' && 'id' in item) {
+              return item;
+            }
+          });
+        }
+      }
+    }).flat();
   }
 }

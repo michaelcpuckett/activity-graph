@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Graph } from '../../../lib/graph';
-import { CONTEXT, LOCAL_DOMAIN, PUBLIC_ACTOR } from '../../../lib/globals';
+import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, CONTENT_TYPE_HEADER, CONTEXT, LOCAL_DOMAIN, PUBLIC_ACTOR } from '../../../lib/globals';
 import * as AP from '../../../lib/types/activity_pub';
 import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 import { renderToString } from 'react-dom/server';
@@ -401,11 +401,11 @@ export default async function handler(
 
   const [, , , collection] = new URL(url).pathname.split('/');
 
-  if (collection === 'inbox') {
+  if (collection === 'inbox' && req.method === 'POST') {
     return await inboxHandler(req, res);
   }
   
-  if (collection === 'outbox') {
+  if (collection === 'outbox' && req.method === 'POST') {
     return await outboxHandler(req, res);
   }
 
@@ -424,6 +424,10 @@ export default async function handler(
     return res.status(400).json({
       error: 'Could not locate thing.',
     });
+  }
+
+  if (req.headers[ACCEPT_HEADER]?.includes(ACTIVITYSTREAMS_CONTENT_TYPE)) {
+    return res.status(200).json(JSON.stringify(typedThing));
   }
 
   const html = renderToString(

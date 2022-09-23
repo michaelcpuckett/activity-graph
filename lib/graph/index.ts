@@ -358,7 +358,7 @@ export class Graph {
   async broadcastActivity(activity: APActivity, actor: AP.Actor) {
     const recipients = await this.getRecipientInboxUrls(activity);
 
-    console.log(recipients);
+    console.log({recipients});
 
     return await Promise.all(recipients.map(async recipient => {
       return await this.signAndSendToForeignActorInbox(recipient, actor, activity.formatPublicObject());

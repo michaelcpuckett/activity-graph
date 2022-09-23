@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Graph } from '../../../lib/graph';
-import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, CONTENT_TYPE_HEADER, CONTEXT, JSON_CONTENT_TYPE, LOCAL_DOMAIN, PUBLIC_ACTOR } from '../../../lib/globals';
+import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, CONTENT_TYPE_HEADER, CONTEXT, JSON_CONTENT_TYPE, LINKED_DATA_CONTENT_TYPE, LOCAL_DOMAIN, PUBLIC_ACTOR } from '../../../lib/globals';
 import * as AP from '../../../lib/types/activity_pub';
 import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 import { renderToString } from 'react-dom/server';
@@ -430,7 +430,7 @@ export default async function handler(
 
   console.log('ACCEPTS', req.headers[ACCEPT_HEADER]);
   
-  if (req.headers[ACCEPT_HEADER]?.includes(ACTIVITYSTREAMS_CONTENT_TYPE) || req.headers[ACCEPT_HEADER]?.includes(JSON_CONTENT_TYPE)) {
+  if (req.headers[ACCEPT_HEADER]?.includes(ACTIVITYSTREAMS_CONTENT_TYPE) || req.headers[ACCEPT_HEADER]?.includes(LINKED_DATA_CONTENT_TYPE) || req.headers[ACCEPT_HEADER]?.includes(JSON_CONTENT_TYPE)) {
     res.setHeader(CONTENT_TYPE_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE);
     return res.status(200).json(JSON.stringify(expandedThing));
   }

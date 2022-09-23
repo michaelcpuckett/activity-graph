@@ -1,6 +1,7 @@
+import { PORT } from "../config";
+
 export const LOCAL_HOSTNAME = 'localhost'
-export const LOCAL_DOMAIN = `http://${LOCAL_HOSTNAME}:3000`;
-export const PORT = 80;
+export const LOCAL_DOMAIN = `http://${LOCAL_HOSTNAME}:${PORT}`;
 export const ERROR = 'error';
 export const CONTEXT = '@context';
 export const ACTIVITYSTREAMS_CONTEXT = 'https://www.w3.org/ns/activitystreams'

@@ -237,6 +237,10 @@ export class Graph {
       return null;
     });
 
+    console.log({
+      fetchedThing
+    })
+
     if (!(typeof fetchedThing === 'object' && fetchedThing && 'type' in fetchedThing)) {
       return null;
     }

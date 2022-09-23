@@ -18,7 +18,7 @@ async function handleCreate(activity: AP.Activity, graph: Graph, recipient: AP.A
     throw new Error('Bad request')
   }
 
-  const foundThing = await graph.findThingById(activityObjectId);
+  const foundThing = await graph.queryById(activityObjectId);
 
   if (!foundThing || !foundThing.type) {
     throw new Error('bad request');
@@ -48,7 +48,7 @@ async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.A
     throw new Error('Bad request 1')
   }
 
-  const foundThing = await graph.findThingById(activityObjectId);
+  const foundThing = await graph.queryById(activityObjectId);
 
   if (!foundThing || !foundThing.type) {
     throw new Error('bad request 2');
@@ -70,7 +70,7 @@ async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.A
     throw new Error('Bad request 1')
   }
 
-  const foundActor = await graph.findThingById(activityActorId);
+  const foundActor = await graph.queryById(activityActorId);
 
   if (!foundActor || !foundActor.type) {
     throw new Error('bad request 2');
@@ -133,7 +133,7 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
     throw new Error('Bad request 1')
   }
 
-  const foundThing = await graph.findThingById(activityObjectId);
+  const foundThing = await graph.queryById(activityObjectId);
 
   if (!foundThing || !foundThing.type) {
     throw new Error('bad request 2');
@@ -157,7 +157,7 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
       throw new Error('bad request 4');
     }
 
-    const foundFollowee = await graph.findThingById(followeeId);
+    const foundFollowee = await graph.queryById(followeeId);
 
     if (!foundFollowee || !('outbox' in foundFollowee)) {
       throw new Error('bad request 5');

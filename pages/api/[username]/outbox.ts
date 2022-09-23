@@ -66,7 +66,7 @@ async function handleDelete(activity: AP.Activity, graph: Graph, initiator: AP.A
     throw new Error('Bad request')
   }
 
-  const objectToDelete = await graph.findThingById(activityObjectId);
+  const objectToDelete = await graph.queryById(activityObjectId);
 
   if (!objectToDelete || !objectToDelete.type) {
     throw new Error('bad request');
@@ -94,7 +94,7 @@ async function handleUpdate(activity: AP.Activity, graph: Graph, initiator: AP.A
     throw new Error('Bad request')
   }
 
-  const objectToUpdate = await graph.findThingById(activityObjectId);
+  const objectToUpdate = await graph.queryById(activityObjectId);
 
   if (!objectToUpdate || !objectToUpdate.type) {
     throw new Error('bad request');
@@ -158,7 +158,7 @@ async function handleLike(activity: AP.Activity, graph: Graph, initiator: AP.Act
     throw new Error('No actor ID.');
   }
 
-  const actor = await graph.findThingById(activityActorId);
+  const actor = await graph.queryById(activityActorId);
 
   if (!actor || !('outbox' in actor)) {
     throw new Error('No actor.');
@@ -170,7 +170,7 @@ async function handleLike(activity: AP.Activity, graph: Graph, initiator: AP.Act
     throw new Error('Bad request 1');
   }
 
-  const object = await graph.findThingById(activityObjectId);
+  const object = await graph.queryById(activityObjectId);
 
   if (!object) {
     throw new Error('Bad request 2')
@@ -216,7 +216,7 @@ async function handleAnnounce(activity: AP.Activity, graph: Graph, initiator: AP
     throw new Error('No actor ID.');
   }
 
-  const actor = await graph.findThingById(activityActorId);
+  const actor = await graph.queryById(activityActorId);
 
   if (!actor || !('outbox' in actor)) {
     throw new Error('No actor.');
@@ -228,7 +228,7 @@ async function handleAnnounce(activity: AP.Activity, graph: Graph, initiator: AP
     throw new Error('Bad request 1');
   }
 
-  const object = await graph.findThingById(activityObjectId);
+  const object = await graph.queryById(activityObjectId);
 
   if (!object) {
     throw new Error('Bad request 2')
@@ -258,7 +258,7 @@ async function handleAnnounce(activity: AP.Activity, graph: Graph, initiator: AP
     throw new Error('bad request 9');
   }
 
-  const actorStreams = await Promise.all(actor.streams.map(stream => typeof stream === 'string' ? stream : stream.id).map(async id => id ? await graph.findThingById(id) : null));
+  const actorStreams = await Promise.all(actor.streams.map(stream => typeof stream === 'string' ? stream : stream.id).map(async id => id ? await graph.queryById(id) : null));
  
   const actorSharedCollection = actorStreams.find(stream => {
     if (stream && 'name' in stream) {

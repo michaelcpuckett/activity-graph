@@ -271,7 +271,7 @@ export class Graph {
       } else if (typeof value === 'string') {
         try {
           const url = new URL(value);
-          expanded.push([key, await this.findThingById(url.toString())]);
+          expanded.push([key, await this.queryForId(url.toString())]);
         } catch (error) {
           expanded.push([key, value]);
         }
@@ -282,7 +282,7 @@ export class Graph {
             if (typeof item === 'string') {
               try {
                 const url = new URL(item);
-                return await this.findThingById(url.toString());
+                return await this.queryForId(url.toString());
               } catch (error) {
                 return item;
               }

@@ -56,7 +56,7 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
       return null;
     }
 
-    const foundItem = typeof item === 'string' ? await graph.findThingById(item) : item;
+    const foundItem = typeof item === 'string' ? await graph.queryById(item) : item;
 
     if (!foundItem) {
       return item;
@@ -113,7 +113,7 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
       return null;
     }
 
-    const foundItem = typeof item === 'string' ? await graph.findThingById(item) : item;
+    const foundItem = typeof item === 'string' ? await graph.queryById(item) : item;
 
     if (!foundItem) {
       return item;

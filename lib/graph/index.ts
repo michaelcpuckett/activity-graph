@@ -250,7 +250,7 @@ export class Graph {
     return fetchedThing;
   }
 
-  async queryForId(id: string): Promise<AP.AnyThing|null> {
+  async queryById(id: string): Promise<AP.AnyThing|null> {
     try {
       return await this.findThingById(id) ?? await this.fetchThingById(id);
     } catch (error: unknown) {
@@ -271,7 +271,7 @@ export class Graph {
       } else if (typeof value === 'string') {
         try {
           const url = new URL(value);
-          expanded.push([key, await this.queryForId(url.toString())]);
+          expanded.push([key, await this.queryById(url.toString())]);
         } catch (error) {
           expanded.push([key, value]);
         }
@@ -282,7 +282,7 @@ export class Graph {
             if (typeof item === 'string') {
               try {
                 const url = new URL(item);
-                return await this.queryForId(url.toString());
+                return await this.queryById(url.toString());
               } catch (error) {
                 return item;
               }
@@ -362,7 +362,7 @@ export class Graph {
 
     // get inbox for each recipient
     const recipientInboxes = await Promise.all(recipients.map(async recipient => {
-      const foundThing = await this.queryForId(recipient);
+      const foundThing = await this.queryById(recipient);
 
       if (foundThing && typeof foundThing === 'object' && 'inbox' in foundThing && foundThing.inbox) {
         return foundThing.inbox;

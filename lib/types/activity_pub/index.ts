@@ -439,7 +439,7 @@ export type AnyActivity =
 // Collections.
 
 export type Collection = CoreObject & {
-  type: typeof CollectionTypes[keyof typeof CollectionTypes];
+  type: typeof CollectionTypes.COLLECTION;
   totalItems?: number;
   items?: ObjectOrLinkReference;
   current?: string | CollectionPage | Link;
@@ -447,8 +447,13 @@ export type Collection = CoreObject & {
   last?: string | CollectionPage | Link;
 }
 
-export type OrderedCollection = Collection & {
+export type OrderedCollection = CoreObject & {
   type: typeof CollectionTypes.ORDERED_COLLECTION;
+  totalItems?: number;
+  items?: ObjectOrLinkReference;
+  current?: string | CollectionPage | Link;
+  first?: string | CollectionPage | Link;
+  last?: string | CollectionPage | Link;
   orderedItems?: ObjectOrLinkReference;
 };
 

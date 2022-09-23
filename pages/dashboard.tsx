@@ -371,14 +371,20 @@ const getFormHtml = (actor: AP.AnyActor) => <>
       <span>Location</span>
       <input type="text" name="location" />
     </label>
-    <label>
-      <span>To</span>
-      <select name="to" defaultValue={PUBLIC_ACTOR}>
-        <option value={PUBLIC_ACTOR}>
+    <fieldset name="to">
+      <label>
+        <span>
           Public
-        </option>
-      </select>
-    </label>
+        </span>
+        <input type="checkbox" name="to" value={PUBLIC_ACTOR} />
+      </label>
+      <label>
+        <span>
+          Followers
+        </span>
+        <input type="checkbox" name="to" value={typeof actor.outbox === 'string' ? actor.outbox : actor.outbox.id ?? ''} />
+      </label>
+    </fieldset>
     <button type="submit">
       Submit
     </button>

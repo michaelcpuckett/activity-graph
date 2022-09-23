@@ -2,7 +2,7 @@ import * as AP from '../../types/activity_pub';
 import { APCoreObject } from './core_object';
 
 export class APCollection extends APCoreObject implements AP.Collection {
-  type: typeof AP.CollectionTypes[keyof typeof AP.CollectionTypes];
+  type: typeof AP.CollectionTypes.COLLECTION;
   totalItems?: number;
   items?: AP.ObjectOrLinkReference;
   current?: string | AP.CollectionPage | AP.Link;
@@ -16,16 +16,21 @@ export class APCollection extends APCoreObject implements AP.Collection {
   constructor(collection: AP.Collection) {
     super(collection);
 
-    if (Object.values(AP.CollectionTypes).includes(collection.type)) {
-      this.type = collection.type;
-    } else {
+    if (collection.type !== AP.CollectionTypes.COLLECTION) {
       throw new Error('`type` must be defined and be one of the Collection Types.');
+    } else {
+      this.type = collection.type;
     }
   }
 };
 
-export class APOrderedCollection extends APCollection implements AP.OrderedCollection {
+export class APOrderedCollection extends APCoreObject implements AP.OrderedCollection {
   type: typeof AP.CollectionTypes.ORDERED_COLLECTION;
+  totalItems?: number;
+  items?: AP.ObjectOrLinkReference;
+  current?: string | AP.CollectionPage | AP.Link;
+  first?: string | AP.CollectionPage | AP.Link;
+  last?: string | AP.CollectionPage | AP.Link;
   orderedItems?: AP.ObjectOrLinkReference;
 
   constructor(collection: AP.OrderedCollection) {

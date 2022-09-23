@@ -246,12 +246,18 @@ export class Graph {
     }
     
     const thing = fetchedThing as AP.AnyThing;
-    
-    await this.saveThing(thing);
 
-    console.log('SAVING...', thing.id);
+    const typedThing = getTypedThing(thing);
 
-    return fetchedThing;
+    if (!typedThing) {
+      return null;
+    }
+
+    const compressedThing = typedThing.compress();
+
+    await this.saveThing(compressedThing);
+
+    return compressedThing;
   }
 
   async queryById(id: string): Promise<AP.AnyThing|null> {

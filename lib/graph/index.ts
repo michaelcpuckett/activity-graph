@@ -245,6 +245,8 @@ export class Graph {
     
     await this.saveThing(thing);
 
+    console.log('SAVING...', thing.id);
+
     return fetchedThing;
   }
 

@@ -219,6 +219,12 @@ export class Graph {
     });
   }
 
+  // Fetch.
+
+  async fetchThingById(id: string) {
+    return await this.findThingById(id);
+  }
+
   // Other
 
   // TODO?
@@ -323,7 +329,7 @@ export class Graph {
 
     // get inbox for each recipient
     const recipientInboxes = await Promise.all(recipients.map(async recipient => {
-      const foundThing = await this.findThingById(recipient);
+      const foundThing = await this.fetchThingById(recipient);
 
       if (foundThing && 'inbox' in foundThing && foundThing.inbox) {
         return foundThing.inbox;

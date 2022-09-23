@@ -6,7 +6,7 @@ import { APActivity, APLink, APObject } from '../../../lib/classes/activity_pub'
 import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 import { APThing } from '../../../lib/classes/activity_pub/thing';
 
-async function handleCreate(activity: AP.Activity, graph: Graph, actor: AP.Actor, recipient: AP.Actor): Promise<string> {
+async function handleCreate(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<string> {
   if (!(activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object))) {
     // TODO
     throw new Error('bad request')
@@ -41,7 +41,7 @@ async function handleCreate(activity: AP.Activity, graph: Graph, actor: AP.Actor
   return typedThing.id;
 }
 
-async function handleFollow(activity: AP.Activity, graph: Graph, actor: AP.Actor, recipient: AP.Actor): Promise<void> {
+async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<void> {
   const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
 
   if (!activityObjectId) {
@@ -64,7 +64,29 @@ async function handleFollow(activity: AP.Activity, graph: Graph, actor: AP.Actor
     throw new Error('bad request 4')
   }
 
-  const follower = actor;
+  const activityActorId = typeof activity.actor === 'string' ? activity.actor : (activity.actor && 'id' in activity.actor) ? activity.actor.id : '';
+
+  if (!activityActorId) {
+    throw new Error('Bad request 1')
+  }
+
+  const foundActor = await graph.findThingById(activityActorId);
+
+  if (!foundActor || !foundActor.type) {
+    throw new Error('bad request 2');
+  }
+
+  const typedActor = getTypedThing(foundActor);
+
+  if (!typedActor || !('inbox' in typedActor)) {
+    throw new Error('bad request 3');
+  }
+
+  if (typeof typedActor.id !== 'string') {
+    throw new Error('bad request 4')
+  }
+
+  const follower = typedActor;
   const followee = typedThing;
 
   if (!(follower.id && followee.id && followee.id === recipient.id)) {
@@ -89,22 +111,22 @@ async function handleFollow(activity: AP.Activity, graph: Graph, actor: AP.Actor
     throw new Error('bad request');
   }
 
-  const recipientOutboxId = typeof recipient.outbox === 'string' ? recipient.outbox : !Array.isArray(recipient.outbox) && 'id' in recipient.outbox ? recipient.outbox.id : '';
+  const followeeOutboxId = typeof followee.outbox === 'string' ? followee.outbox : !Array.isArray(followee.outbox) && 'id' in followee.outbox ? followee.outbox.id : '';
 
-  if (!recipientOutboxId) {
+  if (!followeeOutboxId) {
     throw new Error('bad request');
   }
 
   await Promise.all([
     graph.saveThing(acceptActivity.compress()),
-    graph.insertOrderedItem(recipientOutboxId, acceptActivity.id),      
+    graph.insertOrderedItem(followeeOutboxId, acceptActivity.id),      
   ]);
 
-  await graph.broadcastActivity(acceptActivity, recipient);
+  await graph.broadcastActivity(acceptActivity, followee);
 }
 
 
-async function handleAccept(activity: AP.Activity, graph: Graph, actor: AP.Actor, recipient: AP.Actor): Promise<void> {
+async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<void> {
   const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
 
   if (!activityObjectId) {
@@ -141,7 +163,7 @@ async function handleAccept(activity: AP.Activity, graph: Graph, actor: AP.Actor
       throw new Error('bad request 5');
     }
 
-    const followeeFollowersId = foundFollowee.following ? typeof foundFollowee.following === 'string' ? foundFollowee.following : !Array.isArray(foundFollowee.following) && 'id' in foundFollowee.following ? foundFollowee.following.id : '' : '';
+    const followeeFollowersId = foundFollowee.followers ? typeof foundFollowee.followers === 'string' ? foundFollowee.followers : !Array.isArray(foundFollowee.followers) && 'id' in foundFollowee.followers ? foundFollowee.followers.id : '' : '';
     
     if (!followeeFollowersId) {
       throw new Error('bad request 6');
@@ -149,14 +171,19 @@ async function handleAccept(activity: AP.Activity, graph: Graph, actor: AP.Actor
 
     await graph.insertItem(followeeFollowersId, followerId);
 
-    if (followerId === actor.id) {
-      const actorFollowingId = actor.following ? typeof actor.following === 'string' ? actor.following : !Array.isArray(actor.following) && 'id' in actor.following ? actor.following.id : '' : '';
+    console.log({
+      followerId,
+      'recipientId': recipient.id,
+    })
+
+    if (followerId === recipient.id) {
+      const followerFollowingId = recipient.following ? typeof recipient.following === 'string' ? recipient.following : !Array.isArray(recipient.following) && 'id' in recipient.following ? recipient.following.id : '' : '';
       
-      if (!actorFollowingId) {
+      if (!followerFollowingId) {
         throw new Error('bad request 7');
       }
 
-      await graph.insertItem(actorFollowingId, followeeId);
+      await graph.insertItem(followerFollowingId, followeeId);
     }
   }
 }
@@ -194,36 +221,24 @@ export default async function handler(
 
     activity.published = new Date();
     const activityId = activity.id;
-    const activityActorId = activity.actor ? (typeof activity.actor === 'string' ? activity.actor : !Array.isArray(activity.actor) ? activity.actor.id : '') : '';
+    const recipientInboxId = recipient && 'inbox' in recipient && recipient.inbox ? typeof recipient.inbox === 'string' ? recipient.inbox : !Array.isArray(recipient.inbox) ? recipient.inbox.id : '' : '';
 
-    if (!activityActorId) {
-      throw new Error('No actor ID.');
-    }
-
-    const actor = await graph.findThingById(activityActorId);
-
-    if (!actor || !('inbox' in actor)) {
-      throw new Error('No actor.');
-    }
-
-    const actorInboxId = actor && 'inbox' in actor && actor.inbox ? typeof actor.inbox === 'string' ? actor.inbox : !Array.isArray(actor.inbox) ? actor.inbox.id : '' : '';
-
-    if (!(actorInboxId && activityId)) {
+    if (!(recipientInboxId && activityId)) {
       throw new Error('Bad request')
     }
 
     // Run side effects.
     switch (activity.type) {
-      case AP.ActivityTypes.CREATE: activity.object = await handleCreate(activity, graph, actor, recipient);
+      case AP.ActivityTypes.CREATE: activity.object = await handleCreate(activity, graph, recipient);
       break;
-      case AP.ActivityTypes.FOLLOW: await handleFollow(activity, graph, actor, recipient);
+      case AP.ActivityTypes.FOLLOW: await handleFollow(activity, graph, recipient);
       break;
-      case AP.ActivityTypes.ACCEPT: await handleAccept(activity, graph, actor, recipient);
+      case AP.ActivityTypes.ACCEPT: await handleAccept(activity, graph, recipient);
       break;
     }
 
     await graph.saveThing(activity.compress());
-    await graph.insertOrderedItem(actorInboxId, activityId);
+    await graph.insertOrderedItem(recipientInboxId, activityId);
 
     return res.status(200).json(activity.formatPublicObject());
   } catch (error) {

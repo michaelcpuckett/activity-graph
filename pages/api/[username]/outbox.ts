@@ -5,18 +5,18 @@ import * as AP from '../../../lib/types/activity_pub';
 import { APActivity, APActor, APLink, APObject } from '../../../lib/classes/activity_pub';
 import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 
-async function handleCreate(activity: AP.Activity, graph: Graph, actor: AP.Actor) {
+async function handleCreate(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
   if (!(activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object))) {
-    throw new Error('bad request')
+    throw new Error('bad request 1')
   }
   const object = getTypedThing(activity.object);
 
   if (!object) {
-    throw new Error('Bad request.');
+    throw new Error('Bad request. 2');
   }
 
   if (!('id' in object)) {
-    throw new Error('Bad request')
+    throw new Error('Bad request 3')
   }
 
   const objectLikes: AP.OrderedCollection = {
@@ -38,11 +38,11 @@ async function handleCreate(activity: AP.Activity, graph: Graph, actor: AP.Actor
   };
 
   if (!('id' in object) || !object.id) {
-    throw new Error('Bad request');
+    throw new Error('Bad request 4');
   }
 
   if (object instanceof APLink) {
-    throw new Error('Bad request')
+    throw new Error('Bad request 5')
   }
 
   object.likes = objectLikes;
@@ -59,7 +59,7 @@ async function handleCreate(activity: AP.Activity, graph: Graph, actor: AP.Actor
   return object.id;
 }
 
-async function handleDelete(activity: AP.Activity, graph: Graph, actor: AP.Actor) {
+async function handleDelete(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
   const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
 
   if (!activityObjectId) {
@@ -83,7 +83,7 @@ async function handleDelete(activity: AP.Activity, graph: Graph, actor: AP.Actor
   await graph.saveThing(activity.object);
 }
 
-async function handleUpdate(activity: AP.Activity, graph: Graph, actor: AP.Actor) {
+async function handleUpdate(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
   if (typeof activity.object !== 'object' || Array.isArray(activity.object)) {
     throw new Error('bad request');
   }
@@ -111,7 +111,7 @@ async function handleUpdate(activity: AP.Activity, graph: Graph, actor: AP.Actor
   await graph.saveThing(activity.object);
 }
 
-async function handleAdd(activity: AP.Activity, graph: Graph, actor: AP.Actor) {
+async function handleAdd(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
   const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
 
   if (!activityObjectId) {
@@ -131,7 +131,7 @@ async function handleAdd(activity: AP.Activity, graph: Graph, actor: AP.Actor) {
   await graph.insertOrderedItem(activityTargetId, activityObjectId);
 }
 
-async function handleRemove(activity: AP.Activity, graph: Graph, actor: AP.Actor) {
+async function handleRemove(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
   const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
 
   if (!activityObjectId) {
@@ -151,7 +151,19 @@ async function handleRemove(activity: AP.Activity, graph: Graph, actor: AP.Actor
   await graph.removeOrderedItem(activityTargetId, activityObjectId);
 }
 
-async function handleLike(activity: AP.Activity, graph: Graph, actor: AP.Actor) {
+async function handleLike(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
+  const activityActorId = activity.actor ? (typeof activity.actor === 'string' ? activity.actor : !Array.isArray(activity.actor) ? activity.actor.id : '') : '';
+
+  if (!activityActorId) {
+    throw new Error('No actor ID.');
+  }
+
+  const actor = await graph.findThingById(activityActorId);
+
+  if (!actor || !('outbox' in actor)) {
+    throw new Error('No actor.');
+  }
+  
   const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
 
   if (!activityObjectId) {
@@ -197,7 +209,19 @@ async function handleLike(activity: AP.Activity, graph: Graph, actor: AP.Actor) 
   await graph.insertOrderedItem(actorLikedId, object.id);
 }
 
-async function handleAnnounce(activity: AP.Activity, graph: Graph, actor: AP.Actor) {
+async function handleAnnounce(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
+  const activityActorId = activity.actor ? (typeof activity.actor === 'string' ? activity.actor : !Array.isArray(activity.actor) ? activity.actor.id : '') : '';
+
+  if (!activityActorId) {
+    throw new Error('No actor ID.');
+  }
+
+  const actor = await graph.findThingById(activityActorId);
+
+  if (!actor || !('outbox' in actor)) {
+    throw new Error('No actor.');
+  }
+  
   const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
 
   if (!activityObjectId) {
@@ -266,57 +290,51 @@ export default async function handler(
   const graph = await Graph.connect();
 
   try {
+    const initiator = await graph.findOne('actor', {
+      outbox: url,
+    });
+
+    if (!initiator || !initiator.id || !('inbox' in initiator)) {
+      throw new Error('Bad request....');
+    }
+
     const thing = JSON.parse(req.body);
 
     if (!('actor' in thing)) {
-      throw new Error('bad request');
+      throw new Error('bad request...');
     }
 
     const activity = new APActivity(thing);
 
-    console.log(activity);
-
     activity.published = new Date();
     const activityId = activity.id;
-    const activityActorId = activity.actor ? (typeof activity.actor === 'string' ? activity.actor : !Array.isArray(activity.actor) ? activity.actor.id : '') : '';
+    const initiatorOutboxId = url;
 
-    if (!activityActorId) {
-      throw new Error('No actor ID.');
-    }
-
-    const actor = await graph.findThingById(activityActorId);
-
-    if (!actor || !('inbox' in actor)) {
-      throw new Error('No actor.');
-    }
-
-    const actorOutboxId = actor && 'outbox' in actor && actor.outbox ? typeof actor.outbox === 'string' ? actor.outbox : !Array.isArray(actor.outbox) ? actor.outbox.id : '' : '';
-
-    if (!(actorOutboxId && activityId)) {
-      throw new Error('Bad request')
+    if (!(initiatorOutboxId && activityId)) {
+      throw new Error('Bad request here')
     }
 
     // Run side effects.
     switch (activity.type) {
-      case AP.ActivityTypes.CREATE: activity.object = await handleCreate(activity, graph, actor);
+      case AP.ActivityTypes.CREATE: activity.object = await handleCreate(activity, graph, initiator);
       break;
-      case AP.ActivityTypes.DELETE: await handleDelete(activity, graph, actor);
+      case AP.ActivityTypes.DELETE: await handleDelete(activity, graph, initiator);
       break;
-      case AP.ActivityTypes.UPDATE: await handleUpdate(activity, graph, actor);
+      case AP.ActivityTypes.UPDATE: await handleUpdate(activity, graph, initiator);
       break;
-      case AP.ActivityTypes.LIKE: await handleLike(activity, graph, actor);
+      case AP.ActivityTypes.LIKE: await handleLike(activity, graph, initiator);
       break;
-      case AP.ActivityTypes.ANNOUNCE: await handleAnnounce(activity, graph, actor);
+      case AP.ActivityTypes.ANNOUNCE: await handleAnnounce(activity, graph, initiator);
       break;
-      case AP.ActivityTypes.ADD: await handleAdd(activity, graph, actor);
+      case AP.ActivityTypes.ADD: await handleAdd(activity, graph, initiator);
       break;
-      case AP.ActivityTypes.REMOVE: await handleRemove(activity, graph, actor);
+      case AP.ActivityTypes.REMOVE: await handleRemove(activity, graph, initiator);
       break;
     }
 
     await graph.saveThing(activity.compress());
-    await graph.insertOrderedItem(actorOutboxId, activityId);
-    await graph.broadcastActivity(activity, actor);
+    await graph.insertOrderedItem(initiatorOutboxId, activityId);
+    await graph.broadcastActivity(activity, initiator);
 
     return res.status(200).json(activity.formatPublicObject());
   } catch (error) {

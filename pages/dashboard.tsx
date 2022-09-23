@@ -298,7 +298,7 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
     } : null,
   };
 
-  fetch(`/api/${actor.preferredUsername}/outbox`, {
+  fetch(`${typeof actor.outbox === 'string' ? actor.outbox : actor.outbox.id}`, {
     method: 'POST',
     body: JSON.stringify(activity)
   })
@@ -460,7 +460,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
       
       {activityObject && 'summary' in activityObject && activityObject.summary ? <>
         <blockquote>
-          {activityObject.summary}
+          {activityObject.summary ?? activityObject.content}
         </blockquote>
       </> : activityObject && 'preferredUsername' in activityObject && activityObject.preferredUsername ? <>
         <blockquote>
@@ -691,7 +691,7 @@ function Dashboard({
 
           <div className="tabpanel" id="inbox">
             <div className="intro">
-              <h2>Intro</h2>
+              <h2>Inbox</h2>
               <form>
                 <label>
                   <span>

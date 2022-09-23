@@ -64,8 +64,12 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
 
     const expandedItem = await graph.expandThing(foundItem);
 
-    const foundItemLikes = ('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.findThingById(expandedItem.object.likes) : null;
-    const foundItemShares = ('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.findThingById(expandedItem.object.shares) : null;
+    if (!expandedItem) {
+      return item;
+    }
+
+    const foundItemLikes = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.findThingById(expandedItem.object.likes) : null;
+    const foundItemShares = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.findThingById(expandedItem.object.shares) : null;
 
     return {
       ...expandedItem,
@@ -117,8 +121,12 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
 
     const expandedItem = await graph.expandThing(foundItem);
 
-    const foundItemLikes = ('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.findThingById(expandedItem.object.likes) : null;
-    const foundItemShares = ('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.findThingById(expandedItem.object.shares) : null;
+    if (!expandedItem) {
+      return item;
+    }
+
+    const foundItemLikes = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.findThingById(expandedItem.object.likes) : null;
+    const foundItemShares = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.findThingById(expandedItem.object.shares) : null;
 
     return {
       ...expandedItem,

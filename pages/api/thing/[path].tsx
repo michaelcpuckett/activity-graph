@@ -426,9 +426,11 @@ export default async function handler(
     });
   }
 
+  const expandedThing = await graph.expandThing(typedThing.formatPublicObject());
+
   if (req.headers[ACCEPT_HEADER]?.includes(ACTIVITYSTREAMS_CONTENT_TYPE)) {
     res.setHeader(CONTENT_TYPE_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE);
-    return res.status(200).json(JSON.stringify(typedThing.formatPublicObject()));
+    return res.status(200).json(JSON.stringify(expandedThing));
   }
 
   const html = renderToString(

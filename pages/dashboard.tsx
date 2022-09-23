@@ -382,7 +382,7 @@ const getFormHtml = (actor: AP.AnyActor) => <>
         <span>
           Followers
         </span>
-        <input type="checkbox" name="to" value={typeof actor.outbox === 'string' ? actor.outbox : actor.outbox.id ?? ''} />
+        <input type="checkbox" name="to" value={typeof actor.followers === 'string' ? actor.followers : actor.followers.id ?? ''} />
       </label>
     </fieldset>
     <button type="submit">

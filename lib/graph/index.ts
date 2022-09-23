@@ -405,6 +405,10 @@ export class Graph {
       if (typeof reference === 'string') {
         const foundThing = await this.queryById(reference);
 
+        console.log({
+          foundThing,
+        })
+
         if (!foundThing) {
           return null;
         }

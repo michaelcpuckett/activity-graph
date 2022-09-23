@@ -7,8 +7,10 @@ import { APActivity, APCollection, APOrderedCollection } from '../classes/activi
 import serviceAccount from '../../credentials';
 import { getCollectionNameByUrl } from '../utilities/getCollectionNameByUrl';
 import * as AP from '../types/activity_pub';
-import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, CONTENT_TYPE_HEADER, CONTEXT, PUBLIC_ACTOR } from '../globals';
+import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, CONTENT_TYPE_HEADER, CONTEXT, LOCAL_HOSTNAME, PUBLIC_ACTOR } from '../globals';
 import { dbName } from '../../config';
+import fetch from 'node-fetch';
+import { getTypedThing } from '../utilities/getTypedThing';
 
 export class Graph {
   db: Db;
@@ -221,8 +223,42 @@ export class Graph {
 
   // Fetch.
 
-  async fetchThingById(id: string) {
-    return await this.findThingById(id);
+  async fetchThingById(id: string): Promise<AP.AnyThing|null> {
+    // GET requests (eg. to the inbox) MUST be made with an Accept header of
+    // `application/ld+json; profile="https://www.w3.org/ns/activitystreams"`
+    const fetchedThing = await fetch(id, {
+        headers: {
+            [CONTENT_TYPE_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
+            [ACCEPT_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE
+        }
+    })
+    .then(async response => await response.json())
+    .catch(error => {
+      console.log(error);
+      return null;
+    });
+
+    if (!(typeof fetchedThing === 'object' && fetchedThing && 'type' in fetchedThing)) {
+      return null;
+    }
+
+    // TODO cache...
+
+    return fetchedThing as AP.AnyThing;
+  }
+
+  async queryForId(id: string): Promise<AP.AnyThing|null> {
+    try {
+      const isLocal = new URL(id).hostname === LOCAL_HOSTNAME;
+
+      if (isLocal) {     
+        return await this.findThingById(id);
+      } else {
+        return await this.fetchThingById(id);
+      }
+    } catch (error: unknown) {
+      throw new Error(String(error));
+    }
   }
 
   // Other
@@ -329,9 +365,9 @@ export class Graph {
 
     // get inbox for each recipient
     const recipientInboxes = await Promise.all(recipients.map(async recipient => {
-      const foundThing = await this.fetchThingById(recipient);
+      const foundThing = await this.queryForId(recipient);
 
-      if (foundThing && 'inbox' in foundThing && foundThing.inbox) {
+      if (foundThing && typeof foundThing === 'object' && 'inbox' in foundThing && foundThing.inbox) {
         return foundThing.inbox;
       }
     }));

@@ -298,3 +298,9 @@ header a {
   margin-bottom: 36px;
   max-width: min(480px, 100% - 72px);
 }
+
+ul:has(.card),
+ol:has(.card) {
+  max-width: min(480px, 100% - 72px);
+  width: 100%;
+}

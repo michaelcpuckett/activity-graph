@@ -8,6 +8,7 @@ import { APAnyThing } from '../../../lib/classes/activity_pub';
 import Link from 'next/link';
 import inboxHandler from '../[username]/inbox';
 import outboxHandler from '../[username]/outbox';
+import { ThingCard } from '../../../components/ThingCard';
 
 async function renderActivity(activity: AP.Activity) {
   const graph = await Graph.connect();
@@ -290,18 +291,33 @@ async function renderCollection(collection: AP.Collection) {
     return <>No Items.</>
   }
 
-  return <div className="card">
-    <h1>{collection.name ?? 'Collection'}</h1>
+  return <>
+    <div className="intro">
+      <h1>{collection.name ?? 'Collection'}</h1>
+    </div>
     <ul>
-      {Array.isArray(collection.items) ? collection.items.map(item => {
-        return <li key={typeof item === 'string' ? item : item.id}>
-          <a href={typeof item === 'string' ? item : item.id ?? '#'}>
-            {typeof item === 'string' ? item : 'summary' in item ? item.summary : item.name ?? item.id}
-          </a>
-        </li>
-      }) : <></>}
+    {await Promise.all(collection.items.map(async item => {
+        const likesCount = typeof item !== 'string' && 'likes' in item && item.likes ? await getCount(item.likes) : 'unknown';
+        const sharesCount = typeof item !== 'string' && 'shares' in item && item.shares ? await getCount(item.shares) : 'unknown';
+        const thing = typeof item !== 'string' && 'likes' in item ? {
+          ...item,
+          likes: {
+            totalItems: likesCount
+          },
+          shares: {
+            totalItems: sharesCount
+          }
+        } : item;
+
+        return (
+          <ThingCard
+            thing={thing}
+            key={typeof item === 'string' ? item : item.id}
+          ></ThingCard>
+        );
+      }))}
     </ul>
-  </div>;
+  </>;
 }
 
 async function renderOrderedCollection(collection: AP.OrderedCollection) {
@@ -313,24 +329,39 @@ async function renderOrderedCollection(collection: AP.OrderedCollection) {
 
   const orderedItems = await Promise.all(collection.orderedItems.map(async item => {
     if (typeof item === 'string') {
-      return await graph.findThingById(item) ?? item;
+      return await graph.queryById(item) ?? item;
     } else {
       return item;
     }
   }));
 
-  return <div className="card">
-    <h1>{collection.name ?? 'Collection'}</h1>
+  return <>
+    <div className="intro">
+      <h1>{collection.name ?? 'Collection'}</h1>
+    </div>
     <ol reversed>
-      {orderedItems.map(item => {
-        return <li key={typeof item === 'string' ? item : item.id}>
-          <a href={typeof item === 'string' ? item : item.id ?? '#'}>
-            {typeof item === 'string' ? item : 'summary' in item ? item.summary : item.name ?? item.id}
-          </a>
-        </li>;
-      })}
+      {await Promise.all(orderedItems.map(async item => {
+        const likesCount = typeof item !== 'string' && 'likes' in item && item.likes ? await getCount(item.likes) : 'unknown';
+        const sharesCount = typeof item !== 'string' && 'shares' in item && item.shares ? await getCount(item.shares) : 'unknown';
+        const thing = typeof item !== 'string' && 'likes' in item ? {
+          ...item,
+          likes: {
+            totalItems: likesCount
+          },
+          shares: {
+            totalItems: sharesCount
+          }
+        } : item;
+
+        return (
+          <ThingCard
+            thing={thing}
+            key={typeof item === 'string' ? item : item.id}
+          ></ThingCard>
+        );
+      }))}
     </ol>
-  </div>;
+  </>;
 }
 
 async function renderCollectionPage(collection: AP.CollectionPage) {
@@ -416,10 +447,6 @@ export default async function handler(
     });
   }
 
-  console.log({
-    thing,
-  })
-
   const typedThing = getTypedThing(thing);
 
   if (!typedThing) {
@@ -437,129 +464,322 @@ export default async function handler(
 
   const html = renderToString(
     <html>
-      <style>{`
-          * {
-            box-sizing: border-box;
-          }
+      <style>{`* {
+  box-sizing: border-box;
+}
 
-          html {
-            min-height: 100%;
-            display: flex;
-            width: 100%;
-          }
+html {
+  min-height: 100%;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+}
 
-          body {
-            font-family: system-ui, sans-serif;
-            display: flex;
-            height: 100%;
-            width: 100%;
-            margin: 0;
-          }
+body {
+  font-family: system-ui, sans-serif;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  flex-direction: column;
+  flex: 1;
+}
 
-          main:has(.card) {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            background: #708080;
-            gap: 24px;
-          }
+a {
+  color: inherit;
+}
 
-          .card {
-            background: lightcyan;
-            max-width: min(480px, 100% - 72px);
-            min-height: 320px;
-            width: 100%;
-            border: 1px solid lightgray;
-            border-radius: 12px;
-            padding: 36px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            box-shadow: 3px 3px 6px rgba(0, 0, 0, .25);
-          }
+* {
+  box-sizing: border-box;
+}
 
-          .card h1,
-          .card h2 {
-            margin: 0;
-            font-size: 1.25em;
-          }
+dt {
+  font-weight: bold;
+}
 
-          .card blockquote {
-            margin: 0;
-            padding: 36px;
-            border: 1px solid lightgray;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-          }
+dd {
+  margin-left: 20px;
+}
 
-          .card dl,
-          .card dt,
-          .card dd {
-            margin: 0;
-            padding: 0;
-          }
+form,
+fieldset {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  flex-direction: column;
+}
 
-          .card dt {
-            font-weight: bold;
-            padding-right: 4px;
-          }
+label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
 
-          .card dt,
-          .card dd {
-            width: 50%;
-            padding-bottom: 5px;
-            padding-top: 5px;
-            border-bottom: 1px solid lightgray;
-          }
+input,
+textarea {
+  padding: 4px 8px;
+  border: 1px solid lightgray;
+  box-shadow: none;
+  font: inherit;
+  width: 100%;
+}
 
-          .card dl {
-            display: flex;
-            flex-wrap: wrap;
-          }
+figure {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+}
 
-          .card + details {
-            display: flex;
-            width: 100%;
-            max-width: min(480px, 100% - 72px);
-          }
+.a-button,
+.tabs a,
+button,
+summary {
+  padding: 8px 18px 10px;
+  border: 1px solid lightgray;
+  box-shadow: none;
+  font: inherit;
+  cursor: pointer;
+  justify-self: flex-end;
+  align-self: flex-end;
+  line-height: 1;
+  border-radius: 8px;
+  font-weight: bold;
+  background-color: rgb(9, 129, 129);
+  color: white;
+  max-width: max-content;
+  text-decoration: none;
+}
 
-          .card + details summary {
-            text-align: right;
-          }
+.a-button:hover,
+.tabs a:hover,
+button:hover,
+summary:hover {
+  background: rgb(4, 117, 89);
+  background-color: darkcyan;
+}
 
-          .card + details textarea {
-            width: 100%;
-            min-height: 250px;
-          }
+textarea {
+  width: 100%;
+}
 
-          header {
-            max-width: min(480px, 100% - 72px);
-            display: flex;
-            width: 100%;
-          }
+blockquote {
+  margin-left: 20px;
+  padding: 20px;
+  border-radius: 6px;
+  border: 1px solid gray;
+  background-color: lightcyan;
+}
 
-          header a {
-            text-decoration: none;
-            background: #376161;
-            border: 1px solid #FAFFFF;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            vertical-align: top;
-            line-height: 1;
-          }
+#__next {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex: 1;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 1;
+  background: #708080;
+  gap: 24px;
+  padding: 24px;
+}
+
+
+.card {
+  background: lightcyan;
+  max-width: min(480px, 100% - 72px);
+  min-height: 320px;
+  width: 100%;
+  border: 1px solid lightgray;
+  border-radius: 12px;
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, .25);
+}
+
+.card h1,
+.card h2 {
+  margin: 0;
+  font-size: 1.25em;
+}
+
+
+.card blockquote {
+  margin: 0;
+  padding: 36px;
+  border: 1px solid lightgray;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.card dl,
+.card dt,
+.card dd {
+  margin: 0;
+  padding: 0;
+}
+
+.card dt {
+  font-weight: bold;
+  padding-right: 4px;
+}
+
+.card dt,
+.card dd {
+  width: 50%;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  border-bottom: 1px solid lightgray;
+}
+
+.card dl {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.card + details {
+  display: flex;
+  width: 100%;
+  max-width: min(480px, 100% - 72px);
+}
+
+header {
+  max-width: min(480px, 100% - 72px);
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+header a {
+  text-decoration: none;
+}
+
+.tabpanel:not(:target) {
+  display: none;
+}
+
+.tabpanel {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.tabpanel ol {
+  display: flex;
+  gap: 36px;
+  flex-direction: column;
+  width: 100%;
+  flex: 1;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tabs {
+  display: flex;
+  gap: 12px;
+}
+
+.tabpanels {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.tabpanels:not(:has(:target)) > .tabpanel:first-child {
+  display: flex;  
+}
+
+header a {
+  font-size: 36px;
+}
+
+.form-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 0;
+}
+
+.form-buttons form {
+  display: inline-flex;
+  width: max-content;
+}
+
+.danger {
+  background-color: maroon;
+}
+
+.danger:hover {
+  background-color: red;
+}
+
+.action {
+  background-color: darkblue;
+}
+
+.action:hover {
+  background-color: blue;
+}
+
+.primary {
+  background-color: green;
+}
+
+.primary:hover {
+  background-color: darkgreen;
+}
+
+.intro {
+  background: lightcyan;
+  max-width: min(980, 100% - 72px);
+  min-height: 80px;
+  width: 100%;
+  border: 1px solid lightgray;
+  border-radius: 12px;
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, .25);
+  margin-bottom: 36px;
+  max-width: min(480px, 100% - 72px);
+}
+
+ul:has(.card),
+ol:has(.card) {
+  max-width: min(480px, 100% - 72px);
+  width: 100%;
+  flex-direction: column;
+  display: flex;
+  gap: 24px;
+}
         `}
       </style>
       <body>
         <main>
           <header>
             <Link href="/dashboard">
-              {'< ActivityWeb'}
+              {'ActivityWeb'}
             </Link>
           </header>
           {await renderThing(typedThing)}

@@ -54,10 +54,10 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
   
   const streams: AP.AnyCollection[] = [];
 
-  // for (const stream of actor.streams) {
-  //   const collection = await graph.expandCollection(stream);
-  //   streams.push(JSON.parse(JSON.stringify(collection)));
-  // }
+  for (const stream of actor.streams) {
+    const collection = await graph.expandCollection(stream);
+    streams.push(JSON.parse(JSON.stringify(collection)));
+  }
 
   return {
     props: {

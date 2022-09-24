@@ -475,7 +475,6 @@ export class Graph {
     if (!Array.isArray(collectionItems)) {
       return [];
     }
-    console.log('4')
 
     const foundItems: Array<null|AP.ObjectOrLinkReference> = await Promise.all(collectionItems.map(async item => {
       const id = getId(item);

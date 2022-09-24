@@ -137,7 +137,6 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
       throw new Error('bad request 55');
     }
 
-
     const foundFollowee = await graph.queryById(followeeId);
 
     if (!foundFollowee || !('outbox' in foundFollowee)) {
@@ -159,6 +158,11 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
     }
 
     await graph.insertItem(followerFollowingId, followeeId);
+
+    console.log({
+      followeeId,
+      followerId,
+    })
   }
 }
 

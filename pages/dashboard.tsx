@@ -18,6 +18,8 @@ type Data = {
   inboxItems?: AP.AnyThing[];
   outboxItems?: AP.AnyThing[];
   streams?: AP.AnyCollection[];
+  following?: Array<string|AP.AnyThing>;
+  followers?: Array<string|AP.AnyThing>;
 }
 
 export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookies: { __session?: string; } }}) => {
@@ -210,12 +212,70 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
 
     }
 
+    let followers: Array<string|AP.AnyThing> = [];
+
+    if (actor.followers) {
+      if (typeof actor.followers === 'string') {
+        const foundThing = await graph.findThingById(actor.followers);
+
+        if (foundThing && 'orderedItems' in foundThing && foundThing.orderedItems && Array.isArray(foundThing.orderedItems)) {
+          followers = foundThing.orderedItems;
+        } else if (foundThing && 'items' in foundThing && foundThing.items && Array.isArray(foundThing.items)) {
+          followers = foundThing.items;
+        }
+      }
+
+      if (followers.length) {
+        followers = await Promise.all(followers.map(async follower => {
+          if (typeof follower === 'string') {
+            const foundItem = await graph.queryById(follower);
+
+            if (foundItem) {
+              return foundItem;
+            }
+          }
+
+          return follower;
+        }))
+      }
+    }
+
+      let following: Array<string|AP.AnyThing> = [];
+  
+      if (actor.following) {
+        if (typeof actor.following === 'string') {
+          const foundThing = await graph.findThingById(actor.following);
+  
+          if (foundThing && 'orderedItems' in foundThing && foundThing.orderedItems && Array.isArray(foundThing.orderedItems)) {
+            following = foundThing.orderedItems;
+          } else if (foundThing && 'items' in foundThing && foundThing.items && Array.isArray(foundThing.items)) {
+            following = foundThing.items;
+          }
+        }
+  
+        if (following.length) {
+          following = await Promise.all(following.map(async followee => {
+            if (typeof followee === 'string') {
+              const foundItem = await graph.queryById(followee);
+  
+              if (foundItem) {
+                return foundItem;
+              }
+            }
+  
+            return followee;
+          }))
+        }
+      } 
+
     return {
       props: {
         actor,
         outboxItems,
         inboxItems,
         streams,
+        following,
+        followers,
       }
     }
   }
@@ -413,6 +473,8 @@ function Dashboard({
   inboxItems,
   outboxItems,
   streams = [],
+  following = [],
+  followers = [],
 }: Data) {
 
   const [filter, setFilter]: [filter: string, setFilter: Function] = useState(AP.ActivityTypes.CREATE);
@@ -461,6 +523,30 @@ function Dashboard({
             <div className="card">
               <h1>Welcome, @{actor.preferredUsername}</h1>
               {getNavHtml(actor, streams)}
+              <h2>
+                Following
+              </h2>
+              <ul>
+                {following.map(item => (
+                  <li key={item.id}>
+                    <a href={item.id ?? ''}>
+                      {item.preferredUsername}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <h2>
+                Followers
+              </h2>
+              <ul>
+                {following.map(item => (
+                  <li key={item.id}>
+                    <a href={item.id ?? ''}>
+                      {item.preferredUsername}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 

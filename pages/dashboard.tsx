@@ -501,7 +501,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
             onSubmit={handleOutboxSubmit(AP.ActivityTypes.LIKE, actor)}
             noValidate>
             <input type="hidden" name="id" value={activityObject.id ?? ''} />
-            <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor : activityActor.id ?? ''} />
+            <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor : !Array.isArray(activityActor) ? activityActor.id ?? '' : '' ?? ''} />
             <button type="submit" className="action">
               Like
             </button>
@@ -511,6 +511,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
             onSubmit={handleOutboxSubmit(AP.ActivityTypes.ANNOUNCE, actor)}
             noValidate>
             <input type="hidden" name="id" value={activityObject.id ?? ''} />
+            <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor : !Array.isArray(activityActor) ? activityActor.id ?? '' : '' ?? ''} />
             <button type="submit" className="action">
               Share
             </button>

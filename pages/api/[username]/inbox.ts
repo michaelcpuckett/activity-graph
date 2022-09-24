@@ -131,6 +131,13 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
       throw new Error('bad request 4');
     }
 
+    const foundFollower = await graph.queryById(followerId);
+
+    if (!foundFollower || !('outbox' in foundFollower)) {
+      throw new Error('bad request 55');
+    }
+
+
     const foundFollowee = await graph.queryById(followeeId);
 
     if (!foundFollowee || !('outbox' in foundFollowee)) {
@@ -145,15 +152,13 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
 
     await graph.insertItem(followeeFollowersId, followerId);
 
-    if (followerId === recipient.id && recipient.id !== followeeId) {
-      const followerFollowingId = recipient.following ? typeof recipient.following === 'string' ? recipient.following : !Array.isArray(recipient.following) && 'id' in recipient.following ? recipient.following.id : '' : '';
-      
-      if (!followerFollowingId) {
-        throw new Error('bad request 7');
-      }
-
-      await graph.insertItem(followerFollowingId, followeeId);
+    const followerFollowingId = foundFollower.following ? typeof foundFollower.following === 'string' ? foundFollower.following : !Array.isArray(foundFollower.following) && 'id' in foundFollower.following ? foundFollower.following.id : '' : '';
+    
+    if (!followerFollowingId) {
+      throw new Error('bad request 7');
     }
+
+    await graph.insertItem(followerFollowingId, followeeId);
   }
 }
 

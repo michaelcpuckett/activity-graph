@@ -18,8 +18,8 @@ type Data = {
   inboxItems?: AP.AnyThing[];
   outboxItems?: AP.AnyThing[];
   streams?: AP.AnyCollection[];
-  following?: Array<string|AP.AnyThing>;
-  followers?: Array<string|AP.AnyThing>;
+  following?: AP.AnyThing[];
+  followers?: AP.AnyThing[];
 }
 
 export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookies: { __session?: string; } }}) => {
@@ -539,7 +539,7 @@ function Dashboard({
                 Followers
               </h2>
               <ul>
-                {following.map(item => (
+                {followers.map(item => (
                   <li key={item.id}>
                     <a href={item.id ?? ''}>
                       {item.preferredUsername}

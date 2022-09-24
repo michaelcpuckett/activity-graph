@@ -540,7 +540,7 @@ export class Graph {
       return null;
     }
 
-    const foundThing = await this.findThingById(id);
+    const foundThing = await this.queryById(id);
 
     if (!foundThing) {
       return null;

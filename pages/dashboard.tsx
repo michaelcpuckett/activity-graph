@@ -618,6 +618,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
             onSubmit={handleOutboxSubmit(AP.ActivityTypes.DELETE, actor)}
             noValidate>
             <input type="hidden" name="id" value={activityObject.id ?? ''} />
+            <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor : !Array.isArray(activityActor) ? activityActor.id ?? '' : '' ?? ''} />
             <button type="submit" className="danger">
               Delete
             </button>

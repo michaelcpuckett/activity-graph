@@ -66,7 +66,7 @@ async function handleDelete(activity: AP.Activity, graph: Graph, initiator: AP.A
     throw new Error('Bad request')
   }
 
-  const objectToDelete = await graph.queryById(activityObjectId);
+  const objectToDelete = await graph.findThingById(activityObjectId);
 
   if (!objectToDelete || !objectToDelete.type) {
     throw new Error('bad request');
@@ -94,7 +94,7 @@ async function handleUpdate(activity: AP.Activity, graph: Graph, initiator: AP.A
     throw new Error('Bad request')
   }
 
-  const objectToUpdate = await graph.queryById(activityObjectId);
+  const objectToUpdate = await graph.findThingById(activityObjectId);
 
   if (!objectToUpdate || !objectToUpdate.type) {
     throw new Error('bad request');

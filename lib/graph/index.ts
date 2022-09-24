@@ -251,7 +251,8 @@ export class Graph {
 
     const compressedThing = typedThing.compress();
 
-    await this.saveThing(compressedThing);
+    // TODO Turn on smarter caching.
+    // await this.saveThing(compressedThing);
 
     return compressedThing;
   }

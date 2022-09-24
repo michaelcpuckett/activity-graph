@@ -382,7 +382,7 @@ const getFormHtml = (actor: AP.AnyActor) => <>
         <span>
           Followers
         </span>
-        <input type="checkbox" name="to" value={typeof actor.followers === 'string' ? actor.followers : actor.followers.id ?? ''} />
+        <input type="checkbox" name="to" value={actor.followers ? typeof actor.followers === 'string' ? actor.followers : actor.followers.id ?? '' : ''} />
       </label>
     </fieldset>
     <button type="submit">
@@ -501,6 +501,7 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
             onSubmit={handleOutboxSubmit(AP.ActivityTypes.LIKE, actor)}
             noValidate>
             <input type="hidden" name="id" value={activityObject.id ?? ''} />
+            <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor : activityActor.id ?? ''} />
             <button type="submit" className="action">
               Like
             </button>

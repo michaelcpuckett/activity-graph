@@ -389,7 +389,7 @@ export class Graph {
     const recipientInboxUrls: string[] = [];
 
     for (const recipientInbox of recipientInboxes) {
-      if (typeof recipientInbox === 'string') {
+      if (typeof recipientInbox === 'string' && recipientInbox) {
         recipientInboxUrls.push(recipientInbox);
       }
     }

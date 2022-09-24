@@ -192,6 +192,50 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
   }
 }
 
+
+async function handleLike(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<void> {
+  if (!activity.id) {
+    throw new Error('bad request; no id')
+  }
+  
+  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+  if (!activityObjectId) {
+    throw new Error('Bad request')
+  }
+
+  const foundThing = await graph.findThingById(activityObjectId);
+
+  if (!foundThing || !foundThing.type) {
+    // Not applicable.
+    return;
+  }
+
+  if (!('likes' in foundThing && foundThing.likes)) {
+    throw new Error('bad request - no likes collection.')
+  }
+
+  const likesCollectionId = typeof foundThing.likes === 'string' ? foundThing.likes : foundThing.likes.id;
+
+  if (!likesCollectionId) {
+    throw new Error('bad request ; no likes collection')
+  }
+
+  const likesCollection = await graph.findThingById(likesCollectionId);
+
+  if (!likesCollection) {
+    throw new Error('bad request ;; no likes collection');
+  }
+
+  console.log(activity);
+
+  if (likesCollection.type === AP.CollectionTypes.COLLECTION) {
+    await graph.insertItem(likesCollectionId, activity.id);
+  } else if (likesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+    await graph.insertOrderedItem(likesCollectionId, activity.id);
+  }
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<AP.AnyThing & {
@@ -238,6 +282,8 @@ export default async function handler(
       case AP.ActivityTypes.FOLLOW: await handleFollow(activity, graph, recipient);
       break;
       case AP.ActivityTypes.ACCEPT: await handleAccept(activity, graph, recipient);
+      break;
+      case AP.ActivityTypes.LIKE: await handleLike(activity, graph, recipient);
       break;
     }
 

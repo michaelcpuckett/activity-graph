@@ -376,13 +376,13 @@ const getFormHtml = (actor: AP.AnyActor) => <>
         <span>
           Public
         </span>
-        <input type="checkbox" name="to" value={PUBLIC_ACTOR} />
+        <input defaultChecked={true} type="checkbox" name="to" value={PUBLIC_ACTOR} />
       </label>
       <label>
         <span>
           Followers
         </span>
-        <input type="checkbox" name="to" value={actor.followers ? typeof actor.followers === 'string' ? actor.followers : actor.followers.id ?? '' : ''} />
+        <input defaultChecked={true} type="checkbox" name="to" value={actor.followers ? typeof actor.followers === 'string' ? actor.followers : actor.followers.id ?? '' : ''} />
       </label>
     </fieldset>
     <button type="submit">

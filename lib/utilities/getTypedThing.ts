@@ -1,4 +1,4 @@
-import { APActivity, APActor, APCollection, APCollectionPage, APLink, APObject } from '../classes/activity_pub';
+import { APActivity, APActor, APCollection, APCollectionPage, APLink, APObject, APOrderedCollection } from '../classes/activity_pub';
 import * as AP from '../types/activity_pub';
 
 export const getTypedThing = (thing: AP.AnyThing) => {
@@ -20,10 +20,12 @@ export const getTypedThing = (thing: AP.AnyThing) => {
     }
   }
   
-  for (const collectionType of Object.values(AP.CollectionTypes)) {
-    if (thing.type === collectionType) {
-      return new APCollection(thing);
-    }
+  if (thing.type === AP.CollectionTypes.COLLECTION) {
+    return new APCollection(thing);
+  }
+  
+  if (thing.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+    return new APOrderedCollection(thing);
   }
   
   for (const collectionPageType of Object.values(AP.CollectionPageTypes)) {

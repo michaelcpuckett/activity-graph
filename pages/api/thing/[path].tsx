@@ -369,7 +369,7 @@ async function renderThing(thing: APAnyThing) {
   }
 
   if (thing.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-    return await renderOrderedCollection(thing as AP.OrderedCollection); // TODO!
+    return await renderOrderedCollection(thing);
   }
 
   for (const type of Object.values(AP.CollectionPageTypes)) {
@@ -415,6 +415,10 @@ export default async function handler(
       error: 'Could not locate thing.',
     });
   }
+
+  console.log({
+    thing,
+  })
 
   const typedThing = getTypedThing(thing);
 

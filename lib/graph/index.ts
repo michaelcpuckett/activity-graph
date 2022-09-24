@@ -282,6 +282,8 @@ export class Graph {
         } else {
           try {
             const url = new URL(value);
+      console.log(key, value);
+
             expanded.push([key, await this.queryById(url.toString())]);
           } catch (error) {
             expanded.push([key, value]);
@@ -297,6 +299,8 @@ export class Graph {
               }
               try {
                 const url = new URL(item);
+      console.log(key, value);
+
                 return await this.queryById(url.toString());
               } catch (error) {
                 return item;
@@ -484,42 +488,51 @@ export class Graph {
         return null;
       }
 
-      const foundThing = await this.expandThing(foundItem);
+      console.log('expanding', foundItem.id)
 
-      if ('likes' in foundThing && foundThing.likes) {
-        const likesCollection = await this.expandCollection(foundThing.likes);
-        if (likesCollection && likesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-          foundThing.likes = likesCollection;
-        }
-      }
+      const expandedItem = await this.expandThing(foundItem);
 
-      if ('shares' in foundThing && foundThing.shares) {
-        const sharesCollection = await this.expandCollection(foundThing.shares);
-        if (sharesCollection && sharesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-          foundThing.shares = sharesCollection;
-        }
-      }
+      if ('likes' in expandedItem && expandedItem.likes) {
+        if (typeof expandedItem.likes === 'string') {
+          const likes = await this.queryById(expandedItem.likes);
 
-      if ('object' in foundThing && foundThing.object) {
-        if (typeof foundThing.object !== 'string') {
-          if ('likes' in foundThing.object && foundThing.object.likes) {
-            const likesCollection = await this.expandCollection(foundThing.object.likes);
-            if (likesCollection && likesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-              foundThing.object.likes = likesCollection;
-            }
+          if (likes && likes.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+            expandedItem.likes = likes;
           }
+        }
+      }
+      
+      if ('shares' in expandedItem && expandedItem.shares) {
+        if (typeof expandedItem.shares === 'string') {
+          const shares = await this.queryById(expandedItem.shares);
 
-          if ('shares' in foundThing.object && foundThing.object.shares) {
-            console.log(foundThing.object.shares)
-            const sharesCollection = await this.expandCollection(foundThing.object.shares);
-            if (sharesCollection && sharesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-              foundThing.object.shares = sharesCollection;
-            }
+          if (shares && shares.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+            expandedItem.shares = shares;
           }
         }
       }
 
-      return foundThing;
+      if ('object' in expandedItem && expandedItem.object) {
+        if (typeof expandedItem.object === 'object' && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') {
+          const likes = await this.queryById(expandedItem.object.likes);
+
+          if (likes && likes.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+            expandedItem.object.likes = likes;
+          }
+        }
+      }
+
+      if ('object' in expandedItem && expandedItem.object) {
+        if (typeof expandedItem.object === 'object' && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') {
+          const shares = await this.queryById(expandedItem.object.shares);
+
+          if (shares && shares.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+            expandedItem.object.shares = shares;
+          }
+        }
+      }
+
+      return await this.expandThing(expandedItem);
     }));
 
     const filteredItems: AP.ObjectOrLinkReference = [];

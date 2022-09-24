@@ -501,21 +501,22 @@ export class Graph {
       }
 
       if ('object' in foundThing && foundThing.object) {
-        // if (typeof foundThing.object !== 'string') {
-        //   if ('likes' in foundThing.object && foundThing.object.likes) {
-        //     const likesCollection = await this.expandCollection(foundThing.object.likes);
-        //     if (likesCollection && likesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-        //       foundThing.object.likes = likesCollection;
-        //     }
-        //   }
+        if (typeof foundThing.object !== 'string') {
+          if ('likes' in foundThing.object && foundThing.object.likes) {
+            const likesCollection = await this.expandCollection(foundThing.object.likes);
+            if (likesCollection && likesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+              foundThing.object.likes = likesCollection;
+            }
+          }
 
-        //   if ('shares' in foundThing.object && foundThing.object.shares) {
-        //     const sharesCollection = await this.expandCollection(foundThing.object.shares);
-        //     if (sharesCollection && sharesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-        //       foundThing.object.shares = sharesCollection;
-        //     }
-        //   }
-        // }
+          if ('shares' in foundThing.object && foundThing.object.shares) {
+            console.log(foundThing.object.shares)
+            const sharesCollection = await this.expandCollection(foundThing.object.shares);
+            if (sharesCollection && sharesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+              foundThing.object.shares = sharesCollection;
+            }
+          }
+        }
       }
 
       return foundThing;

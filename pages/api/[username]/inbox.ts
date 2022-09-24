@@ -266,7 +266,7 @@ export default async function handler(
     }
 
     const activity = new APActivity(thing);
-    const actorId = typeof activity.actor === 'string' ? activity.actor : activity.actor.id;
+    const actorId = typeof activity.actor === 'string' ? activity.actor : !Array.isArray(activity.actor) ? activity.actor.id : '';
 
     if (!actorId) {
       throw new Error('no actor');

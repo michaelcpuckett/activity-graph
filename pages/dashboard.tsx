@@ -68,8 +68,8 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
       return item;
     }
 
-    const foundItemLikes = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.findThingById(expandedItem.object.likes) : null;
-    const foundItemShares = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.findThingById(expandedItem.object.shares) : null;
+    const foundItemLikes = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.queryById(expandedItem.object.likes) : null;
+    const foundItemShares = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.queryById(expandedItem.object.shares) : null;
 
     return {
       ...expandedItem,
@@ -125,8 +125,8 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
       return item;
     }
 
-    const foundItemLikes = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.findThingById(expandedItem.object.likes) : null;
-    const foundItemShares = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.findThingById(expandedItem.object.shares) : null;
+    const foundItemLikes = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.queryById(expandedItem.object.likes) : null;
+    const foundItemShares = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.queryById(expandedItem.object.shares) : null;
 
     return {
       ...expandedItem,
@@ -486,11 +486,11 @@ const getBoxItemHtml = (thing: string|AP.AnyThing, actor: AP.AnyActor, streams: 
         <dl>
           <dt>Likes</dt>
           <dd>
-            {'likes' in activityObject && activityObject.likes && typeof activityObject.likes === 'object' && 'totalItems' in activityObject.likes ? activityObject.likes.totalItems : '0'}
+            {'likes' in activityObject && activityObject.likes && typeof activityObject.likes === 'object' && 'totalItems' in activityObject.likes ? activityObject.likes.totalItems : 'unknown'}
           </dd>
 
           <dt>Shares</dt>
-          <dd>{'shares' in activityObject && activityObject.shares && typeof activityObject.shares === 'object' && 'totalItems' in activityObject.shares ? activityObject.shares.totalItems : '0'}</dd>
+          <dd>{'shares' in activityObject && activityObject.shares && typeof activityObject.shares === 'object' && 'totalItems' in activityObject.shares ? activityObject.shares.totalItems : 'unknown'}</dd>
         </dl>
 
         <div className="form-buttons">

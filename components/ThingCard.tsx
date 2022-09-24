@@ -99,6 +99,7 @@ return <li className="card">
       <dl>
         <dt>Likes</dt>
         <dd>
+          <textarea defaultValue={activityObject.likes}></textarea>
           {'likes' in activityObject && activityObject.likes && typeof activityObject.likes === 'object' && 'totalItems' in activityObject.likes ? activityObject.likes.totalItems : 'unknown'}
         </dd>
 

@@ -355,6 +355,7 @@ function Dashboard({
               </form>
             </div>
             <ol>
+              <textarea defaultValue={JSON.stringify(inboxItems)}></textarea>
               {inboxItems?.map(getBoxHtml) ?? null}
             </ol>
           </div>

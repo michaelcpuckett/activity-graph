@@ -484,7 +484,41 @@ export class Graph {
         return null;
       }
 
-      return await this.expandThing(foundItem);
+      const foundThing = await this.expandThing(foundItem);
+
+      if ('likes' in foundThing && foundThing.likes) {
+        const likesCollection = await this.expandCollection(foundThing.likes);
+        if (likesCollection && likesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+          foundThing.likes = likesCollection;
+        }
+      }
+
+      if ('shares' in foundThing && foundThing.shares) {
+        const sharesCollection = await this.expandCollection(foundThing.shares);
+        if (sharesCollection && sharesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+          foundThing.shares = sharesCollection;
+        }
+      }
+
+      if ('object' in foundThing && foundThing.object) {
+        // if (typeof foundThing.object !== 'string') {
+        //   if ('likes' in foundThing.object && foundThing.object.likes) {
+        //     const likesCollection = await this.expandCollection(foundThing.object.likes);
+        //     if (likesCollection && likesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+        //       foundThing.object.likes = likesCollection;
+        //     }
+        //   }
+
+        //   if ('shares' in foundThing.object && foundThing.object.shares) {
+        //     const sharesCollection = await this.expandCollection(foundThing.object.shares);
+        //     if (sharesCollection && sharesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+        //       foundThing.object.shares = sharesCollection;
+        //     }
+        //   }
+        // }
+      }
+
+      return foundThing;
     }));
 
     const filteredItems: AP.ObjectOrLinkReference = [];

@@ -10,6 +10,7 @@ import { Graph } from '../lib/graph';
 import { APAnyThing, APCollection, APOrderedCollection } from '../lib/classes/activity_pub';
 import Link from 'next/link';
 import { ThingCard } from '../components/ThingCard';
+import { getId } from '../lib/utilities/getId';
 
 const PUBLIC_ACTOR = `${ACTIVITYSTREAMS_CONTEXT}#Public`;
 
@@ -18,8 +19,8 @@ type Data = {
   inboxItems?: AP.AnyThing[];
   outboxItems?: AP.AnyThing[];
   streams?: AP.AnyCollection[];
-  following?: AP.AnyThing[];
-  followers?: AP.AnyThing[];
+  following?: AP.AnyActor[];
+  followers?: AP.AnyActor[];
 }
 
 export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookies: { __session?: string; } }}) => {
@@ -34,250 +35,28 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
     }
   }
 
-  const inboxId = actor.inbox ? (typeof actor.inbox === 'string' ? actor.inbox : 'id' in actor.inbox ? actor.inbox.id : '') : '';
-  
-  if (!inboxId) {
+  const followers = await graph.getCollectionItems(actor.followers ?? '');
+  const following = await graph.getCollectionItems(actor.following ?? '');
+  const inboxItems = await graph.getCollectionItems(actor.inbox);
+  const outboxItems = await graph.getCollectionItems(actor.outbox);
+
+  if (!(Array.isArray(actor.streams) && [...actor.streams].every(stream => typeof stream === 'string'))) {
     return {
       props: {
         actor,
-      }
-    }
-  }
-
-  const inbox = await graph.findThingById(inboxId);
-
-  if (!inbox || !('orderedItems' in inbox) || !Array.isArray(inbox.orderedItems)) {
-    return {
-      props: {
-        actor,
-      }
-    }
-  }
-
-  const inboxItems = await Promise.all(inbox.orderedItems.map(async item => {
-    if (!item) {
-      return null;
-    }
-
-    const foundItem = typeof item === 'string' ? await graph.queryById(item) : item;
-
-    if (!foundItem) {
-      return item;
-    }
-
-    const expandedItem = await graph.expandThing(foundItem);
-
-    if (!expandedItem) {
-      return item;
-    }
-
-    const foundItemLikes = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.queryById(expandedItem.object.likes) : null;
-    const foundItemShares = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.queryById(expandedItem.object.shares) : null;
-
-    return {
-      ...expandedItem,
-      ...('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object)) ? {
-        object: {
-          ...expandedItem.object,
-          ...foundItemLikes ? {
-            likes: foundItemLikes,
-          } : null,
-          ...foundItemShares ? {
-            shares: foundItemShares,
-          } : null
-        },
-      } : null,
-    };
-}));
-
-
-  const outboxId = actor.outbox ? (typeof actor.outbox === 'string' ? actor.outbox : 'id' in actor.outbox ? actor.outbox.id : '') : '';
-  
-  if (!outboxId) {
-    return {
-      props: {
-        actor,
-      }
-    }
-  }
-
-  const outbox = await graph.findThingById(outboxId);
-
-  if (!outbox || !('orderedItems' in outbox) || !Array.isArray(outbox.orderedItems)) {
-    return {
-      props: {
-        actor,
-      }
-    }
-  }
-
-  const outboxItems = await Promise.all(outbox.orderedItems.map(async item => {
-    if (!item) {
-      return null;
-    }
-
-    const foundItem = typeof item === 'string' ? await graph.queryById(item) : item;
-
-    if (!foundItem) {
-      return item;
-    }
-
-    const expandedItem = await graph.expandThing(foundItem);
-
-    if (!expandedItem) {
-      return item;
-    }
-
-    const foundItemLikes = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') ? await graph.queryById(expandedItem.object.likes) : null;
-    const foundItemShares = ('object' in expandedItem && expandedItem.object && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object) && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') ? await graph.queryById(expandedItem.object.shares) : null;
-
-    return {
-      ...expandedItem,
-      ...('object' in expandedItem && typeof expandedItem.object === 'object' && !Array.isArray(expandedItem.object)) ? {
-        object: {
-          ...expandedItem.object,
-          ...foundItemLikes ? {
-            likes: foundItemLikes,
-          } : null,
-          ...foundItemShares ? {
-            shares: foundItemShares,
-          } : null,
-        }
-      } : null,
-    };
-  }));
-
-  if (Array.isArray(actor.streams) && [...actor.streams].every(stream => typeof stream === 'string')) {
-
-    const streams: AP.AnyCollection[] = [];
-
-    for (const stream of actor.streams) {
-      if (typeof stream !== 'string') {
-        continue;
-      }
-      
-      const foundStream = await graph.findThingById(stream);
-
-      if (!foundStream) {
-        continue;
-      }
-
-      if ('orderedItems' in foundStream && Array.isArray(foundStream.orderedItems) && foundStream.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-        const orderedItems: AP.ObjectOrLinkReference = [];
-
-        for (const orderedItem of [...foundStream.orderedItems]) {
-          if (typeof orderedItem === 'string') {
-            const foundItem = await graph.findThingById(orderedItem);
-
-            if (!foundItem) {
-              continue;
-            }
-
-            orderedItems.push(foundItem as never); // TODO
-          }
-        };
-
-        const collection = new APOrderedCollection({
-          ...foundStream,
-          orderedItems,
-        });
-
-        streams.push(JSON.parse(JSON.stringify(collection)));
-
-        continue;
-      }      
-      
-      if ('items' in foundStream && Array.isArray(foundStream.items) && foundStream.type === AP.CollectionTypes.COLLECTION) {
-        const items: AP.ObjectOrLinkReference = [];
-
-        for (const item of [...foundStream.items]) {
-          if (typeof item === 'string') {
-            const foundItem = await graph.findThingById(item);
-
-            if (foundItem) {
-              items.push(foundItem as never); // TODO
-            }
-          }
-        };
-
-        const collection = new APCollection({
-          ...foundStream,
-          items,
-        });
-
-        streams.push(JSON.parse(JSON.stringify(collection)));
-
-        continue;
-      }
-
-    }
-
-    let followers: Array<string|AP.AnyThing> = [];
-
-    if (actor.followers) {
-      if (typeof actor.followers === 'string') {
-        const foundThing = await graph.findThingById(actor.followers);
-
-        if (foundThing && 'orderedItems' in foundThing && foundThing.orderedItems && Array.isArray(foundThing.orderedItems)) {
-          followers = foundThing.orderedItems;
-        } else if (foundThing && 'items' in foundThing && foundThing.items && Array.isArray(foundThing.items)) {
-          followers = foundThing.items;
-        }
-      }
-
-      if (followers.length) {
-        followers = await Promise.all(followers.map(async follower => {
-          if (typeof follower === 'string') {
-            const foundItem = await graph.queryById(follower);
-
-            if (foundItem) {
-              return foundItem;
-            }
-          }
-
-          return follower;
-        }))
-      }
-    }
-
-      let following: Array<string|AP.AnyThing> = [];
-  
-      if (actor.following) {
-        if (typeof actor.following === 'string') {
-          const foundThing = await graph.findThingById(actor.following);
-  
-          if (foundThing && 'orderedItems' in foundThing && foundThing.orderedItems && Array.isArray(foundThing.orderedItems)) {
-            following = foundThing.orderedItems;
-          } else if (foundThing && 'items' in foundThing && foundThing.items && Array.isArray(foundThing.items)) {
-            following = foundThing.items;
-          }
-        }
-  
-        if (following.length) {
-          following = await Promise.all(following.map(async followee => {
-            if (typeof followee === 'string') {
-              const foundItem = await graph.queryById(followee);
-  
-              if (foundItem) {
-                return foundItem;
-              }
-            }
-  
-            return followee;
-          }))
-        }
-      } 
-
-    return {
-      props: {
-        actor,
-        outboxItems,
-        inboxItems,
-        streams,
-        following,
+        inbox: inboxItems,
+        outbox: outboxItems,
         followers,
+        following,
       }
     }
+  }
+  
+  const streams: AP.AnyCollection[] = [];
+
+  for (const stream of actor.streams) {
+    const collection = await graph.expandCollection(stream);
+    streams.push(JSON.parse(JSON.stringify(collection)));
   }
 
   return {
@@ -285,6 +64,9 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
       actor,
       outboxItems,
       inboxItems,
+      streams,
+      following,
+      followers,
     }
   }
 }
@@ -530,7 +312,7 @@ function Dashboard({
                 {following.map(item => (
                   <li key={item.id}>
                     <a href={item.id ?? ''}>
-                      {item.preferredUsername}
+                      @{item.preferredUsername}
                     </a>
                   </li>
                 ))}
@@ -542,7 +324,7 @@ function Dashboard({
                 {followers.map(item => (
                   <li key={item.id}>
                     <a href={item.id ?? ''}>
-                      {item.preferredUsername}
+                      @{item.preferredUsername}
                     </a>
                   </li>
                 ))}

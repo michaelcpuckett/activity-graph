@@ -10,6 +10,7 @@ import * as AP from '../types/activity_pub';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, CONTENT_TYPE_HEADER, CONTEXT, LOCAL_HOSTNAME, PUBLIC_ACTOR } from '../globals';
 import { dbName } from '../../config';
 import { getTypedThing } from '../utilities/getTypedThing';
+import { getId } from '../utilities/getId';
 
 export class Graph {
   db: Db;
@@ -446,5 +447,91 @@ export class Graph {
         }
       }
     }))).flat();
+  }
+
+  async getCollectionItems(thing: string|AP.Collection|AP.OrderedCollection): Promise<AP.ObjectOrLinkReference> {
+    const id = getId(thing);
+    
+    if (!id) {
+      return [];
+    }
+
+    const collection = await this.findThingById(id);
+
+    if (!collection) {
+      return [];
+    }
+
+    if (collection.type !== AP.CollectionTypes.COLLECTION && collection.type !== AP.CollectionTypes.ORDERED_COLLECTION) {
+      return [];
+    }
+
+    if (!(('items' in collection && Array.isArray(collection.items)) || ('orderedItems' in collection && Array.isArray(collection.orderedItems)))) {
+      return [];
+    }
+
+    const collectionItems = collection.type === AP.CollectionTypes.ORDERED_COLLECTION ? collection.orderedItems : collection.items;
+
+    if (!Array.isArray(collectionItems)) {
+      return [];
+    }
+    console.log('4')
+
+    const foundItems: Array<null|AP.ObjectOrLinkReference> = await Promise.all(collectionItems.map(async item => {
+      const id = getId(item);
+      const foundItem = await this.queryById(id);
+
+      if (!foundItem) {
+        return null;
+      }
+
+      return await this.expandThing(foundItem);
+    }));
+
+    const filteredItems: AP.ObjectOrLinkReference = [];
+
+    for (const foundItem of foundItems) {
+      if (foundItem) {
+        filteredItems.push(foundItem as AP.ObjectOrLinkReference);
+      }
+    }
+
+    return filteredItems;
+  }
+
+  async expandCollection(collection: string|AP.Collection|AP.OrderedCollection): Promise<null|AP.Collection|AP.OrderedCollection> {
+    const id = getId(collection);
+
+    if (!id) {
+      return null;
+    }
+
+    const foundThing = await this.findThingById(id);
+
+    if (!foundThing) {
+      return null;
+    }
+
+    if (foundThing.type !== AP.CollectionTypes.COLLECTION && foundThing.type !== AP.CollectionTypes.ORDERED_COLLECTION) {
+      return null;
+    }
+
+    const items = await this.getCollectionItems(foundThing);
+    
+    if (foundThing.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+      return JSON.parse(JSON.stringify(new APOrderedCollection({
+        ...foundThing,
+        orderedItems: items,
+      })));
+    }
+
+    if (foundThing.type === AP.CollectionTypes.COLLECTION) {
+      return JSON.parse(JSON.stringify(new APCollection({
+        ...foundThing,
+        items: items,
+      })));
+    }
+
+    return null;
   }
 }

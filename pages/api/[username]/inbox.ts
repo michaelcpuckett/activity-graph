@@ -227,12 +227,51 @@ async function handleLike(activity: AP.Activity, graph: Graph, recipient: AP.Act
     throw new Error('bad request ;; no likes collection');
   }
 
-  console.log(activity);
-
   if (likesCollection.type === AP.CollectionTypes.COLLECTION) {
     await graph.insertItem(likesCollectionId, activity.id);
   } else if (likesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
     await graph.insertOrderedItem(likesCollectionId, activity.id);
+  }
+}
+
+async function handleAnnounce(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<void> {
+  if (!activity.id) {
+    throw new Error('bad request; no id')
+  }
+  
+  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+  if (!activityObjectId) {
+    throw new Error('Bad request')
+  }
+
+  const foundThing = await graph.findThingById(activityObjectId);
+
+  if (!foundThing || !foundThing.type) {
+    // Not applicable.
+    return;
+  }
+
+  if (!('shares' in foundThing && foundThing.shares)) {
+    throw new Error('bad request - no shares collection.')
+  }
+
+  const sharesCollectionId = typeof foundThing.shares === 'string' ? foundThing.shares : foundThing.shares.id;
+
+  if (!sharesCollectionId) {
+    throw new Error('bad request ; no shares collection')
+  }
+
+  const sharesCollection = await graph.findThingById(sharesCollectionId);
+
+  if (!sharesCollection) {
+    throw new Error('bad request ;; no shares collection');
+  }
+
+  if (sharesCollection.type === AP.CollectionTypes.COLLECTION) {
+    await graph.insertItem(sharesCollectionId, activity.id);
+  } else if (sharesCollection.type === AP.CollectionTypes.ORDERED_COLLECTION) {
+    await graph.insertOrderedItem(sharesCollectionId, activity.id);
   }
 }
 
@@ -293,6 +332,8 @@ export default async function handler(
       case AP.ActivityTypes.ACCEPT: await handleAccept(activity, graph, recipient);
       break;
       case AP.ActivityTypes.LIKE: await handleLike(activity, graph, recipient);
+      break;
+      case AP.ActivityTypes.ANNOUNCE: await handleAnnounce(activity, graph, recipient);
       break;
     }
 

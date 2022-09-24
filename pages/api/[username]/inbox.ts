@@ -6,36 +6,6 @@ import { APActivity, APLink, APObject } from '../../../lib/classes/activity_pub'
 import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 import { APThing } from '../../../lib/classes/activity_pub/thing';
 
-async function handleCreate(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<string> {
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
-
-  if (!activityObjectId) {
-    throw new Error('Bad request')
-  }
-
-  const foundThing = await graph.queryById(activityObjectId);
-
-  if (!foundThing || !foundThing.type) {
-    throw new Error('bad request, thing not found');
-  }
-
-  const typedThing = getTypedThing(foundThing);
-
-  if (!typedThing) {
-    throw new Error('bad request 2');
-  }
-
-  if (typeof typedThing.id !== 'string') {
-    throw new Error('bad request 3')
-  }
-
-  await Promise.all([
-    graph.saveThing(typedThing.compress()), // TODO may lose data.
-  ]);
-
-  return typedThing.id;
-}
-
 async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<void> {
   const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
 
@@ -325,8 +295,6 @@ export default async function handler(
 
     // Run side effects.
     switch (activity.type) {
-      case AP.ActivityTypes.CREATE: activity.object = await handleCreate(activity, graph, recipient);
-      break;
       case AP.ActivityTypes.FOLLOW: await handleFollow(activity, graph, recipient);
       break;
       case AP.ActivityTypes.ACCEPT: await handleAccept(activity, graph, recipient);

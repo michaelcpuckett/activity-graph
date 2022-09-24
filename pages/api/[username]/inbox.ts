@@ -266,6 +266,15 @@ export default async function handler(
     }
 
     const activity = new APActivity(thing);
+    const actorId = typeof activity.actor === 'string' ? activity.actor : activity.actor.id;
+
+    if (!actorId) {
+      throw new Error('no actor');
+    }
+
+    if (actorId === recipient.id) {
+      throw new Error('lol dont send to self')
+    }
 
     activity.published = new Date();
     const activityId = activity.id;

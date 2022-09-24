@@ -305,7 +305,6 @@ export default async function handler(
     }
 
     const activity = new APActivity(thing);
-
     activity.published = new Date();
     const activityId = activity.id;
     const initiatorOutboxId = url;

@@ -157,7 +157,8 @@ export class Graph {
   // Insert/Remove
 
   async insertOrderedItem(path: string, url: string) {
-    await this.db.collection('collection').updateOne({
+    const collectionName = getCollectionNameByUrl(path);
+    await this.db.collection(collectionName).updateOne({
       _id: path,
     }, {
       $inc: {
@@ -175,7 +176,8 @@ export class Graph {
   }
   
   async removeOrderedItem(path: string, url: string) {
-    await this.db.collection('collection').updateOne({
+    const collectionName = getCollectionNameByUrl(path);
+    await this.db.collection(collectionName).updateOne({
       _id: path
     }, {
       $inc: {
@@ -190,7 +192,8 @@ export class Graph {
   }
 
   async insertItem(path: string, url: string) {
-    await this.db.collection('collection').updateOne({
+    const collectionName = getCollectionNameByUrl(path);
+    await this.db.collection(collectionName).updateOne({
       _id: path,
     }, {
       $inc: {
@@ -207,7 +210,8 @@ export class Graph {
   }
   
   async removeItem(path: string, url: string) {
-    await this.db.collection('collection').updateOne({
+    const collectionName = getCollectionNameByUrl(path);
+    await this.db.collection(collectionName).updateOne({
       _id: path
     }, {
       $inc: {

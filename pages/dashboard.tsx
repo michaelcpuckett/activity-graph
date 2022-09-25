@@ -60,8 +60,6 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
     streams.push(JSON.parse(JSON.stringify(collection)));
   }
 
-  console.log(streams)
-
   return {
     props: {
       actor,
@@ -342,8 +340,7 @@ function Dashboard({
                               if (typeof group === 'string') {
                                 return <></>;
                               }
-                              console.log(group);
-                              const membersCollection = 'streams' in group && Array.isArray(group.streams) ? group.streams.find(groupStream => typeof groupStream !== 'string' && groupStream.name === 'Members') : null;
+                              const membersCollection = 'streams' in group && Array.isArray(group.streams) ? group.streams.find((groupStream: AP.AnyThing) => typeof groupStream !== 'string' && groupStream.name === 'Members') : null;
                               if (!membersCollection) {
                                 return <></>;
                               }

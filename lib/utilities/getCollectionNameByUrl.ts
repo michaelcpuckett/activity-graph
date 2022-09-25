@@ -7,7 +7,7 @@ export const getCollectionNameByUrl = (url: string) => {
     return 'foreign-object';
   }
 
-  const [ , collectionName, identifier, nextIdentifier, finalIdentifier ] = new URL(url).pathname.split('/');
+  const [, collectionName] = new URL(url).pathname.split('/');
   
-  return (!finalIdentifier && nextIdentifier) ? 'collection' : collectionName;
+  return collectionName;
 }

@@ -128,7 +128,24 @@ async function handleAdd(activity: AP.Activity, graph: Graph, initiator: AP.Acto
     throw new Error('Bad request 2')
   }
   
-  await graph.insertOrderedItem(activityTargetId, activityObjectId);
+  console.log('INSERT', {
+    activityTargetId,
+    activityObjectId,
+  });
+
+  const expandedTarget = await graph.queryById(activityTargetId);
+
+  if (!expandedTarget) {
+    throw new Error('Bad request 3')
+  }
+
+  if ('orderedItems' in expandedTarget && Array.isArray(expandedTarget.orderedItems)) {
+    await graph.insertOrderedItem(activityTargetId, activityObjectId);
+  } else if ('items' in expandedTarget && Array.isArray(expandedTarget.items)) {
+    await graph.insertItem(activityTargetId, activityObjectId);
+  } else {
+    throw new Error('bad request 4');
+  }
 }
 
 async function handleRemove(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {

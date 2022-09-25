@@ -15,7 +15,7 @@ import { getId } from '../lib/utilities/getId';
 const PUBLIC_ACTOR = `${ACTIVITYSTREAMS_CONTEXT}#Public`;
 
 type Data = {
-  actor: AP.Actor|null;
+  actor: AP.Actor | null;
   inboxItems?: AP.AnyThing[];
   outboxItems?: AP.AnyThing[];
   streams?: AP.AnyCollection[];
@@ -24,7 +24,7 @@ type Data = {
   groups?: AP.Collection;
 }
 
-export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookies: { __session?: string; } }}) => {
+export const getServerSideProps = async ({ req }: { req: IncomingMessage & { cookies: { __session?: string; } } }) => {
   const graph = await Graph.connect();
   const actor = await graph.getActorByToken(req.cookies.__session ?? '');
 
@@ -52,7 +52,7 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
       }
     }
   }
-  
+
   const streams: AP.AnyCollection[] = [];
 
   for (const stream of actor.streams) {
@@ -81,7 +81,7 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
     return;
   }
 
-  let formElements: Array<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement> = [];
+  let formElements: Array<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> = [];
 
   for (const element of elements) {
     if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
@@ -125,9 +125,9 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
       target: body.target
     } : null,
     object: (
-      AP.ActivityTypes.LIKE === activityType || 
+      AP.ActivityTypes.LIKE === activityType ||
       AP.ActivityTypes.ANNOUNCE === activityType ||
-      AP.ActivityTypes.DELETE === activityType||
+      AP.ActivityTypes.DELETE === activityType ||
       AP.ActivityTypes.ADD === activityType ||
       AP.ActivityTypes.REMOVE === activityType
     ) ? body.id : {
@@ -154,17 +154,17 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
     method: 'POST',
     body: JSON.stringify(activity)
   })
-  .then(response => response.json())
-  .then((result: { error?: string; type?: string; }) => {
-    if (result.error) {
-      throw new Error(result.error);
-    }
-    console.log(result);
-    if ('type' in result && result.type === AP.ActivityTypes.CREATE) {
-      window.location.hash = 'outbox';
-    }
-    window.location.reload();
-  });
+    .then(response => response.json())
+    .then((result: { error?: string; type?: string; }) => {
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      console.log(result);
+      if ('type' in result && result.type === AP.ActivityTypes.CREATE) {
+        window.location.hash = 'outbox';
+      }
+      window.location.reload();
+    });
 };
 
 const getNavHtml = (actor: AP.AnyActor, streams?: AP.AnyCollection[]) => {
@@ -230,16 +230,24 @@ const getFormHtml = (actor: AP.AnyActor, streams?: AP.AnyCollection[]) => <>
       </label>
       {streams?.map(stream => {
         if (stream.name === 'Groups' && 'items' in stream && Array.isArray(stream.items)) {
-          return stream.items.map(item => <>
-            <label>
-              <span>
-                {(typeof item !== 'string' ? ('name' in item ? item.name : item.id) : '') ?? ''}
-              </span>
-              <input type="checkbox" name="to" value={(typeof item !== 'string' ? item.id : '') ?? ''} />
-            </label>
-          </>)
+          return stream.items.map(group => {
+            if (typeof group === 'string') {
+              return <></>;
+            }
+            const membersCollection = 'streams' in group && Array.isArray(group.streams) ? group.streams.find((groupStream: AP.AnyThing) => typeof groupStream !== 'string' && groupStream.name === 'Members') : null;
+            if (!membersCollection) {
+              return <></>;
+            }
+            return (
+              <label key={group.id ?? ''}>
+                <span>
+                  {(typeof group !== 'string' ? ('name' in group ? group.name : group.id) : '') ?? ''}
+                </span>
+                <input defaultChecked={true} type="checkbox" name="to" value={membersCollection.id ?? ''} />
+              </label>
+            )
+          })
         }
-        return <></>
       })}
     </fieldset>
     <button type="submit">
@@ -248,7 +256,7 @@ const getFormHtml = (actor: AP.AnyActor, streams?: AP.AnyCollection[]) => <>
   </form>
 </>
 
-const getBoxLinkHtml = (collection: string|AP.AnyCollection, slotText: string) => {
+const getBoxLinkHtml = (collection: string | AP.AnyCollection, slotText: string) => {
   return typeof collection === 'string' ? (
     <li>
       <a href={collection}>
@@ -429,11 +437,11 @@ function Dashboard({
                 noValidate>
                 <label>
                   <span>URL</span>
-                  <input name="id" />                  
+                  <input name="id" />
                 </label>
                 <label>
                   <span>To</span>
-                  <input name="to" />                  
+                  <input name="to" />
                 </label>
                 <button type="submit">
                   Follow

@@ -1,4 +1,8 @@
-import { ACTIVITYSTREAMS_CONTEXT, CONTEXT, W3ID_SECURITY_CONTEXT } from '../../globals';
+import {
+  ACTIVITYSTREAMS_CONTEXT,
+  CONTEXT,
+  W3ID_SECURITY_CONTEXT,
+} from '../../globals';
 import * as AP from '../../types/activity_pub';
 import { APCoreObject } from './core_object';
 
@@ -10,13 +14,13 @@ export class APActor extends APCoreObject implements AP.Actor {
   followers?: string | AP.Collection;
   liked?: string | AP.Collection;
   preferredUsername?: string;
-  preferredUsernameMap?: { (key: string): string; };
+  preferredUsernameMap?: { (key: string): string };
   streams?: AP.CollectionReference;
   collections?: {
     [key: string]: AP.CollectionReference;
   };
   endpoints?: {
-    [key: string]: string|undefined;
+    [key: string]: string | undefined;
     proxyUrl?: string;
     oauthAuthorizationEndpoint?: string;
     oauthTokenEndpoint?: string;
@@ -48,7 +52,7 @@ export class APActor extends APCoreObject implements AP.Actor {
     }
 
     this.inbox = actor.inbox;
-    
+
     if (!actor.outbox) {
       throw new Error('Outbox property is required.');
     }
@@ -57,7 +61,7 @@ export class APActor extends APCoreObject implements AP.Actor {
   }
 
   public override formatPublicObject(): AP.AnyThing & {
-    [CONTEXT]: string|string[];
+    [CONTEXT]: string | string[];
   } {
     const compressed = this.compress();
 
@@ -70,11 +74,8 @@ export class APActor extends APCoreObject implements AP.Actor {
     }
 
     return {
-      [CONTEXT]: [
-        ACTIVITYSTREAMS_CONTEXT,
-        W3ID_SECURITY_CONTEXT,
-      ],
+      [CONTEXT]: [ACTIVITYSTREAMS_CONTEXT, W3ID_SECURITY_CONTEXT],
       ...compressed,
     };
   }
-};
+}

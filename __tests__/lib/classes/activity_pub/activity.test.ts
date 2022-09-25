@@ -1,7 +1,5 @@
 import '@testing-library/jest-dom';
-import {
-  APActivity,
-} from '../../../../lib/classes/activity_pub';
+import { APActivity } from '../../../../lib/classes/activity_pub';
 
 describe('Types', () => {
   describe('can handle an Activity Object', () => {
@@ -26,9 +24,10 @@ describe('Types', () => {
     });
 
     it('when not given an actor', () => {
-      const createActivity = () => new APActivity({
-        type: 'Create',
-      });
+      const createActivity = () =>
+        new APActivity({
+          type: 'Create',
+        });
 
       expect(createActivity).toThrow();
     });

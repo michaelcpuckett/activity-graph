@@ -2,15 +2,28 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Graph } from '../../../lib/graph';
 import { CONTEXT, LOCAL_DOMAIN, PUBLIC_ACTOR } from '../../../lib/globals';
 import * as AP from '../../../lib/types/activity_pub';
-import { APActivity, APLink, APObject } from '../../../lib/classes/activity_pub';
+import {
+  APActivity,
+  APLink,
+  APObject,
+} from '../../../lib/classes/activity_pub';
 import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 import { APThing } from '../../../lib/classes/activity_pub/thing';
 
-async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<void> {
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+async function handleFollow(
+  activity: AP.Activity,
+  graph: Graph,
+  recipient: AP.Actor,
+): Promise<void> {
+  const activityObjectId =
+    typeof activity.object === 'string'
+      ? activity.object
+      : activity.object && 'id' in activity.object
+      ? activity.object.id
+      : '';
 
   if (!activityObjectId) {
-    throw new Error('Bad request 1')
+    throw new Error('Bad request 1');
   }
 
   const foundThing = await graph.queryById(activityObjectId);
@@ -26,13 +39,18 @@ async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.A
   }
 
   if (typeof typedThing.id !== 'string') {
-    throw new Error('bad request 4')
+    throw new Error('bad request 4');
   }
 
-  const activityActorId = typeof activity.actor === 'string' ? activity.actor : (activity.actor && 'id' in activity.actor) ? activity.actor.id : '';
+  const activityActorId =
+    typeof activity.actor === 'string'
+      ? activity.actor
+      : activity.actor && 'id' in activity.actor
+      ? activity.actor.id
+      : '';
 
   if (!activityActorId) {
-    throw new Error('Bad request 1')
+    throw new Error('Bad request 1');
   }
 
   const foundActor = await graph.queryById(activityActorId);
@@ -48,14 +66,14 @@ async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.A
   }
 
   if (typeof typedActor.id !== 'string') {
-    throw new Error('bad request 4')
+    throw new Error('bad request 4');
   }
 
   const follower = typedActor;
   const followee = typedThing;
 
   if (!(follower.id && followee.id && followee.id === recipient.id)) {
-    throw new Error('bad request')
+    throw new Error('bad request');
   }
 
   if (!activity.id) {
@@ -68,24 +86,32 @@ async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.A
     type: AP.ActivityTypes.ACCEPT,
     actor: followee.id,
     object: activity.id,
-    to: [
-      PUBLIC_ACTOR,
-      follower.id,
-    ]
+    to: [PUBLIC_ACTOR, follower.id],
   });
 
   if (!acceptActivity.id) {
     throw new Error('bad request');
   }
 
-  const followeeOutboxId = typeof followee.outbox === 'string' ? followee.outbox : !Array.isArray(followee.outbox) && 'id' in followee.outbox ? followee.outbox.id : '';
+  const followeeOutboxId =
+    typeof followee.outbox === 'string'
+      ? followee.outbox
+      : !Array.isArray(followee.outbox) && 'id' in followee.outbox
+      ? followee.outbox.id
+      : '';
 
   if (!followeeOutboxId) {
     throw new Error('bad request');
   }
-  
-  const followeeFollowersId = followee.followers ? typeof followee.followers === 'string' ? followee.followers : !Array.isArray(followee.followers) && 'id' in followee.followers ? followee.followers.id : '' : '';
-    
+
+  const followeeFollowersId = followee.followers
+    ? typeof followee.followers === 'string'
+      ? followee.followers
+      : !Array.isArray(followee.followers) && 'id' in followee.followers
+      ? followee.followers.id
+      : ''
+    : '';
+
   if (!followeeFollowersId) {
     throw new Error('bad request 6');
   }
@@ -99,12 +125,20 @@ async function handleFollow(activity: AP.Activity, graph: Graph, recipient: AP.A
   await graph.broadcastActivity(acceptActivity, followee);
 }
 
-
-async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<void> {
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+async function handleAccept(
+  activity: AP.Activity,
+  graph: Graph,
+  recipient: AP.Actor,
+): Promise<void> {
+  const activityObjectId =
+    typeof activity.object === 'string'
+      ? activity.object
+      : activity.object && 'id' in activity.object
+      ? activity.object.id
+      : '';
 
   if (!activityObjectId) {
-    throw new Error('Bad request 1')
+    throw new Error('Bad request 1');
   }
 
   const foundThing = await graph.queryById(activityObjectId);
@@ -113,8 +147,8 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
     throw new Error('bad request 2');
   }
 
-  console.log(foundThing.type, 'TYPE')
-  
+  console.log(foundThing.type, 'TYPE');
+
   if (foundThing.type === AP.ActivityTypes.FOLLOW) {
     const followActivity: AP.Activity = foundThing;
     const follower = followActivity.actor;
@@ -124,8 +158,18 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
       throw new Error('bad request 3');
     }
 
-    const followerId = typeof follower === 'string' ? follower : !Array.isArray(follower) && 'id' in follower ? follower.id : '';
-    const followeeId = typeof followee === 'string' ? followee : !Array.isArray(followee) && 'id' in followee ? followee.id : '';
+    const followerId =
+      typeof follower === 'string'
+        ? follower
+        : !Array.isArray(follower) && 'id' in follower
+        ? follower.id
+        : '';
+    const followeeId =
+      typeof followee === 'string'
+        ? followee
+        : !Array.isArray(followee) && 'id' in followee
+        ? followee.id
+        : '';
 
     if (!followerId || !followeeId) {
       throw new Error('bad request 4');
@@ -143,16 +187,30 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
       throw new Error('bad request 5');
     }
 
-    const followeeFollowersId = foundFollowee.followers ? typeof foundFollowee.followers === 'string' ? foundFollowee.followers : !Array.isArray(foundFollowee.followers) && 'id' in foundFollowee.followers ? foundFollowee.followers.id : '' : '';
-    
+    const followeeFollowersId = foundFollowee.followers
+      ? typeof foundFollowee.followers === 'string'
+        ? foundFollowee.followers
+        : !Array.isArray(foundFollowee.followers) &&
+          'id' in foundFollowee.followers
+        ? foundFollowee.followers.id
+        : ''
+      : '';
+
     if (!followeeFollowersId) {
       throw new Error('bad request 6');
     }
 
     await graph.insertItem(followeeFollowersId, followerId);
 
-    const followerFollowingId = foundFollower.following ? typeof foundFollower.following === 'string' ? foundFollower.following : !Array.isArray(foundFollower.following) && 'id' in foundFollower.following ? foundFollower.following.id : '' : '';
-    
+    const followerFollowingId = foundFollower.following
+      ? typeof foundFollower.following === 'string'
+        ? foundFollower.following
+        : !Array.isArray(foundFollower.following) &&
+          'id' in foundFollower.following
+        ? foundFollower.following.id
+        : ''
+      : '';
+
     if (!followerFollowingId) {
       throw new Error('bad request 7');
     }
@@ -162,20 +220,28 @@ async function handleAccept(activity: AP.Activity, graph: Graph, recipient: AP.A
     console.log({
       followeeId,
       followerId,
-    })
+    });
   }
 }
 
-
-async function handleLike(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<void> {
+async function handleLike(
+  activity: AP.Activity,
+  graph: Graph,
+  recipient: AP.Actor,
+): Promise<void> {
   if (!activity.id) {
-    throw new Error('bad request; no id')
+    throw new Error('bad request; no id');
   }
-  
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+  const activityObjectId =
+    typeof activity.object === 'string'
+      ? activity.object
+      : activity.object && 'id' in activity.object
+      ? activity.object.id
+      : '';
 
   if (!activityObjectId) {
-    throw new Error('Bad request')
+    throw new Error('Bad request');
   }
 
   const foundThing = await graph.findThingById(activityObjectId);
@@ -186,13 +252,16 @@ async function handleLike(activity: AP.Activity, graph: Graph, recipient: AP.Act
   }
 
   if (!('likes' in foundThing && foundThing.likes)) {
-    throw new Error('bad request - no likes collection.')
+    throw new Error('bad request - no likes collection.');
   }
 
-  const likesCollectionId = typeof foundThing.likes === 'string' ? foundThing.likes : foundThing.likes.id;
+  const likesCollectionId =
+    typeof foundThing.likes === 'string'
+      ? foundThing.likes
+      : foundThing.likes.id;
 
   if (!likesCollectionId) {
-    throw new Error('bad request ; no likes collection')
+    throw new Error('bad request ; no likes collection');
   }
 
   const likesCollection = await graph.findThingById(likesCollectionId);
@@ -208,15 +277,24 @@ async function handleLike(activity: AP.Activity, graph: Graph, recipient: AP.Act
   }
 }
 
-async function handleAnnounce(activity: AP.Activity, graph: Graph, recipient: AP.Actor): Promise<void> {
+async function handleAnnounce(
+  activity: AP.Activity,
+  graph: Graph,
+  recipient: AP.Actor,
+): Promise<void> {
   if (!activity.id) {
-    throw new Error('bad request; no id')
+    throw new Error('bad request; no id');
   }
-  
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+  const activityObjectId =
+    typeof activity.object === 'string'
+      ? activity.object
+      : activity.object && 'id' in activity.object
+      ? activity.object.id
+      : '';
 
   if (!activityObjectId) {
-    throw new Error('Bad request')
+    throw new Error('Bad request');
   }
 
   const foundThing = await graph.findThingById(activityObjectId);
@@ -227,13 +305,16 @@ async function handleAnnounce(activity: AP.Activity, graph: Graph, recipient: AP
   }
 
   if (!('shares' in foundThing && foundThing.shares)) {
-    throw new Error('bad request - no shares collection.')
+    throw new Error('bad request - no shares collection.');
   }
 
-  const sharesCollectionId = typeof foundThing.shares === 'string' ? foundThing.shares : foundThing.shares.id;
+  const sharesCollectionId =
+    typeof foundThing.shares === 'string'
+      ? foundThing.shares
+      : foundThing.shares.id;
 
   if (!sharesCollectionId) {
-    throw new Error('bad request ; no shares collection')
+    throw new Error('bad request ; no shares collection');
   }
 
   const sharesCollection = await graph.findThingById(sharesCollectionId);
@@ -251,11 +332,14 @@ async function handleAnnounce(activity: AP.Activity, graph: Graph, recipient: AP
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<AP.AnyThing & {
-    [CONTEXT]: string|string[];
-  } | {
-    error?: string;
-  }>
+  res: NextApiResponse<
+    | (AP.AnyThing & {
+        [CONTEXT]: string | string[];
+      })
+    | {
+        error?: string;
+      }
+  >,
 ) {
   const url = `${LOCAL_DOMAIN}${req.url}`;
 
@@ -279,34 +363,50 @@ export default async function handler(
     }
 
     const activity = new APActivity(thing);
-    const actorId = typeof activity.actor === 'string' ? activity.actor : !Array.isArray(activity.actor) ? activity.actor.id : '';
+    const actorId =
+      typeof activity.actor === 'string'
+        ? activity.actor
+        : !Array.isArray(activity.actor)
+        ? activity.actor.id
+        : '';
 
     if (!actorId) {
       throw new Error('no actor');
     }
 
     if (actorId === recipient.id) {
-      throw new Error('lol dont send to self')
+      throw new Error('lol dont send to self');
     }
 
     activity.published = new Date();
     const activityId = activity.id;
-    const recipientInboxId = recipient && 'inbox' in recipient && recipient.inbox ? typeof recipient.inbox === 'string' ? recipient.inbox : !Array.isArray(recipient.inbox) ? recipient.inbox.id : '' : '';
+    const recipientInboxId =
+      recipient && 'inbox' in recipient && recipient.inbox
+        ? typeof recipient.inbox === 'string'
+          ? recipient.inbox
+          : !Array.isArray(recipient.inbox)
+          ? recipient.inbox.id
+          : ''
+        : '';
 
     if (!(recipientInboxId && activityId)) {
-      throw new Error('Bad request')
+      throw new Error('Bad request');
     }
 
     // Run side effects.
     switch (activity.type) {
-      case AP.ActivityTypes.FOLLOW: await handleFollow(activity, graph, recipient);
-      break;
-      case AP.ActivityTypes.ACCEPT: await handleAccept(activity, graph, recipient);
-      break;
-      case AP.ActivityTypes.LIKE: await handleLike(activity, graph, recipient);
-      break;
-      case AP.ActivityTypes.ANNOUNCE: await handleAnnounce(activity, graph, recipient);
-      break;
+      case AP.ActivityTypes.FOLLOW:
+        await handleFollow(activity, graph, recipient);
+        break;
+      case AP.ActivityTypes.ACCEPT:
+        await handleAccept(activity, graph, recipient);
+        break;
+      case AP.ActivityTypes.LIKE:
+        await handleLike(activity, graph, recipient);
+        break;
+      case AP.ActivityTypes.ANNOUNCE:
+        await handleAnnounce(activity, graph, recipient);
+        break;
     }
 
     await graph.saveThing(activity.compress());

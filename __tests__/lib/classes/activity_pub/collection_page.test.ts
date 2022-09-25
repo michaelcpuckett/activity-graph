@@ -1,7 +1,5 @@
 import '@testing-library/jest-dom';
-import {
-  APCollectionPage,
-} from '../../../../lib/classes/activity_pub';
+import { APCollectionPage } from '../../../../lib/classes/activity_pub';
 
 describe('Types', () => {
   describe('can handle a Collection Page', () => {
@@ -24,9 +22,10 @@ describe('Types', () => {
     });
 
     it('when given a bad type', () => {
-      const createCollectionPage = () => new APCollectionPage({
-        type: 'Create',
-      });
+      const createCollectionPage = () =>
+        new APCollectionPage({
+          type: 'Create',
+        });
 
       expect(createCollectionPage).toThrow();
     });

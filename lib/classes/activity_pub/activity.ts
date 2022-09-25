@@ -21,7 +21,9 @@ export class APActivity extends APCoreObject implements AP.Activity {
     if (Object.values(AP.ActivityTypes).includes(activity.type)) {
       this.type = activity.type;
     } else {
-      throw new Error('`type` must be defined and be one of the Activity Types.');
+      throw new Error(
+        '`type` must be defined and be one of the Activity Types.',
+      );
     }
 
     if (activity.actor) {

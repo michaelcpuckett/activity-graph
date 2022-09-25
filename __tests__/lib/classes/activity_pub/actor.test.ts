@@ -1,7 +1,5 @@
 import '@testing-library/jest-dom';
-import {
-  APActor,
-} from '../../../../lib/classes/activity_pub';
+import { APActor } from '../../../../lib/classes/activity_pub';
 
 describe('Types', () => {
   describe('can handle an Actor Object', () => {
@@ -30,19 +28,21 @@ describe('Types', () => {
     });
 
     it('when not given an inbox', () => {
-      const createActor = () => new APActor({
-        type: 'Person',
-        outbox: 'http://un.org',
-      });
+      const createActor = () =>
+        new APActor({
+          type: 'Person',
+          outbox: 'http://un.org',
+        });
 
       expect(createActor).toThrow();
     });
 
     it('when not given an outbox', () => {
-      const createActor = () => new APActor({
-        type: 'Person',
-        inbox: 'http://un.org',
-      });
+      const createActor = () =>
+        new APActor({
+          type: 'Person',
+          inbox: 'http://un.org',
+        });
 
       expect(createActor).toThrow();
     });

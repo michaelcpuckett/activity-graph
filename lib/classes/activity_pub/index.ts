@@ -12,4 +12,12 @@ import { APCollection, APOrderedCollection } from './collection';
 import { APCollectionPage, APOrderedCollectionPage } from './collection_page';
 import { APLink } from './link';
 
-export type APAnyThing = APObject | APActor | APActivity | APCollection | APOrderedCollection | APCollectionPage | APOrderedCollectionPage | APLink;
+export type APAnyThing =
+  | APObject
+  | APActor
+  | APActivity
+  | APCollection
+  | APOrderedCollection
+  | APCollectionPage
+  | APOrderedCollectionPage
+  | APLink;

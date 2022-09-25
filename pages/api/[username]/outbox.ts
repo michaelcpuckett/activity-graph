@@ -2,12 +2,27 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Graph } from '../../../lib/graph';
 import { CONTEXT, LOCAL_DOMAIN } from '../../../lib/globals';
 import * as AP from '../../../lib/types/activity_pub';
-import { APActivity, APActor, APLink, APObject } from '../../../lib/classes/activity_pub';
+import {
+  APActivity,
+  APActor,
+  APLink,
+  APObject,
+} from '../../../lib/classes/activity_pub';
 import { getTypedThing } from '../../../lib/utilities/getTypedThing';
 
-async function handleCreate(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
-  if (!(activity.object && typeof activity.object !== 'string' && !Array.isArray(activity.object))) {
-    throw new Error('bad request 1')
+async function handleCreate(
+  activity: AP.Activity,
+  graph: Graph,
+  initiator: AP.Actor,
+) {
+  if (
+    !(
+      activity.object &&
+      typeof activity.object !== 'string' &&
+      !Array.isArray(activity.object)
+    )
+  ) {
+    throw new Error('bad request 1');
   }
   const object = getTypedThing(activity.object);
 
@@ -16,7 +31,7 @@ async function handleCreate(activity: AP.Activity, graph: Graph, initiator: AP.A
   }
 
   if (!('id' in object)) {
-    throw new Error('Bad request 3')
+    throw new Error('Bad request 3');
   }
 
   const objectLikes: AP.OrderedCollection = {
@@ -42,7 +57,7 @@ async function handleCreate(activity: AP.Activity, graph: Graph, initiator: AP.A
   }
 
   if (object instanceof APLink) {
-    throw new Error('Bad request 5')
+    throw new Error('Bad request 5');
   }
 
   object.likes = objectLikes;
@@ -59,11 +74,20 @@ async function handleCreate(activity: AP.Activity, graph: Graph, initiator: AP.A
   return object.id;
 }
 
-async function handleDelete(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+async function handleDelete(
+  activity: AP.Activity,
+  graph: Graph,
+  initiator: AP.Actor,
+) {
+  const activityObjectId =
+    typeof activity.object === 'string'
+      ? activity.object
+      : activity.object && 'id' in activity.object
+      ? activity.object.id
+      : '';
 
   if (!activityObjectId) {
-    throw new Error('Bad request')
+    throw new Error('Bad request');
   }
 
   const objectToDelete = await graph.findThingById(activityObjectId);
@@ -79,19 +103,28 @@ async function handleDelete(activity: AP.Activity, graph: Graph, initiator: AP.A
     deleted: new Date(),
     formerType: objectToDelete.type,
   };
-  
+
   await graph.saveThing(activity.object);
 }
 
-async function handleUpdate(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
+async function handleUpdate(
+  activity: AP.Activity,
+  graph: Graph,
+  initiator: AP.Actor,
+) {
   if (typeof activity.object !== 'object' || Array.isArray(activity.object)) {
     throw new Error('bad request');
   }
 
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+  const activityObjectId =
+    typeof activity.object === 'string'
+      ? activity.object
+      : activity.object && 'id' in activity.object
+      ? activity.object.id
+      : '';
 
   if (!activityObjectId) {
-    throw new Error('Bad request')
+    throw new Error('Bad request');
   }
 
   const objectToUpdate = await graph.findThingById(activityObjectId);
@@ -103,31 +136,47 @@ async function handleUpdate(activity: AP.Activity, graph: Graph, initiator: AP.A
   activity.object = {
     ...objectToUpdate,
     ...activity.object,
-    ...(objectToUpdate.type !== 'Link' && objectToUpdate.type !== 'Mention') ? {
-      updated: new Date(),
-    } : null
+    ...(objectToUpdate.type !== 'Link' && objectToUpdate.type !== 'Mention'
+      ? {
+          updated: new Date(),
+        }
+      : null),
   };
 
   await graph.saveThing(activity.object);
 }
 
-async function handleAdd(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+async function handleAdd(
+  activity: AP.Activity,
+  graph: Graph,
+  initiator: AP.Actor,
+) {
+  const activityObjectId =
+    typeof activity.object === 'string'
+      ? activity.object
+      : activity.object && 'id' in activity.object
+      ? activity.object.id
+      : '';
 
   if (!activityObjectId) {
     throw new Error('Bad request 1');
   }
 
   if (!activity.target) {
-    throw new Error('Must have target.')
+    throw new Error('Must have target.');
   }
 
-  const activityTargetId = typeof activity.target === 'string' ? activity.target : (activity.target && 'id' in activity.target) ? activity.target.id : '';
+  const activityTargetId =
+    typeof activity.target === 'string'
+      ? activity.target
+      : activity.target && 'id' in activity.target
+      ? activity.target.id
+      : '';
 
   if (!activityTargetId) {
-    throw new Error('Bad request 2')
+    throw new Error('Bad request 2');
   }
-  
+
   console.log('INSERT', {
     activityTargetId,
     activityObjectId,
@@ -136,10 +185,13 @@ async function handleAdd(activity: AP.Activity, graph: Graph, initiator: AP.Acto
   const expandedTarget = await graph.queryById(activityTargetId);
 
   if (!expandedTarget) {
-    throw new Error('Bad request 3')
+    throw new Error('Bad request 3');
   }
 
-  if ('orderedItems' in expandedTarget && Array.isArray(expandedTarget.orderedItems)) {
+  if (
+    'orderedItems' in expandedTarget &&
+    Array.isArray(expandedTarget.orderedItems)
+  ) {
     await graph.insertOrderedItem(activityTargetId, activityObjectId);
   } else if ('items' in expandedTarget && Array.isArray(expandedTarget.items)) {
     await graph.insertItem(activityTargetId, activityObjectId);
@@ -148,28 +200,52 @@ async function handleAdd(activity: AP.Activity, graph: Graph, initiator: AP.Acto
   }
 }
 
-async function handleRemove(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+async function handleRemove(
+  activity: AP.Activity,
+  graph: Graph,
+  initiator: AP.Actor,
+) {
+  const activityObjectId =
+    typeof activity.object === 'string'
+      ? activity.object
+      : activity.object && 'id' in activity.object
+      ? activity.object.id
+      : '';
 
   if (!activityObjectId) {
     throw new Error('Bad request 1');
   }
 
   if (!activity.target) {
-    throw new Error('Must have target.')
+    throw new Error('Must have target.');
   }
 
-  const activityTargetId = typeof activity.target === 'string' ? activity.target : (activity.target && 'id' in activity.target) ? activity.target.id : '';
+  const activityTargetId =
+    typeof activity.target === 'string'
+      ? activity.target
+      : activity.target && 'id' in activity.target
+      ? activity.target.id
+      : '';
 
   if (!activityTargetId) {
-    throw new Error('Bad request 2')
+    throw new Error('Bad request 2');
   }
-  
+
   await graph.removeOrderedItem(activityTargetId, activityObjectId);
 }
 
-async function handleLike(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
-  const activityActorId = activity.actor ? (typeof activity.actor === 'string' ? activity.actor : !Array.isArray(activity.actor) ? activity.actor.id : '') : '';
+async function handleLike(
+  activity: AP.Activity,
+  graph: Graph,
+  initiator: AP.Actor,
+) {
+  const activityActorId = activity.actor
+    ? typeof activity.actor === 'string'
+      ? activity.actor
+      : !Array.isArray(activity.actor)
+      ? activity.actor.id
+      : ''
+    : '';
 
   if (!activityActorId) {
     throw new Error('No actor ID.');
@@ -180,8 +256,13 @@ async function handleLike(activity: AP.Activity, graph: Graph, initiator: AP.Act
   if (!actor || !('outbox' in actor)) {
     throw new Error('No actor.');
   }
-  
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+  const activityObjectId =
+    typeof activity.object === 'string'
+      ? activity.object
+      : activity.object && 'id' in activity.object
+      ? activity.object.id
+      : '';
 
   if (!activityObjectId) {
     throw new Error('Bad request 1');
@@ -190,25 +271,26 @@ async function handleLike(activity: AP.Activity, graph: Graph, initiator: AP.Act
   const object = await graph.queryById(activityObjectId);
 
   if (!object) {
-    throw new Error('Bad request 2')
+    throw new Error('Bad request 2');
   }
 
   if (!('id' in object) || !object.id) {
-    throw new Error('Bad request 3')
+    throw new Error('Bad request 3');
   }
 
   if (!('likes' in object) || !object.likes) {
     throw new Error('Bad request 4');
   }
 
-  const objectLikesId = typeof object.likes === 'string' ? object.likes : object.likes.id;
+  const objectLikesId =
+    typeof object.likes === 'string' ? object.likes : object.likes.id;
 
   if (!objectLikesId) {
     throw new Error('Bad request 5');
   }
 
   if (!activity.id) {
-    throw new Error('Bad request 6')
+    throw new Error('Bad request 6');
   }
 
   await graph.insertOrderedItem(objectLikesId, activity.id);
@@ -217,7 +299,8 @@ async function handleLike(activity: AP.Activity, graph: Graph, initiator: AP.Act
     throw new Error('bad request 9');
   }
 
-  const actorLikedId = typeof actor.liked === 'string' ? actor.liked : actor.liked.id;
+  const actorLikedId =
+    typeof actor.liked === 'string' ? actor.liked : actor.liked.id;
 
   if (!actorLikedId) {
     throw new Error('bad request 10');
@@ -226,8 +309,18 @@ async function handleLike(activity: AP.Activity, graph: Graph, initiator: AP.Act
   await graph.insertOrderedItem(actorLikedId, object.id);
 }
 
-async function handleAnnounce(activity: AP.Activity, graph: Graph, initiator: AP.Actor) {
-  const activityActorId = activity.actor ? (typeof activity.actor === 'string' ? activity.actor : !Array.isArray(activity.actor) ? activity.actor.id : '') : '';
+async function handleAnnounce(
+  activity: AP.Activity,
+  graph: Graph,
+  initiator: AP.Actor,
+) {
+  const activityActorId = activity.actor
+    ? typeof activity.actor === 'string'
+      ? activity.actor
+      : !Array.isArray(activity.actor)
+      ? activity.actor.id
+      : ''
+    : '';
 
   if (!activityActorId) {
     throw new Error('No actor ID.');
@@ -238,8 +331,13 @@ async function handleAnnounce(activity: AP.Activity, graph: Graph, initiator: AP
   if (!actor || !('outbox' in actor)) {
     throw new Error('No actor.');
   }
-  
-  const activityObjectId = typeof activity.object === 'string' ? activity.object : (activity.object && 'id' in activity.object) ? activity.object.id : '';
+
+  const activityObjectId =
+    typeof activity.object === 'string'
+      ? activity.object
+      : activity.object && 'id' in activity.object
+      ? activity.object.id
+      : '';
 
   if (!activityObjectId) {
     throw new Error('Bad request 1');
@@ -248,36 +346,45 @@ async function handleAnnounce(activity: AP.Activity, graph: Graph, initiator: AP
   const object = await graph.queryById(activityObjectId);
 
   if (!object) {
-    throw new Error('Bad request 2')
+    throw new Error('Bad request 2');
   }
 
   if (!('id' in object) || !object.id) {
-    throw new Error('Bad request 3')
+    throw new Error('Bad request 3');
   }
 
   if (!('shares' in object) || !object.shares) {
     throw new Error('Bad request 4');
   }
 
-  const objectSharesId = typeof object.shares === 'string' ? object.shares : object.shares.id;
+  const objectSharesId =
+    typeof object.shares === 'string' ? object.shares : object.shares.id;
 
   if (!objectSharesId) {
     throw new Error('Bad request 5');
   }
 
   if (!activity.id) {
-    throw new Error('Bad request 6')
+    throw new Error('Bad request 6');
   }
 
   await graph.insertOrderedItem(objectSharesId, activity.id);
 
-  if (!('streams' in actor) || !actor.streams || !Array.isArray(actor.streams)) {
+  if (
+    !('streams' in actor) ||
+    !actor.streams ||
+    !Array.isArray(actor.streams)
+  ) {
     throw new Error('bad request 9');
   }
 
-  const actorStreams = await Promise.all(actor.streams.map(stream => typeof stream === 'string' ? stream : stream.id).map(async id => id ? await graph.queryById(id) : null));
- 
-  const actorSharedCollection = actorStreams.find(stream => {
+  const actorStreams = await Promise.all(
+    actor.streams
+      .map((stream) => (typeof stream === 'string' ? stream : stream.id))
+      .map(async (id) => (id ? await graph.queryById(id) : null)),
+  );
+
+  const actorSharedCollection = actorStreams.find((stream) => {
     if (stream && 'name' in stream) {
       if (stream.name === 'Shared') {
         return true;
@@ -294,11 +401,14 @@ async function handleAnnounce(activity: AP.Activity, graph: Graph, initiator: AP
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<AP.AnyThing & {
-    [CONTEXT]: string|string[];
-  } | {
-    error?: string;
-  }>
+  res: NextApiResponse<
+    | (AP.AnyThing & {
+        [CONTEXT]: string | string[];
+      })
+    | {
+        error?: string;
+      }
+  >,
 ) {
   const url = `${LOCAL_DOMAIN}${req.url}`;
 
@@ -327,25 +437,32 @@ export default async function handler(
     const initiatorOutboxId = url;
 
     if (!(initiatorOutboxId && activityId)) {
-      throw new Error('Bad request here')
+      throw new Error('Bad request here');
     }
 
     // Run side effects.
     switch (activity.type) {
-      case AP.ActivityTypes.CREATE: activity.object = await handleCreate(activity, graph, initiator);
-      break;
-      case AP.ActivityTypes.DELETE: await handleDelete(activity, graph, initiator);
-      break;
-      case AP.ActivityTypes.UPDATE: await handleUpdate(activity, graph, initiator);
-      break;
-      case AP.ActivityTypes.LIKE: await handleLike(activity, graph, initiator);
-      break;
-      case AP.ActivityTypes.ANNOUNCE: await handleAnnounce(activity, graph, initiator);
-      break;
-      case AP.ActivityTypes.ADD: await handleAdd(activity, graph, initiator);
-      break;
-      case AP.ActivityTypes.REMOVE: await handleRemove(activity, graph, initiator);
-      break;
+      case AP.ActivityTypes.CREATE:
+        activity.object = await handleCreate(activity, graph, initiator);
+        break;
+      case AP.ActivityTypes.DELETE:
+        await handleDelete(activity, graph, initiator);
+        break;
+      case AP.ActivityTypes.UPDATE:
+        await handleUpdate(activity, graph, initiator);
+        break;
+      case AP.ActivityTypes.LIKE:
+        await handleLike(activity, graph, initiator);
+        break;
+      case AP.ActivityTypes.ANNOUNCE:
+        await handleAnnounce(activity, graph, initiator);
+        break;
+      case AP.ActivityTypes.ADD:
+        await handleAdd(activity, graph, initiator);
+        break;
+      case AP.ActivityTypes.REMOVE:
+        await handleRemove(activity, graph, initiator);
+        break;
     }
 
     await graph.saveThing(activity.compress());

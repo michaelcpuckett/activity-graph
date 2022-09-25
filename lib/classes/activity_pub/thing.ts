@@ -1,5 +1,5 @@
 import * as AP from '../../types/activity_pub';
-import { getGuid } from "../../crypto";
+import { getGuid } from '../../crypto';
 import { ACTIVITYSTREAMS_CONTEXT, CONTEXT, LOCAL_DOMAIN } from '../../globals';
 import { getTypedThing } from '../../utilities/getTypedThing';
 import { APAnyThing } from '.';
@@ -16,7 +16,7 @@ export class APThing implements AP.Thing {
     if (Object.values(AP.AllTypes).includes(thing.type)) {
       this.type = thing.type;
     } else {
-      throw new Error('Bad type.')
+      throw new Error('Bad type.');
     }
 
     if (thing.id) {
@@ -25,7 +25,7 @@ export class APThing implements AP.Thing {
       const collectionType = this.getCollectionType();
 
       if (collectionType === 'actor' && 'preferredUsername' in thing) {
-        this.id = `${LOCAL_DOMAIN}/${collectionType}/${thing.preferredUsername}`
+        this.id = `${LOCAL_DOMAIN}/${collectionType}/${thing.preferredUsername}`;
       } else {
         const guid = getGuid();
         this.id = `${LOCAL_DOMAIN}/${this.getCollectionType()}/${guid}`;
@@ -46,19 +46,27 @@ export class APThing implements AP.Thing {
         if (array.every((item: unknown) => typeof item === 'string')) {
           compressed.push([key, array]);
         } else {
-          compressed.push([key, array.map(item => {
-            if (typeof item === 'string') {
-              return item;
-            } else if (Array.isArray(item)) {
-              return item;
-            } else if ('id' in item && item.id) {
-              return item.id;
-            } else {
-              return item;
-            }
-          })]);
+          compressed.push([
+            key,
+            array.map((item) => {
+              if (typeof item === 'string') {
+                return item;
+              } else if (Array.isArray(item)) {
+                return item;
+              } else if ('id' in item && item.id) {
+                return item.id;
+              } else {
+                return item;
+              }
+            }),
+          ]);
         }
-      } else if (value && typeof value === 'object' && 'id' in value && value.id) {
+      } else if (
+        value &&
+        typeof value === 'object' &&
+        'id' in value &&
+        value.id
+      ) {
         compressed.push([key, value.id]);
       } else {
         compressed.push([key, value]);
@@ -93,7 +101,7 @@ export class APThing implements AP.Thing {
   }
 
   public formatPublicObject(): AP.AnyThing & {
-    [CONTEXT]: string|string[];
+    [CONTEXT]: string | string[];
   } {
     return {
       [CONTEXT]: ACTIVITYSTREAMS_CONTEXT,

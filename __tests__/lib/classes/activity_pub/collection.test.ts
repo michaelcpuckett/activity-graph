@@ -1,7 +1,5 @@
 import '@testing-library/jest-dom';
-import {
-  APCollection,
-} from '../../../../lib/classes/activity_pub';
+import { APCollection } from '../../../../lib/classes/activity_pub';
 
 describe('Types', () => {
   describe('can handle an Activity Object', () => {
@@ -24,9 +22,10 @@ describe('Types', () => {
     });
 
     it('when given a bad type', () => {
-      const createCollection = () => new APCollection({
-        type: 'Create',
-      });
+      const createCollection = () =>
+        new APCollection({
+          type: 'Create',
+        });
 
       expect(createCollection).toThrow();
     });

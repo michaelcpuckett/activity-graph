@@ -1,7 +1,5 @@
 import '@testing-library/jest-dom';
-import {
-  APLink,
-} from '../../../../lib/classes/activity_pub';
+import { APLink } from '../../../../lib/classes/activity_pub';
 
 describe('Types', () => {
   describe('can handle a Link', () => {
@@ -24,9 +22,10 @@ describe('Types', () => {
     });
 
     it('when given a bad type', () => {
-      const createLink = () => new APLink({
-        type: 'Create',
-      });
+      const createLink = () =>
+        new APLink({
+          type: 'Create',
+        });
 
       expect(createLink).toThrow();
     });

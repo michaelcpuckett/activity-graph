@@ -46,7 +46,7 @@ export class APCoreObject extends APThing implements AP.CoreObject {
     if (Object.values(AP.CoreObjectTypes).includes(object.type)) {
       this.type = object.type;
     } else {
-      throw new Error('Bad type.')
+      throw new Error('Bad type.');
     }
 
     if (object.url) {
@@ -59,7 +59,7 @@ export class APCoreObject extends APThing implements AP.CoreObject {
   }
 
   public override formatPublicObject(): AP.AnyThing & {
-    [CONTEXT]: string|string[];
+    [CONTEXT]: string | string[];
   } {
     const compressed = this.compress();
 

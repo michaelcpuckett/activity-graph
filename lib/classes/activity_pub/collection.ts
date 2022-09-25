@@ -17,14 +17,19 @@ export class APCollection extends APCoreObject implements AP.Collection {
     super(collection);
 
     if (collection.type !== AP.CollectionTypes.COLLECTION) {
-      throw new Error('`type` must be defined and be one of the Collection Types.');
+      throw new Error(
+        '`type` must be defined and be one of the Collection Types.',
+      );
     } else {
       this.type = collection.type;
     }
   }
-};
+}
 
-export class APOrderedCollection extends APCoreObject implements AP.OrderedCollection {
+export class APOrderedCollection
+  extends APCoreObject
+  implements AP.OrderedCollection
+{
   type: typeof AP.CollectionTypes.ORDERED_COLLECTION;
   totalItems?: number;
   items?: AP.ObjectOrLinkReference;
@@ -37,7 +42,7 @@ export class APOrderedCollection extends APCoreObject implements AP.OrderedColle
     super(collection);
 
     if (collection.type !== AP.CollectionTypes.ORDERED_COLLECTION) {
-      throw new Error('Must be an OrderedCollection.')
+      throw new Error('Must be an OrderedCollection.');
     } else {
       this.type = collection.type;
     }

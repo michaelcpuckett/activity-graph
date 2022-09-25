@@ -34,18 +34,22 @@ describe('Types', () => {
         ],
       });
 
-      expect(JSON.parse(JSON.stringify(thing.compress()))).toStrictEqual(JSON.parse(JSON.stringify(({
-        id: `${LOCAL_DOMAIN}/actor/sparky`,
-        url: `${LOCAL_DOMAIN}/actor/sparky`,
-        type: 'Person',
-        preferredUsername: 'sparky',
-        inbox: `${LOCAL_DOMAIN}/actor/sparky/inbox`,
-        outbox: `${LOCAL_DOMAIN}/actor/sparky/outbox`,
-        streams: [
-          `${LOCAL_DOMAIN}/actor/sparky/blocked`,
-          `${LOCAL_DOMAIN}/actor/sparky/groups`,
-        ],
-      }))));
+      expect(JSON.parse(JSON.stringify(thing.compress()))).toStrictEqual(
+        JSON.parse(
+          JSON.stringify({
+            id: `${LOCAL_DOMAIN}/actor/sparky`,
+            url: `${LOCAL_DOMAIN}/actor/sparky`,
+            type: 'Person',
+            preferredUsername: 'sparky',
+            inbox: `${LOCAL_DOMAIN}/actor/sparky/inbox`,
+            outbox: `${LOCAL_DOMAIN}/actor/sparky/outbox`,
+            streams: [
+              `${LOCAL_DOMAIN}/actor/sparky/blocked`,
+              `${LOCAL_DOMAIN}/actor/sparky/groups`,
+            ],
+          }),
+        ),
+      );
     });
   });
 });

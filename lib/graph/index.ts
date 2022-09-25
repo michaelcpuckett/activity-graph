@@ -3,11 +3,22 @@ import * as firebaseAdmin from 'firebase-admin';
 import { AppOptions } from 'firebase-admin';
 import * as crypto from 'crypto';
 
-import { APActivity, APCollection, APOrderedCollection } from '../classes/activity_pub';
+import {
+  APActivity,
+  APCollection,
+  APOrderedCollection,
+} from '../classes/activity_pub';
 import serviceAccount from '../../credentials';
 import { getCollectionNameByUrl } from '../utilities/getCollectionNameByUrl';
 import * as AP from '../types/activity_pub';
-import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, CONTENT_TYPE_HEADER, CONTEXT, LOCAL_HOSTNAME, PUBLIC_ACTOR } from '../globals';
+import {
+  ACCEPT_HEADER,
+  ACTIVITYSTREAMS_CONTENT_TYPE,
+  CONTENT_TYPE_HEADER,
+  CONTEXT,
+  LOCAL_HOSTNAME,
+  PUBLIC_ACTOR,
+} from '../globals';
 import { dbName } from '../../config';
 import { getTypedThing } from '../utilities/getTypedThing';
 import { getId } from '../utilities/getId';
@@ -20,7 +31,7 @@ export class Graph {
   }
 
   static async connect() {
-    const client = new MongoClient("mongodb://testing:testing@localhost:27017");
+    const client = new MongoClient('mongodb://testing:testing@localhost:27017');
     await client.connect();
     const db = client.db(dbName);
     return new Graph(db);
@@ -28,27 +39,30 @@ export class Graph {
 
   // Find.
 
-  public async findOne(collection: string, matchingObject: Object): Promise<AP.AnyThing|null> {
+  public async findOne(
+    collection: string,
+    matchingObject: Object,
+  ): Promise<AP.AnyThing | null> {
     const value = await this.db.collection(collection).findOne(matchingObject);
 
     if (!value) {
       return value;
     }
 
-    const {
-      _id,
-      ...one
-    } = JSON.parse(JSON.stringify(value));
+    const { _id, ...one } = JSON.parse(JSON.stringify(value));
 
     return one;
   }
 
-  public async findThingById(_id: string): Promise<AP.AnyThing|null> {
+  public async findThingById(_id: string): Promise<AP.AnyThing | null> {
     const collectionName = getCollectionNameByUrl(_id);
     return await this.findOne(collectionName, { _id });
   }
 
-  public async findStringValueById(dbCollection: string, _id: string): Promise<string> {
+  public async findStringValueById(
+    dbCollection: string,
+    _id: string,
+  ): Promise<string> {
     const one = await this.db.collection(dbCollection).findOne({ _id });
 
     if (!one) {
@@ -62,7 +76,10 @@ export class Graph {
     return one.value;
   }
 
-  public async findStringIdByValue(dbCollection: string, value: string): Promise<string> {
+  public async findStringIdByValue(
+    dbCollection: string,
+    value: string,
+  ): Promise<string> {
     const one = await this.db.collection(dbCollection).findOne({ value });
 
     if (!one) {
@@ -75,26 +92,30 @@ export class Graph {
 
     return one._id;
   }
-  
-  async getAuthenticatedUserIdByToken(token: string): Promise<string|null> {
+
+  async getAuthenticatedUserIdByToken(token: string): Promise<string | null> {
     if (!firebaseAdmin.apps.length) {
       const appOptions: AppOptions = {
         credential: firebaseAdmin.credential.cert(serviceAccount),
-        projectId: "socialweb-id",
+        projectId: 'socialweb-id',
       };
-  
+
       firebaseAdmin.initializeApp(appOptions);
     }
-  
-    const user = !token ? null : await firebaseAdmin.auth().verifyIdToken(token)
-        .then(async (userCredential) => {
+
+    const user = !token
+      ? null
+      : await firebaseAdmin
+          .auth()
+          .verifyIdToken(token)
+          .then(async (userCredential) => {
             return userCredential ?? null;
-        })
-        .catch((error) => {
+          })
+          .catch((error) => {
             console.error(error);
             return null;
-        });
-  
+          });
+
     if (!user?.uid) {
       return null;
     }
@@ -102,14 +123,17 @@ export class Graph {
     return user.uid;
   }
 
-  async getActorByToken(token: string): Promise<AP.AnyActor|null> {
+  async getActorByToken(token: string): Promise<AP.AnyActor | null> {
     const userId = await this.getAuthenticatedUserIdByToken(token);
 
     if (!userId) {
       return null;
     }
 
-    const preferredUsername = await this.findStringValueById('username', userId);
+    const preferredUsername = await this.findStringValueById(
+      'username',
+      userId,
+    );
     const user = await this.findOne('actor', { preferredUsername });
 
     if (user && 'preferredUsername' in user) {
@@ -130,27 +154,29 @@ export class Graph {
     const _id = thing.id;
 
     return await this.db.collection(collectionName).replaceOne(
-        {
-          _id,
-        },
-        JSON.parse(JSON.stringify(thing)),
-        {
-          upsert: true,
-        }
+      {
+        _id,
+      },
+      JSON.parse(JSON.stringify(thing)),
+      {
+        upsert: true,
+      },
     );
   }
 
   public async saveString(dbCollection: string, _id: string, value: string) {
     return await this.db.collection(dbCollection).replaceOne(
-        {
-          _id,
-        },
-        JSON.parse(JSON.stringify({
-          value
-        })),
-        {
-          upsert: true,
-        }
+      {
+        _id,
+      },
+      JSON.parse(
+        JSON.stringify({
+          value,
+        }),
+      ),
+      {
+        upsert: true,
+      },
     );
   }
 
@@ -158,94 +184,116 @@ export class Graph {
 
   async insertOrderedItem(path: string, url: string) {
     const collectionName = getCollectionNameByUrl(path);
-    await this.db.collection(collectionName).updateOne({
-      _id: path,
-    }, {
-      $inc: {
-        totalItems: 1,
+    await this.db.collection(collectionName).updateOne(
+      {
+        _id: path,
       },
-      $push: {
-        orderedItems: {
-           $each: [url],
-           $position: 0,
-        }
+      {
+        $inc: {
+          totalItems: 1,
+        },
+        $push: {
+          orderedItems: {
+            $each: [url],
+            $position: 0,
+          },
+        },
       },
-    }, {
-      upsert: true,
-    });
+      {
+        upsert: true,
+      },
+    );
   }
-  
+
   async removeOrderedItem(path: string, url: string) {
     const collectionName = getCollectionNameByUrl(path);
-    await this.db.collection(collectionName).updateOne({
-      _id: path
-    }, {
-      $inc: {
-        totalItems: -1,
+    await this.db.collection(collectionName).updateOne(
+      {
+        _id: path,
       },
-      $pull: {
-        orderedItems: url,
+      {
+        $inc: {
+          totalItems: -1,
+        },
+        $pull: {
+          orderedItems: url,
+        },
       },
-    }, {
-      upsert: true,
-    });
+      {
+        upsert: true,
+      },
+    );
   }
 
   async insertItem(path: string, url: string) {
     const collectionName = getCollectionNameByUrl(path);
-    await this.db.collection(collectionName).updateOne({
-      _id: path,
-    }, {
-      $inc: {
-        totalItems: 1,
+    await this.db.collection(collectionName).updateOne(
+      {
+        _id: path,
       },
-      $push: {
-        items: {
-           $each: [url],
-        }
+      {
+        $inc: {
+          totalItems: 1,
+        },
+        $push: {
+          items: {
+            $each: [url],
+          },
+        },
       },
-    }, {
-      upsert: true,
-    });
+      {
+        upsert: true,
+      },
+    );
   }
-  
+
   async removeItem(path: string, url: string) {
     const collectionName = getCollectionNameByUrl(path);
-    await this.db.collection(collectionName).updateOne({
-      _id: path
-    }, {
-      $inc: {
-        totalItems: -1,
+    await this.db.collection(collectionName).updateOne(
+      {
+        _id: path,
       },
-      $pull: {
-        items: url,
+      {
+        $inc: {
+          totalItems: -1,
+        },
+        $pull: {
+          items: url,
+        },
       },
-    }, {
-      upsert: true,
-    });
+      {
+        upsert: true,
+      },
+    );
   }
 
   // Fetch.
 
-  async fetchThingById(id: string): Promise<AP.AnyThing|null> {
+  async fetchThingById(id: string): Promise<AP.AnyThing | null> {
     // GET requests (eg. to the inbox) MUST be made with an Accept header of
     // `application/ld+json; profile="https://www.w3.org/ns/activitystreams"`
     const fetchedThing = await fetch(id, {
-        headers: {
-            [CONTENT_TYPE_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
-            [ACCEPT_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
-        },
+      headers: {
+        [CONTENT_TYPE_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
+        [ACCEPT_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
+      },
     })
-    .then(async response => await response.json())
-    .catch(error => {
-      console.log(error);
-      return null;
-    });
+      .then(async (response) => await response.json())
+      .catch((error) => {
+        console.log(error);
+        return null;
+      });
 
-    if (!(typeof fetchedThing === 'object' && fetchedThing && 'type' in fetchedThing)) {
+    if (
+      !(
+        typeof fetchedThing === 'object' &&
+        fetchedThing &&
+        'type' in fetchedThing
+      )
+    ) {
       return null;
     }
-    
+
     const thing = fetchedThing as AP.AnyThing;
 
     const typedThing = getTypedThing(thing);
@@ -262,9 +310,9 @@ export class Graph {
     return compressedThing;
   }
 
-  async queryById(id: string): Promise<AP.AnyThing|null> {
+  async queryById(id: string): Promise<AP.AnyThing | null> {
     try {
-      return await this.findThingById(id) ?? await this.fetchThingById(id);
+      return (await this.findThingById(id)) ?? (await this.fetchThingById(id));
     } catch (error: unknown) {
       throw new Error(String(error));
     }
@@ -273,12 +321,19 @@ export class Graph {
   // Other
 
   // TODO?
-  
+
   async expandThing(thing: AP.AnyThing): Promise<AP.AnyThing> {
     const expanded = [];
 
     for (const [key, value] of Object.entries(thing)) {
-      if (key === 'id' || key === 'url' || key === 'type' || key === CONTEXT || key === '_id' || key === 'publicKey') {
+      if (
+        key === 'id' ||
+        key === 'url' ||
+        key === 'type' ||
+        key === CONTEXT ||
+        key === '_id' ||
+        key === 'publicKey'
+      ) {
         expanded.push([key, value]);
       } else if (typeof value === 'string') {
         if (value === PUBLIC_ACTOR) {
@@ -294,19 +349,24 @@ export class Graph {
       } else if (Array.isArray(value)) {
         const array = [...value];
         if (array.every((item: unknown) => typeof item === 'string')) {
-          expanded.push([key, await Promise.all(array.map(async item => {
-            if (typeof item === 'string') {
-              if (item === PUBLIC_ACTOR) {
-                return item;
-              }
-              try {
-                const url = new URL(item);
-                return await this.queryById(url.toString());
-              } catch (error) {
-                return item;
-              }
-            }
-          }))]);
+          expanded.push([
+            key,
+            await Promise.all(
+              array.map(async (item) => {
+                if (typeof item === 'string') {
+                  if (item === PUBLIC_ACTOR) {
+                    return item;
+                  }
+                  try {
+                    const url = new URL(item);
+                    return await this.queryById(url.toString());
+                  } catch (error) {
+                    return item;
+                  }
+                }
+              }),
+            ),
+          ]);
         } else {
           expanded.push([key, value]);
         }
@@ -318,25 +378,35 @@ export class Graph {
     return JSON.parse(JSON.stringify(Object.fromEntries(expanded)));
   }
 
-  async signAndSendToForeignActorInbox(foreignActorInbox: string, actor: AP.Actor, activity: AP.AnyThing & {
-    [CONTEXT]: AP.StringReference
-  }) {
+  async signAndSendToForeignActorInbox(
+    foreignActorInbox: string,
+    actor: AP.Actor,
+    activity: AP.AnyThing & {
+      [CONTEXT]: AP.StringReference;
+    },
+  ) {
     if (!actor.preferredUsername) {
       return;
     }
 
-    const userId = await this.findStringIdByValue('username', actor.preferredUsername);
+    const userId = await this.findStringIdByValue(
+      'username',
+      actor.preferredUsername,
+    );
     const privateKey = await this.findStringValueById('private-key', userId);
 
     if (!privateKey) {
-      throw new Error('User\'s private key not found.');
+      throw new Error("User's private key not found.");
     }
 
     const foreignDomain = new URL(foreignActorInbox).hostname;
     const foreignPathName = new URL(foreignActorInbox).pathname;
 
     // sign
-    const digestHash = crypto.createHash('sha256').update(JSON.stringify(activity)).digest('base64');
+    const digestHash = crypto
+      .createHash('sha256')
+      .update(JSON.stringify(activity))
+      .digest('base64');
     const signer = crypto.createSign('sha256');
     const dateString = new Date().toUTCString();
     const stringToSign = `(request-target): post ${foreignPathName}\nhost: ${foreignDomain}\ndate: ${dateString}\ndigest: SHA-256=${digestHash}`;
@@ -345,54 +415,66 @@ export class Graph {
     const signature = signer.sign(privateKey);
     const signature_b64 = signature.toString('base64');
     const signatureHeader = `keyId="${actor.url}#main-key",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="${signature_b64}"`;
-    
-    console.log('SENDING...')
+
+    console.log('SENDING...');
 
     // send
     return await fetch(foreignActorInbox, {
-        method: 'post',
-        body: JSON.stringify(activity),
-        headers: {
-            [CONTENT_TYPE_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
-            [ACCEPT_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
-            'Host': foreignDomain,
-            'Date': dateString,
-            'Digest': `SHA-256=${digestHash}`,
-            'Signature': signatureHeader
-        }
+      method: 'post',
+      body: JSON.stringify(activity),
+      headers: {
+        [CONTENT_TYPE_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
+        [ACCEPT_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
+        Host: foreignDomain,
+        Date: dateString,
+        Digest: `SHA-256=${digestHash}`,
+        Signature: signatureHeader,
+      },
     });
   }
 
   async broadcastActivity(activity: APActivity, actor: AP.Actor) {
     const recipients = await this.getRecipientInboxUrls(activity);
 
-    console.log({recipients});
+    console.log({ recipients });
 
-    return await Promise.all(recipients.map(async recipient => {
-      return await this.signAndSendToForeignActorInbox(recipient, actor, activity.formatPublicObject());
-    }));
+    return await Promise.all(
+      recipients.map(async (recipient) => {
+        return await this.signAndSendToForeignActorInbox(
+          recipient,
+          actor,
+          activity.formatPublicObject(),
+        );
+      }),
+    );
   }
-  
+
   async getRecipientInboxUrls(activity: AP.Activity): Promise<string[]> {
     const recipients: string[] = [
-      ...activity.to ? await this.getRecipientsList(activity.to) : [],
-      ...activity.cc ? await this.getRecipientsList(activity.cc) : [],
-      ...activity.bto ? await this.getRecipientsList(activity.bto) : [],
-      ...activity.bcc ? await this.getRecipientsList(activity.bcc) : [],
+      ...(activity.to ? await this.getRecipientsList(activity.to) : []),
+      ...(activity.cc ? await this.getRecipientsList(activity.cc) : []),
+      ...(activity.bto ? await this.getRecipientsList(activity.bto) : []),
+      ...(activity.bcc ? await this.getRecipientsList(activity.bcc) : []),
     ];
 
     // get inbox for each recipient
-    const recipientInboxes = await Promise.all(recipients.map(async recipient => {
-      const foundThing = await this.queryById(recipient);
+    const recipientInboxes = await Promise.all(
+      recipients.map(async (recipient) => {
+        const foundThing = await this.queryById(recipient);
 
-      if (!foundThing) {
-        return null;
-      }
+        if (!foundThing) {
+          return null;
+        }
 
-      if (typeof foundThing === 'object' && 'inbox' in foundThing && foundThing.inbox) {
-        return foundThing.inbox;
-      }
-    }));
+        if (
+          typeof foundThing === 'object' &&
+          'inbox' in foundThing &&
+          foundThing.inbox
+        ) {
+          return foundThing.inbox;
+        }
+      }),
+    );
 
     const recipientInboxUrls: string[] = [];
 
@@ -407,57 +489,78 @@ export class Graph {
 
   async getRecipientsList(to: AP.ObjectOrLinkReference) {
     const toArray = Array.isArray(to) ? to : [to];
-    const filteredToArray = toArray.filter(recipient => recipient !== PUBLIC_ACTOR);
+    const filteredToArray = toArray.filter(
+      (recipient) => recipient !== PUBLIC_ACTOR,
+    );
 
-    return (await Promise.all(filteredToArray.map(async reference => {
-      if (typeof reference === 'string') {
-        const foundThing = await this.queryById(reference);
+    return (
+      await Promise.all(
+        filteredToArray.map(async (reference) => {
+          if (typeof reference === 'string') {
+            const foundThing = await this.queryById(reference);
 
-        console.log({
-          foundThing,
-        })
+            console.log({
+              foundThing,
+            });
 
-        if (!foundThing) {
-          return null;
-        }
-
-        if (typeof foundThing === 'object' && 'inbox' in foundThing && foundThing.inbox && foundThing.id) {
-          return foundThing.id;
-        }
-
-        if (typeof foundThing === 'object' && foundThing.type === AP.CollectionTypes.ORDERED_COLLECTION && foundThing.orderedItems) {
-          return foundThing.orderedItems;
-        }
-
-        if (typeof foundThing === 'object' && 'items' in foundThing && foundThing.items) {
-          return foundThing.items;
-        }
-
-        return null;
-      }
-      if ('id' in reference) {
-        return reference.id;
-      }
-      if ('href' in reference) {
-        return reference.href;
-      }
-      if (Array.isArray(reference)) {
-        if (reference.every(item => typeof item === 'string')) {
-          return reference;
-        } else {
-          return reference.map(item => {
-            if (typeof item !== 'string' && 'id' in item) {
-              return item;
+            if (!foundThing) {
+              return null;
             }
-          });
-        }
-      }
-    }))).flat();
+
+            if (
+              typeof foundThing === 'object' &&
+              'inbox' in foundThing &&
+              foundThing.inbox &&
+              foundThing.id
+            ) {
+              return foundThing.id;
+            }
+
+            if (
+              typeof foundThing === 'object' &&
+              foundThing.type === AP.CollectionTypes.ORDERED_COLLECTION &&
+              foundThing.orderedItems
+            ) {
+              return foundThing.orderedItems;
+            }
+
+            if (
+              typeof foundThing === 'object' &&
+              'items' in foundThing &&
+              foundThing.items
+            ) {
+              return foundThing.items;
+            }
+
+            return null;
+          }
+          if ('id' in reference) {
+            return reference.id;
+          }
+          if ('href' in reference) {
+            return reference.href;
+          }
+          if (Array.isArray(reference)) {
+            if (reference.every((item) => typeof item === 'string')) {
+              return reference;
+            } else {
+              return reference.map((item) => {
+                if (typeof item !== 'string' && 'id' in item) {
+                  return item;
+                }
+              });
+            }
+          }
+        }),
+      )
+    ).flat();
   }
 
-  async getCollectionItems(thing: string|AP.Collection|AP.OrderedCollection): Promise<AP.ObjectOrLinkReference> {
+  async getCollectionItems(
+    thing: string | AP.Collection | AP.OrderedCollection,
+  ): Promise<AP.ObjectOrLinkReference> {
     const id = getId(thing);
-    
+
     if (!id) {
       return [];
     }
@@ -468,72 +571,106 @@ export class Graph {
       return [];
     }
 
-    if (collection.type !== AP.CollectionTypes.COLLECTION && collection.type !== AP.CollectionTypes.ORDERED_COLLECTION) {
+    if (
+      collection.type !== AP.CollectionTypes.COLLECTION &&
+      collection.type !== AP.CollectionTypes.ORDERED_COLLECTION
+    ) {
       return [];
     }
 
-    if (!(('items' in collection && Array.isArray(collection.items)) || ('orderedItems' in collection && Array.isArray(collection.orderedItems)))) {
+    if (
+      !(
+        ('items' in collection && Array.isArray(collection.items)) ||
+        ('orderedItems' in collection && Array.isArray(collection.orderedItems))
+      )
+    ) {
       return [];
     }
 
-    const collectionItems = collection.type === AP.CollectionTypes.ORDERED_COLLECTION ? collection.orderedItems : collection.items;
+    const collectionItems =
+      collection.type === AP.CollectionTypes.ORDERED_COLLECTION
+        ? collection.orderedItems
+        : collection.items;
 
     if (!Array.isArray(collectionItems)) {
       return [];
     }
 
-    const foundItems: Array<null|AP.ObjectOrLinkReference> = await Promise.all(collectionItems.map(async item => {
-      const id = getId(item);
-      const foundItem = await this.queryById(id);
+    const foundItems: Array<null | AP.ObjectOrLinkReference> =
+      await Promise.all(
+        collectionItems.map(async (item) => {
+          const id = getId(item);
+          const foundItem = await this.queryById(id);
 
-      if (!foundItem) {
-        return null;
-      }
-
-      const expandedItem = await this.expandThing(foundItem);
-
-      if ('likes' in expandedItem && expandedItem.likes) {
-        if (typeof expandedItem.likes === 'string') {
-          const likes = await this.queryById(expandedItem.likes);
-
-          if (likes && likes.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-            expandedItem.likes = likes;
+          if (!foundItem) {
+            return null;
           }
-        }
-      }
-      
-      if ('shares' in expandedItem && expandedItem.shares) {
-        if (typeof expandedItem.shares === 'string') {
-          const shares = await this.queryById(expandedItem.shares);
 
-          if (shares && shares.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-            expandedItem.shares = shares;
+          const expandedItem = await this.expandThing(foundItem);
+
+          if ('likes' in expandedItem && expandedItem.likes) {
+            if (typeof expandedItem.likes === 'string') {
+              const likes = await this.queryById(expandedItem.likes);
+
+              if (
+                likes &&
+                likes.type === AP.CollectionTypes.ORDERED_COLLECTION
+              ) {
+                expandedItem.likes = likes;
+              }
+            }
           }
-        }
-      }
 
-      if ('object' in expandedItem && expandedItem.object) {
-        if (typeof expandedItem.object === 'object' && 'likes' in expandedItem.object && typeof expandedItem.object.likes === 'string') {
-          const likes = await this.queryById(expandedItem.object.likes);
+          if ('shares' in expandedItem && expandedItem.shares) {
+            if (typeof expandedItem.shares === 'string') {
+              const shares = await this.queryById(expandedItem.shares);
 
-          if (likes && likes.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-            expandedItem.object.likes = likes;
+              if (
+                shares &&
+                shares.type === AP.CollectionTypes.ORDERED_COLLECTION
+              ) {
+                expandedItem.shares = shares;
+              }
+            }
           }
-        }
-      }
 
-      if ('object' in expandedItem && expandedItem.object) {
-        if (typeof expandedItem.object === 'object' && 'shares' in expandedItem.object && typeof expandedItem.object.shares === 'string') {
-          const shares = await this.queryById(expandedItem.object.shares);
+          if ('object' in expandedItem && expandedItem.object) {
+            if (
+              typeof expandedItem.object === 'object' &&
+              'likes' in expandedItem.object &&
+              typeof expandedItem.object.likes === 'string'
+            ) {
+              const likes = await this.queryById(expandedItem.object.likes);
 
-          if (shares && shares.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-            expandedItem.object.shares = shares;
+              if (
+                likes &&
+                likes.type === AP.CollectionTypes.ORDERED_COLLECTION
+              ) {
+                expandedItem.object.likes = likes;
+              }
+            }
           }
-        }
-      }
 
-      return await this.expandThing(expandedItem);
-    }));
+          if ('object' in expandedItem && expandedItem.object) {
+            if (
+              typeof expandedItem.object === 'object' &&
+              'shares' in expandedItem.object &&
+              typeof expandedItem.object.shares === 'string'
+            ) {
+              const shares = await this.queryById(expandedItem.object.shares);
+
+              if (
+                shares &&
+                shares.type === AP.CollectionTypes.ORDERED_COLLECTION
+              ) {
+                expandedItem.object.shares = shares;
+              }
+            }
+          }
+
+          return await this.expandThing(expandedItem);
+        }),
+      );
 
     const filteredItems: AP.ObjectOrLinkReference = [];
 
@@ -546,7 +683,9 @@ export class Graph {
     return filteredItems;
   }
 
-  async expandCollection(collection: string|AP.Collection|AP.OrderedCollection): Promise<null|AP.Collection|AP.OrderedCollection> {
+  async expandCollection(
+    collection: string | AP.Collection | AP.OrderedCollection,
+  ): Promise<null | AP.Collection | AP.OrderedCollection> {
     const id = getId(collection);
 
     if (!id) {
@@ -559,24 +698,35 @@ export class Graph {
       return null;
     }
 
-    if (foundThing.type !== AP.CollectionTypes.COLLECTION && foundThing.type !== AP.CollectionTypes.ORDERED_COLLECTION) {
+    if (
+      foundThing.type !== AP.CollectionTypes.COLLECTION &&
+      foundThing.type !== AP.CollectionTypes.ORDERED_COLLECTION
+    ) {
       return null;
     }
 
     const items = await this.getCollectionItems(foundThing);
-    
+
     if (foundThing.type === AP.CollectionTypes.ORDERED_COLLECTION) {
-      return JSON.parse(JSON.stringify(new APOrderedCollection({
-        ...foundThing,
-        orderedItems: items,
-      })));
+      return JSON.parse(
+        JSON.stringify(
+          new APOrderedCollection({
+            ...foundThing,
+            orderedItems: items,
+          }),
+        ),
+      );
     }
 
     if (foundThing.type === AP.CollectionTypes.COLLECTION) {
-      return JSON.parse(JSON.stringify(new APCollection({
-        ...foundThing,
-        items: items,
-      })));
+      return JSON.parse(
+        JSON.stringify(
+          new APCollection({
+            ...foundThing,
+            items: items,
+          }),
+        ),
+      );
     }
 
     return null;

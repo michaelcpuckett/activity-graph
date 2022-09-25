@@ -5,34 +5,34 @@ import { Graph } from '../../lib/graph';
 import * as firebaseAdmin from 'firebase-admin';
 import { AppOptions } from 'firebase-admin';
 import serviceAccount from '../../credentials';
+import { LOCAL_DOMAIN } from '../../lib/globals';
+import * as AP from '../../lib/types/activity_pub';
 import {
-  LOCAL_DOMAIN
-} from '../../lib/globals';
-import * as AP from '../../lib/types/activity_pub'
-import { APActivity, APActor, APCollection, APObject } from '../../lib/classes/activity_pub';
+  APActivity,
+  APActor,
+  APCollection,
+  APObject,
+} from '../../lib/classes/activity_pub';
 import { generateKeyPair } from '../../lib/crypto';
 import { APOrderedCollection } from '../../lib/classes/activity_pub/collection';
 
 type Data = {
   error?: string;
   success?: boolean;
-}
+};
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<Data>,
 ) {
   const graph = await Graph.connect();
 
-  const {
-    email,
-    password,
-    name,
-    preferredUsername,
-  } = JSON.parse(req.body);
+  const { email, password, name, preferredUsername } = JSON.parse(req.body);
 
-  const isUsernameTaken = !!(await graph.findOne('actor', { preferredUsername }));
-  
+  const isUsernameTaken = !!(await graph.findOne('actor', {
+    preferredUsername,
+  }));
+
   const RESERVED_USERNAMES = [
     'owner',
     'bot',
@@ -56,47 +56,44 @@ export default async function handler(
         error: 'Username taken.',
       });
   }
-  
+
   if (!firebaseAdmin.apps.length) {
     const appOptions: AppOptions = {
       credential: firebaseAdmin.credential.cert(serviceAccount),
-      projectId: "socialweb-id",
+      projectId: 'socialweb-id',
     };
 
     firebaseAdmin.initializeApp(appOptions);
   }
 
   const user = await firebaseAdmin.auth().createUser({
-      email,
-      emailVerified: false,
-      password,
-      displayName: preferredUsername,
-      disabled: false,
+    email,
+    emailVerified: false,
+    password,
+    displayName: preferredUsername,
+    disabled: false,
   });
 
-  const {
-    publicKey,
-    privateKey,
-  } = await generateKeyPair();
+  const { publicKey, privateKey } = await generateKeyPair();
 
   const id = `${LOCAL_DOMAIN}/actor/${preferredUsername}`;
 
   const botServiceUsername = 'bot';
   const botServiceId = `${LOCAL_DOMAIN}/actor/${botServiceUsername}`;
-  const isBotCreated = !!(await graph.findOne('actor', { preferredUsername: botServiceUsername }));
+  const isBotCreated = !!(await graph.findOne('actor', {
+    preferredUsername: botServiceUsername,
+  }));
 
   if (!isBotCreated) {
-    const {
-      publicKey: botPublicKey,
-      privateKey: botPrivateKey,
-    } = await generateKeyPair();
+    const { publicKey: botPublicKey, privateKey: botPrivateKey } =
+      await generateKeyPair();
 
     const botInbox: AP.OrderedCollection = {
       id: `${botServiceId}/inbox`,
       url: `${botServiceId}/inbox`,
       type: AP.CollectionTypes.ORDERED_COLLECTION,
       totalItems: 0,
-      orderedItems: []
+      orderedItems: [],
     };
 
     const botOutbox: AP.OrderedCollection = {
@@ -139,9 +136,9 @@ export default async function handler(
         sharedInbox: `${LOCAL_DOMAIN}/inbox`,
       },
       publicKey: {
-          id: `${id}#main-key`,
-          owner: id,
-          publicKeyPem: botPublicKey
+        id: `${id}#main-key`,
+        owner: id,
+        publicKeyPem: botPublicKey,
       },
     }).compress();
 
@@ -162,7 +159,7 @@ export default async function handler(
     name: 'Inbox',
     type: AP.CollectionTypes.ORDERED_COLLECTION,
     totalItems: 0,
-    orderedItems: []
+    orderedItems: [],
   };
 
   const userOutbox: AP.OrderedCollection = {
@@ -269,19 +266,14 @@ export default async function handler(
     liked: userLiked,
     likes: userLikes,
     shares: userShares,
-    streams: [
-      userShared,
-      userBlocked,
-      userGroups,
-      userBookmarks,
-    ],
+    streams: [userShared, userBlocked, userGroups, userBookmarks],
     endpoints: {
       sharedInbox: `${LOCAL_DOMAIN}/inbox`,
     },
     publicKey: {
-        id: `${id}#main-key`,
-        owner: id,
-        publicKeyPem: publicKey
+      id: `${id}#main-key`,
+      owner: id,
+      publicKeyPem: publicKey,
     },
   }).compress();
 
@@ -318,7 +310,7 @@ export default async function handler(
     name: 'Inbox',
     type: AP.CollectionTypes.ORDERED_COLLECTION,
     totalItems: 0,
-    orderedItems: []
+    orderedItems: [],
   };
 
   const friendsGroupOutbox: AP.OrderedCollection = {
@@ -388,19 +380,23 @@ export default async function handler(
     graph.saveThing(friendsGroupLikes),
     graph.saveThing(friendsGroupShares),
     graph.saveThing(friendsGroupMembers),
-    graph.saveThing(createFriendsGroupActorActivity)
+    graph.saveThing(createFriendsGroupActorActivity),
   ]);
 
   if (userGroups.id) {
-    await Promise.all([
-      graph.insertItem(userGroups.id, friendsGroupId),
-    ]);
+    await Promise.all([graph.insertItem(userGroups.id, friendsGroupId)]);
   }
 
   if (createFriendsGroupActorActivity.id && friendsGroupInbox.id) {
     await Promise.all([
-      graph.insertOrderedItem(`${botServiceId}/outbox`, createFriendsGroupActorActivity.id),
-      graph.insertOrderedItem(friendsGroupInbox.id, createFriendsGroupActorActivity.id),
+      graph.insertOrderedItem(
+        `${botServiceId}/outbox`,
+        createFriendsGroupActorActivity.id,
+      ),
+      graph.insertOrderedItem(
+        friendsGroupInbox.id,
+        createFriendsGroupActorActivity.id,
+      ),
     ]);
   }
 

@@ -21,6 +21,7 @@ type Data = {
   streams?: AP.AnyCollection[];
   following?: AP.AnyActor[];
   followers?: AP.AnyActor[];
+  groups?: AP.Collection;
 }
 
 export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookies: { __session?: string; } }}) => {
@@ -58,6 +59,8 @@ export const getServerSideProps = async ({req}: {req: IncomingMessage & { cookie
     const collection = await graph.expandCollection(stream);
     streams.push(JSON.parse(JSON.stringify(collection)));
   }
+
+  console.log(streams)
 
   return {
     props: {
@@ -188,7 +191,7 @@ const getNavHtml = (actor: AP.AnyActor, streams?: AP.AnyCollection[]) => {
   </>
 };
 
-const getFormHtml = (actor: AP.AnyActor) => <>
+const getFormHtml = (actor: AP.AnyActor, streams?: AP.AnyCollection[]) => <>
   <form
     onSubmit={handleOutboxSubmit(AP.ActivityTypes.CREATE, actor)}
     noValidate>
@@ -227,6 +230,19 @@ const getFormHtml = (actor: AP.AnyActor) => <>
         </span>
         <input defaultChecked={true} type="checkbox" name="to" value={actor.followers ? typeof actor.followers === 'string' ? actor.followers : actor.followers.id ?? '' : ''} />
       </label>
+      {streams?.map(stream => {
+        if (stream.name === 'Groups' && 'items' in stream && Array.isArray(stream.items)) {
+          return stream.items.map(item => <>
+            <label>
+              <span>
+                {(typeof item !== 'string' ? ('name' in item ? item.name : item.id) : '') ?? ''}
+              </span>
+              <input type="checkbox" name="to" value={(typeof item !== 'string' ? item.id : '') ?? ''} />
+            </label>
+          </>)
+        }
+        return <></>
+      })}
     </fieldset>
     <button type="submit">
       Submit
@@ -257,6 +273,7 @@ function Dashboard({
   streams = [],
   following = [],
   followers = [],
+  groups,
 }: Data) {
 
   const [filter, setFilter]: [filter: string, setFilter: Function] = useState(AP.ActivityTypes.CREATE);
@@ -314,6 +331,35 @@ function Dashboard({
                     <a href={item.id ?? ''}>
                       @{item.preferredUsername}
                     </a>
+                    <form
+                      onSubmit={handleOutboxSubmit(AP.ActivityTypes.ADD, actor)}
+                      noValidate>
+                      <input type="hidden" name="id" value={item.id ?? ''} />
+                      <select name="target">
+                        {streams?.map(stream => {
+                          if (stream.name === 'Groups' && 'items' in stream && Array.isArray(stream.items)) {
+                            return stream.items.map(group => {
+                              if (typeof group === 'string') {
+                                return <></>;
+                              }
+                              console.log(group);
+                              const membersCollection = 'streams' in group && Array.isArray(group.streams) ? group.streams.find(groupStream => typeof groupStream !== 'string' && groupStream.name === 'Members') : null;
+                              if (!membersCollection) {
+                                return <></>;
+                              }
+                              return (
+                                <option value={membersCollection.id ?? ''} key={group.id ?? ''}>
+                                  {(typeof group !== 'string' ? ('name' in group ? group.name : group.id) : '') ?? ''}
+                                </option>
+                              )
+                            })
+                          }
+                        })}
+                      </select>
+                      <button type="submit">
+                        Add to Group
+                      </button>
+                    </form>
                   </li>
                 ))}
               </ul>
@@ -335,7 +381,7 @@ function Dashboard({
           <div className="tabpanel" id="create">
             <div className="card">
               <h2>Create</h2>
-              {getFormHtml(actor)}
+              {getFormHtml(actor, streams)}
             </div>
           </div>
 

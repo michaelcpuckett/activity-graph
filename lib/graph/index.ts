@@ -282,8 +282,6 @@ export class Graph {
         } else {
           try {
             const url = new URL(value);
-      console.log(key, value);
-
             expanded.push([key, await this.queryById(url.toString())]);
           } catch (error) {
             expanded.push([key, value]);
@@ -299,14 +297,14 @@ export class Graph {
               }
               try {
                 const url = new URL(item);
-      console.log(key, value);
-
                 return await this.queryById(url.toString());
               } catch (error) {
                 return item;
               }
             }
           }))]);
+        } else {
+          expanded.push([key, value]);
         }
       } else {
         expanded.push([key, value]);
@@ -487,8 +485,6 @@ export class Graph {
       if (!foundItem) {
         return null;
       }
-
-      console.log('expanding', foundItem.id)
 
       const expandedItem = await this.expandThing(foundItem);
 

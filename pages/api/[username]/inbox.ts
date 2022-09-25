@@ -19,8 +19,8 @@ async function handleFollow(
     typeof activity.object === 'string'
       ? activity.object
       : activity.object && 'id' in activity.object
-      ? activity.object.id
-      : '';
+        ? activity.object.id
+        : '';
 
   if (!activityObjectId) {
     throw new Error('Bad request 1');
@@ -46,8 +46,8 @@ async function handleFollow(
     typeof activity.actor === 'string'
       ? activity.actor
       : activity.actor && 'id' in activity.actor
-      ? activity.actor.id
-      : '';
+        ? activity.actor.id
+        : '';
 
   if (!activityActorId) {
     throw new Error('Bad request 1');
@@ -97,8 +97,8 @@ async function handleFollow(
     typeof followee.outbox === 'string'
       ? followee.outbox
       : !Array.isArray(followee.outbox) && 'id' in followee.outbox
-      ? followee.outbox.id
-      : '';
+        ? followee.outbox.id
+        : '';
 
   if (!followeeOutboxId) {
     throw new Error('bad request');
@@ -108,8 +108,8 @@ async function handleFollow(
     ? typeof followee.followers === 'string'
       ? followee.followers
       : !Array.isArray(followee.followers) && 'id' in followee.followers
-      ? followee.followers.id
-      : ''
+        ? followee.followers.id
+        : ''
     : '';
 
   if (!followeeFollowersId) {
@@ -134,8 +134,8 @@ async function handleAccept(
     typeof activity.object === 'string'
       ? activity.object
       : activity.object && 'id' in activity.object
-      ? activity.object.id
-      : '';
+        ? activity.object.id
+        : '';
 
   if (!activityObjectId) {
     throw new Error('Bad request 1');
@@ -162,14 +162,14 @@ async function handleAccept(
       typeof follower === 'string'
         ? follower
         : !Array.isArray(follower) && 'id' in follower
-        ? follower.id
-        : '';
+          ? follower.id
+          : '';
     const followeeId =
       typeof followee === 'string'
         ? followee
         : !Array.isArray(followee) && 'id' in followee
-        ? followee.id
-        : '';
+          ? followee.id
+          : '';
 
     if (!followerId || !followeeId) {
       throw new Error('bad request 4');
@@ -192,8 +192,8 @@ async function handleAccept(
         ? foundFollowee.followers
         : !Array.isArray(foundFollowee.followers) &&
           'id' in foundFollowee.followers
-        ? foundFollowee.followers.id
-        : ''
+          ? foundFollowee.followers.id
+          : ''
       : '';
 
     if (!followeeFollowersId) {
@@ -207,8 +207,8 @@ async function handleAccept(
         ? foundFollower.following
         : !Array.isArray(foundFollower.following) &&
           'id' in foundFollower.following
-        ? foundFollower.following.id
-        : ''
+          ? foundFollower.following.id
+          : ''
       : '';
 
     if (!followerFollowingId) {
@@ -237,8 +237,8 @@ async function handleLike(
     typeof activity.object === 'string'
       ? activity.object
       : activity.object && 'id' in activity.object
-      ? activity.object.id
-      : '';
+        ? activity.object.id
+        : '';
 
   if (!activityObjectId) {
     throw new Error('Bad request');
@@ -290,8 +290,8 @@ async function handleAnnounce(
     typeof activity.object === 'string'
       ? activity.object
       : activity.object && 'id' in activity.object
-      ? activity.object.id
-      : '';
+        ? activity.object.id
+        : '';
 
   if (!activityObjectId) {
     throw new Error('Bad request');
@@ -334,11 +334,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<
     | (AP.AnyThing & {
-        [CONTEXT]: string | string[];
-      })
+      [CONTEXT]: string | string[];
+    })
     | {
-        error?: string;
-      }
+      error?: string;
+    }
   >,
 ) {
   const url = `${LOCAL_DOMAIN}${req.url}`;
@@ -367,8 +367,8 @@ export default async function handler(
       typeof activity.actor === 'string'
         ? activity.actor
         : !Array.isArray(activity.actor)
-        ? activity.actor.id
-        : '';
+          ? activity.actor.id
+          : '';
 
     if (!actorId) {
       throw new Error('no actor');
@@ -385,8 +385,8 @@ export default async function handler(
         ? typeof recipient.inbox === 'string'
           ? recipient.inbox
           : !Array.isArray(recipient.inbox)
-          ? recipient.inbox.id
-          : ''
+            ? recipient.inbox.id
+            : ''
         : '';
 
     if (!(recipientInboxId && activityId)) {

@@ -106,15 +106,15 @@ export class Graph {
     const user = !token
       ? null
       : await firebaseAdmin
-          .auth()
-          .verifyIdToken(token)
-          .then(async (userCredential) => {
-            return userCredential ?? null;
-          })
-          .catch((error) => {
-            console.error(error);
-            return null;
-          });
+        .auth()
+        .verifyIdToken(token)
+        .then(async (userCredential) => {
+          return userCredential ?? null;
+        })
+        .catch((error) => {
+          console.error(error);
+          return null;
+        });
 
     if (!user?.uid) {
       return null;

@@ -9,6 +9,7 @@ import Link from 'next/link';
 import inboxHandler from '../[username]/inbox';
 import outboxHandler from '../[username]/outbox';
 import { ThingCard } from '../../../components/ThingCard';
+import { getId } from '../../../lib/utilities/getId';
 
 async function renderActivity(activity: AP.Activity) {
   const graph = await Graph.connect();
@@ -161,6 +162,17 @@ async function renderActor(actor: AP.Actor) {
           </a>
         </li>
       </>)}
+
+      
+      {Array.isArray(actor.streams) ? actor.streams.map(stream => <>
+        {typeof stream === 'string' ? <><li><a href={stream}>{stream}</a></li></> : <>
+          <li>
+            <a href={stream.id ?? '#'}>
+              {stream.name ?? stream.id ?? ''}
+            </a>
+          </li>
+        </>}
+      </>) : <></>}
     </ul>
   </div>;
 }
@@ -287,6 +299,9 @@ async function renderLink(link: AP.Link) {
 }
 
 async function renderCollection(collection: AP.Collection) {
+  
+  const graph = await Graph.connect();
+
   if (!Array.isArray(collection.items)) {
     return <>No Items.</>
   }
@@ -297,22 +312,31 @@ async function renderCollection(collection: AP.Collection) {
     </div>
     <ul>
     {await Promise.all(collection.items.map(async item => {
-        const likesCount = typeof item !== 'string' && 'likes' in item && item.likes ? await getCount(item.likes) : 'unknown';
-        const sharesCount = typeof item !== 'string' && 'shares' in item && item.shares ? await getCount(item.shares) : 'unknown';
-        const thing = typeof item !== 'string' && 'likes' in item ? {
-          ...item,
-          likes: {
-            totalItems: likesCount
-          },
-          shares: {
-            totalItems: sharesCount
-          }
-        } : item;
+      const itemId = getId(item);
+
+      if (!itemId) {
+        return <>{JSON.stringify(item)}</>;
+      }
+      const foundItem = await graph.queryById(itemId);
+      if (!foundItem) {
+        return <>{JSON.stringify(item)}</>;
+      }
+      const likesCount = 'likes' in foundItem && foundItem.likes ? await getCount(foundItem.likes) : 'unknown';
+      const sharesCount = 'shares' in foundItem && foundItem.shares ? await getCount(foundItem.shares) : 'unknown';
+      const thing = 'likes' in foundItem ? {
+        ...foundItem,
+        likes: {
+          totalItems: likesCount
+        },
+        shares: {
+          totalItems: sharesCount
+        }
+      } : item;
 
         return (
           <ThingCard
-            thing={thing}
-            key={typeof item === 'string' ? item : item.id}
+            thing={foundItem}
+            key={foundItem.id}
           ></ThingCard>
         );
       }))}

@@ -167,7 +167,7 @@ export function HomePage({
 
           <div className="tabpanel" id="inbox">
             <div className="card">
-              <Box items={inboxItems} filter={filter} handleFilterChange={handleFilterChange}>
+              <Box items={inboxItems} filter={filter} handleFilterChange={handleFilterChange} actor={actor} handleOutboxSubmit={handleOutboxSubmit}>
                 <h2>Inbox</h2>
               </Box>
             </div>
@@ -175,7 +175,7 @@ export function HomePage({
 
           <div className="tabpanel" id="outbox">
             <div className="card">
-              <Box items={outboxItems} filter={filter} handleFilterChange={handleFilterChange}>
+              <Box items={outboxItems} filter={filter} handleFilterChange={handleFilterChange} actor={actor} handleOutboxSubmit={handleOutboxSubmit}>
                 <h2>Outbox</h2>
               </Box>
             </div>

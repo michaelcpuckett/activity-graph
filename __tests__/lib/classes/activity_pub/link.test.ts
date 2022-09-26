@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { APLink } from '../../../../lib/classes/activity_pub';
+import { APLink } from 'activitypub-core/classes/activity_pub';
 
 describe('Types', () => {
   describe('can handle a Link', () => {

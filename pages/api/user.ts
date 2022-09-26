@@ -1,18 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Graph } from '../../lib/graph';
+import { Graph } from 'activitypub-core/graph';
 import * as firebaseAdmin from 'firebase-admin';
 import { AppOptions } from 'firebase-admin';
 import serviceAccount from '../../credentials';
-import { LOCAL_DOMAIN, RESERVED_USERNAMES } from '../../lib/globals';
-import * as AP from '../../lib/types/activity_pub';
+import { LOCAL_DOMAIN, RESERVED_USERNAMES } from 'activitypub-core/globals';
+import * as AP from 'activitypub-core/types/activity_pub';
 import {
   APActivity,
   APActor,
   APCollection,
   APObject,
-} from '../../lib/classes/activity_pub';
-import { generateKeyPair } from '../../lib/crypto';
-import { APOrderedCollection } from '../../lib/classes/activity_pub/collection';
+} from 'activitypub-core/classes/activity_pub';
+import { generateKeyPair } from 'activitypub-core/crypto';
+import { APOrderedCollection } from 'activitypub-core/classes/activity_pub/collection';
 
 type Data = {
   error?: string;

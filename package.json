@@ -11,6 +11,7 @@
     "format": "prettier --config .prettierrc \"**/*.ts\" --write"
   },
   "dependencies": {
+    "activitypub-core": "^1.0.0",
     "firebase": "^9.10.0",
     "firebase-admin": "^11.0.1",
     "mongodb": "^4.9.1",

@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import * as AP from '../../../lib/types/activity_pub';
-import { GetEntityEndpoint } from '../../../lib/endpoints/get/entity';
+import * as AP from 'activitypub-core/types/activity_pub';
+import { GetEntityEndpoint } from 'activitypub-core/endpoints/get/entity';
 import { EntityPage } from '../../../components/EntityPage';
-import { LOCAL_DOMAIN } from '../../../lib/globals';
+import { LOCAL_DOMAIN } from 'activitypub-core/globals';
 import inboxHandler from '../[username]/inbox';
 import outboxHandler from '../[username]/outbox';
 

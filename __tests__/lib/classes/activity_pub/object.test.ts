@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { APObject } from '../../../../lib/classes/activity_pub';
+import { APObject } from 'activitypub-core/classes/activity_pub';
 
 describe('Types', () => {
   describe('can handle a Note Object', () => {

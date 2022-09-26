@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { APActor } from '../../../../lib/classes/activity_pub';
+import { APActor } from 'activitypub-core/classes/activity_pub';
 
 describe('Types', () => {
   describe('can handle an Actor Object', () => {

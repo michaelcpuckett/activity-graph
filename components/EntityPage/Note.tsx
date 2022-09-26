@@ -1,6 +1,6 @@
-import * as AP from '../../lib/types/activity_pub';
-import { PUBLIC_ACTOR } from '../../lib/globals';
-import { getCount } from '../../lib/utilities/getCount';
+import * as AP from 'activitypub-core/types/activity_pub';
+import { PUBLIC_ACTOR } from 'activitypub-core/globals';
+import { getCount } from 'activitypub-core/utilities/getCount';
 import { useEffect, useState } from 'react';
 
 export function NoteEntity({ note }: { note: AP.Object }) {

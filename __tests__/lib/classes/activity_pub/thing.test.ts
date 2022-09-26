@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
-import { APThing } from '../../../../lib/classes/activity_pub/thing';
-import { LOCAL_DOMAIN } from '../../../../lib/globals';
+import { APThing } from 'activitypub-core/classes/activity_pub/thing';
+import { LOCAL_DOMAIN } from 'activitypub-core/globals';
 
 describe('Types', () => {
   describe('can compress a Thing', () => {

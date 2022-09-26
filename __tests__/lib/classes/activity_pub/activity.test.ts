@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { APActivity } from '../../../../lib/classes/activity_pub';
+import { APActivity } from 'activitypub-core/classes/activity_pub';
 
 describe('Types', () => {
   describe('can handle an Activity Object', () => {

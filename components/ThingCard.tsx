@@ -1,10 +1,10 @@
-import { PUBLIC_ACTOR } from '../lib/globals';
-import * as AP from '../lib/types/activity_pub';
+import { PUBLIC_ACTOR } from 'activitypub-core/globals';
+import * as AP from 'activitypub-core/types/activity_pub';
 
-export function ThingCard({ thing, streams, filter, actor, handleOutboxSubmit }: { thing: string|AP.AnyThing, filter?: string; actor?: AP.AnyActor; handleOutboxSubmit?: Function; streams?: AP.Collection[]; }) {
-if (typeof thing === 'string') {
-  return <>Not found.</>;
-}
+export function ThingCard({ thing, streams, filter, actor, handleOutboxSubmit }: { thing: string | AP.AnyThing, filter?: string; actor?: AP.AnyActor; handleOutboxSubmit?: Function; streams?: AP.Collection[]; }) {
+  if (typeof thing === 'string') {
+    return <>Not found.</>;
+  }
 
   if (filter === AP.ActivityTypes.CREATE) {
     if (thing.type !== AP.ActivityTypes.CREATE) {
@@ -66,7 +66,7 @@ if (typeof thing === 'string') {
             {(typeof thing.target === 'string' ? thing.target : 'name' in thing.target ? thing.target.name : '') ?? ''}
           </a>
         </> : <></>}
-    </>
+      </>
     }
   } else if (typeof activityObject === 'string') {
     activityObjectHtml = <>
@@ -76,7 +76,7 @@ if (typeof thing === 'string') {
     </>
   }
 
-return <li className="card">
+  return <li className="card">
     <p>
       {activityActorHtml}
       {' '}
@@ -84,7 +84,7 @@ return <li className="card">
       {' '}
       {activityObjectHtml}.
     </p>
-    
+
     {activityObject && 'summary' in activityObject && activityObject.summary ? <>
       <blockquote>
         {activityObject.summary ?? activityObject.content}
@@ -113,25 +113,25 @@ return <li className="card">
 
         {handleOutboxSubmit ? <>
           <form
-          onSubmit={handleOutboxSubmit(AP.ActivityTypes.LIKE, actor)}
-          noValidate>
-          <input type="hidden" name="id" value={activityObject.id ?? ''} />
-          <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor : !Array.isArray(activityActor) ? activityActor.id ?? '' : '' ?? ''} />
-          <button type="submit" className="action">
+            onSubmit={handleOutboxSubmit(AP.ActivityTypes.LIKE, actor)}
+            noValidate>
+            <input type="hidden" name="id" value={activityObject.id ?? ''} />
+            <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor : !Array.isArray(activityActor) ? activityActor.id ?? '' : '' ?? ''} />
+            <button type="submit" className="action">
               Like
-          </button>
+            </button>
           </form>
 
           <form
-          onSubmit={handleOutboxSubmit(AP.ActivityTypes.ANNOUNCE, actor)}
-          noValidate>
-          <input type="hidden" name="id" value={activityObject.id ?? ''} />
-          <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor : !Array.isArray(activityActor) ? activityActor.id ?? '' : '' ?? ''} />
-          <button type="submit" className="action">
+            onSubmit={handleOutboxSubmit(AP.ActivityTypes.ANNOUNCE, actor)}
+            noValidate>
+            <input type="hidden" name="id" value={activityObject.id ?? ''} />
+            <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor : !Array.isArray(activityActor) ? activityActor.id ?? '' : '' ?? ''} />
+            <button type="submit" className="action">
               Share
-          </button>
+            </button>
           </form>
-          
+
           {streams ? <>
             <form
               onSubmit={handleOutboxSubmit(thing.type === AP.ActivityTypes.ADD ? AP.ActivityTypes.REMOVE : AP.ActivityTypes.ADD, actor)}
@@ -139,58 +139,58 @@ return <li className="card">
               <input type="hidden" name="id" value={activityObject.id ?? ''} />
               <input type="hidden" name="target" value={Array.isArray(streams) ? [...streams].map((stream: AP.CollectionReference) => typeof stream === 'object' && !Array.isArray(stream) && stream.name === 'Bookmarks' ? stream.id : '').join('') : ''} />
               <button type="submit" className="action">
-                  {thing.type === AP.ActivityTypes.ADD ? 'Remove ' : ''}
-                  Bookmark
+                {thing.type === AP.ActivityTypes.ADD ? 'Remove ' : ''}
+                Bookmark
               </button>
             </form>
           </> : <></>}
 
 
-          {handleOutboxSubmit && actor && actor.id === (typeof activityActor === 'string' ? activityActor : 'id' in activityActor ? activityActor.id : '')  ? <>
+          {handleOutboxSubmit && actor && actor.id === (typeof activityActor === 'string' ? activityActor : 'id' in activityActor ? activityActor.id : '') ? <>
 
-          {activityActor ? <>
-          <form
-              onSubmit={handleOutboxSubmit(AP.ActivityTypes.FOLLOW, actor)}
-              noValidate>
-              <input type="hidden" name="id" value={typeof activityActor === 'string' ? activityActor : 'id' in activityActor ? activityActor.id ?? '' : ''} />
-              <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor: 'id' in activityActor ? activityActor.id ?? '' : ''} />
-              <button type="submit" className="action">
-              Follow
-              </button>
-          </form>
-          </> : <></>}
+            {activityActor ? <>
+              <form
+                onSubmit={handleOutboxSubmit(AP.ActivityTypes.FOLLOW, actor)}
+                noValidate>
+                <input type="hidden" name="id" value={typeof activityActor === 'string' ? activityActor : 'id' in activityActor ? activityActor.id ?? '' : ''} />
+                <input type="hidden" name="to" value={typeof activityActor === 'string' ? activityActor : 'id' in activityActor ? activityActor.id ?? '' : ''} />
+                <button type="submit" className="action">
+                  Follow
+                </button>
+              </form>
+            </> : <></>}
 
 
-          
-          <details>
-          <summary className="secondary">
-              Edit
-          </summary>
-          <form
-              onSubmit={handleOutboxSubmit(AP.ActivityTypes.UPDATE, actor)}
-              noValidate>
-              <input type="hidden" name="id" value={activityObject.id ?? ''} />
-              <label>
-              <span>Summary</span>
-              <textarea name="summary" defaultValue={'summary' in activityObject ? activityObject.summary : ''}></textarea>
-              </label>
-              <label>
-              <span>Content</span>
-              {'content' in activityObject ? <>
-                  <textarea required name="content" defaultValue={activityObject.content}></textarea>
+
+            <details>
+              <summary className="secondary">
+                Edit
+              </summary>
+              <form
+                onSubmit={handleOutboxSubmit(AP.ActivityTypes.UPDATE, actor)}
+                noValidate>
+                <input type="hidden" name="id" value={activityObject.id ?? ''} />
+                <label>
+                  <span>Summary</span>
+                  <textarea name="summary" defaultValue={'summary' in activityObject ? activityObject.summary : ''}></textarea>
+                </label>
+                <label>
+                  <span>Content</span>
+                  {'content' in activityObject ? <>
+                    <textarea required name="content" defaultValue={activityObject.content}></textarea>
                   </> : <>
-                  <textarea required name="content"></textarea>
+                    <textarea required name="content"></textarea>
                   </>
-              }
-              </label>
-              <button type="submit">
-              Update
-              </button>
-          </form>
-          </details>
-        </> : <></>}
+                  }
+                </label>
+                <button type="submit">
+                  Update
+                </button>
+              </form>
+            </details>
           </> : <></>}
-        
+        </> : <></>}
+
         <details>
           <summary className="secondary">
             Details
@@ -238,7 +238,7 @@ return <li className="card">
           </figure>
         </details>
 
-        {handleOutboxSubmit && actor && actor.id === (typeof activityActor === 'string' ? activityActor : 'id' in activityActor ? activityActor.id : '')  ? <>
+        {handleOutboxSubmit && actor && actor.id === (typeof activityActor === 'string' ? activityActor : 'id' in activityActor ? activityActor.id : '') ? <>
           <form
             onSubmit={handleOutboxSubmit(AP.ActivityTypes.DELETE, actor)}
             noValidate>
@@ -256,5 +256,5 @@ return <li className="card">
       </blockquote>
     </>}
   </li>
-return <></>;
+  return <></>;
 }

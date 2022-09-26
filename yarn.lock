@@ -1555,6 +1555,13 @@
   "resolved" "https://registry.npmjs.org/acorn/-/acorn-7.4.1.tgz"
   "version" "7.4.1"
 
+"activitypub-core@^1.0.0":
+  "integrity" "sha512-+CmBbHGHPsTEKrKkNPVoFKOXMMJ9AKTnwj19PtV5xVTiTwAbGAFM10QPHCrKz7YsKYG5bBAzI5eXRZwIEDhOPQ=="
+  "resolved" "https://registry.npmjs.org/activitypub-core/-/activitypub-core-1.0.0.tgz"
+  "version" "1.0.0"
+  dependencies:
+    "firebase-admin" "^11.0.1"
+
 "agent-base@6":
   "integrity" "sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ=="
   "resolved" "https://registry.npmjs.org/agent-base/-/agent-base-6.0.2.tgz"

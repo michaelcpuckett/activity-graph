@@ -1,3 +1,3 @@
-import handleOutbox from '../../../lib/endpoints/post/outbox';
+import handleOutbox from 'activitypub-core/endpoints/post/outbox';
 
 export default handleOutbox;

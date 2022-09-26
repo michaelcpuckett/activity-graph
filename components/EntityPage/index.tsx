@@ -1,4 +1,4 @@
-import * as AP from '../../lib/types/activity_pub';
+import * as AP from 'activitypub-core/types/activity_pub';
 import NextLink from 'next/link';
 import { styles } from './styles';
 import { ActivityEntity } from './Activity';

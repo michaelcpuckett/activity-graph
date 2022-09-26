@@ -39,7 +39,7 @@ export function Nav({ actor, streams }: { actor: AP.AnyActor, streams?: AP.AnyCo
           Outbox
         </BoxLink>
         <BoxLink collection={actor.following}>
-          Outbox
+          Following
         </BoxLink>
         <BoxLink collection={actor.followers}>
           Followers

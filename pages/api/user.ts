@@ -10,9 +10,9 @@ import {
   APActor,
   APCollection,
   APObject,
-} from 'activitypub-core/classes/activity_pub';
+} from 'activitypub-core/classes';
 import { generateKeyPair } from 'activitypub-core/crypto';
-import { APOrderedCollection } from 'activitypub-core/classes/activity_pub/collection';
+import { APOrderedCollection } from 'activitypub-core/classes/collection';
 
 type Data = {
   error?: string;

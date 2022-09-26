@@ -1,3 +1,4 @@
+import { ChangeEventHandler, ReactElement } from 'react';
 import * as AP from '../../lib/types/activity_pub';
 import { ThingCard } from '../ThingCard';
 import { FilterForm } from './FilterForm';

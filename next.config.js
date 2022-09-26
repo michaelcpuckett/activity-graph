@@ -2,6 +2,24 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  webpack: (config, options) => {
+    config.module.rules.push({
+      test: /\.(ts)x?$/, // Just `tsx?` file only
+      use: [
+        // options.defaultLoaders.babel, I don't think it's necessary to have this loader too
+        {
+          loader: "ts-loader",
+          options: {
+            transpileOnly: true,
+            experimentalWatchApi: true,
+            onlyCompileBundledFiles: true,
+          },
+        },
+      ],
+    });
+
+    return config;
+  },
   async headers() {
     return [
       {
@@ -61,7 +79,8 @@ const nextConfig = {
         source: '/link/:path',
         destination: '/api/thing/:path',
       },
-  ]}
+    ]
+  }
 }
 
 module.exports = nextConfig

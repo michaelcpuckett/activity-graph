@@ -11,14 +11,15 @@
     "format": "prettier --config .prettierrc \"**/*.ts\" --write"
   },
   "dependencies": {
-    "activitypub-core": "^1.0.0",
+    "activitypub-core": "../activitypub-core",
     "firebase": "^9.10.0",
     "firebase-admin": "^11.0.1",
     "mongodb": "^4.9.1",
     "next": "12.3.0",
     "node-fetch": "^3.2.10",
     "react": "18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "ts-loader": "^9.4.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.5",

@@ -1,5 +1,5 @@
 import { ReactElement } from 'react';
-import * as AP from 'activitypub-core/types/activity_pub';
+import * as AP from 'activitypub-core/types';
 
 function BoxLink({ collection, children }: { collection?: string | AP.AnyCollection, children: string | ReactElement }) {
   if (!collection) {

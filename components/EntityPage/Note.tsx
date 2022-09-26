@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/types/activity_pub';
+import * as AP from 'activitypub-core/types';
 import { PUBLIC_ACTOR } from 'activitypub-core/globals';
 import { getCount } from 'activitypub-core/utilities/getCount';
 import { useEffect, useState } from 'react';

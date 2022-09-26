@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import * as AP from 'activitypub-core/types/activity_pub';
+import * as AP from 'activitypub-core/types';
 import { GetEntityEndpoint } from 'activitypub-core/endpoints/get/entity';
 import { EntityPage } from '../../../components/EntityPage';
 import { LOCAL_DOMAIN } from 'activitypub-core/globals';

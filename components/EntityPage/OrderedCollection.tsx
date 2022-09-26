@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/types/activity_pub';
+import * as AP from 'activitypub-core/types';
 import { ThingCard } from '../ThingCard';
 
 export function OrderedCollectionEntity({ collection }: { collection: AP.OrderedCollection }) {

@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/types/activity_pub';
+import * as AP from 'activitypub-core/types';
 
 export function ActivityEntity({ activity }: { activity: AP.Activity }) {
   const {

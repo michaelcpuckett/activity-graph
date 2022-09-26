@@ -4,7 +4,7 @@ import * as firebaseAdmin from 'firebase-admin';
 import { AppOptions } from 'firebase-admin';
 import serviceAccount from '../../credentials';
 import { LOCAL_DOMAIN, RESERVED_USERNAMES } from 'activitypub-core/globals';
-import * as AP from 'activitypub-core/types/activity_pub';
+import * as AP from 'activitypub-core/types';
 import {
   APActivity,
   APActor,

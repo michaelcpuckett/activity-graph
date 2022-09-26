@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/types/activity_pub';
+import * as AP from 'activitypub-core/types';
 
 export function ActorEntity({ actor }: { actor: AP.Actor }) {
   return <div className="card">

@@ -1,4 +1,4 @@
-export const getId = (thing?: string | { id?: string | null }): string => {
+export const getId = (thing?: null | string | { id?: string | null }): string => {
   if (!thing) {
     return '';
   }

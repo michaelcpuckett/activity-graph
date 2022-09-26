@@ -97,11 +97,18 @@ export const RESERVED_USERNAMES = [
   'user',
   'users',
   'account',
-  'object', // Object URLs
-  'inbox', // SharedInbox
+  'activity',
+  'actor',
+  'collection',
+  'inbox',
+  'outbox',
+  'sharedInbox',
+  'object',
   '404',
-  'error', // Error
+  'error',
+  'api',
   'dashboard',
+  'home',
   'settings',
   'help',
 ];

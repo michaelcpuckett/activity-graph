@@ -1,11 +1,9 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Graph } from '../../lib/graph';
 import * as firebaseAdmin from 'firebase-admin';
 import { AppOptions } from 'firebase-admin';
 import serviceAccount from '../../credentials';
-import { LOCAL_DOMAIN } from '../../lib/globals';
+import { LOCAL_DOMAIN, RESERVED_USERNAMES } from '../../lib/globals';
 import * as AP from '../../lib/types/activity_pub';
 import {
   APActivity,
@@ -32,22 +30,6 @@ export default async function handler(
   const isUsernameTaken = !!(await graph.findOne('actor', {
     preferredUsername,
   }));
-
-  const RESERVED_USERNAMES = [
-    'owner',
-    'bot',
-    'test',
-    'user',
-    'users',
-    'account',
-    'object', // Object URLs
-    'inbox', // SharedInbox
-    '404',
-    'error', // Error
-    'dashboard',
-    'settings',
-    'help',
-  ];
 
   if (isUsernameTaken || RESERVED_USERNAMES.includes(preferredUsername)) {
     return res

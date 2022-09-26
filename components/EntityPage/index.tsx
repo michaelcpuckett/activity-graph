@@ -24,7 +24,7 @@ export function EntityPage({
         <main>
           <>
             <header>
-              <NextLink href="/dashboard">
+              <NextLink href="/home">
                 {'ActivityWeb'}
               </NextLink>
             </header>

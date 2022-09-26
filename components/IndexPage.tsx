@@ -42,7 +42,7 @@ export function IndexPage() {
     signInWithEmailAndPassword(getAuth(), body.email, body.password).then(userCredential => {
       userCredential.user.getIdToken().then(token => {
         window.document.cookie = `__session=${token}`;
-        window.location.href = '/dashboard';
+        window.location.href = '/home';
       })
     });
   };
@@ -99,7 +99,7 @@ export function IndexPage() {
               token
             })
             window.document.cookie = `__session=${token}`;
-            window.location.href = '/dashboard';
+            window.location.href = '/home';
           })
         });
       });
@@ -114,7 +114,7 @@ export function IndexPage() {
 
       <main>
         <header>
-          <Link href="/dashboard">
+          <Link href="/home">
             {'ActivityWeb'}
           </Link>
         </header>

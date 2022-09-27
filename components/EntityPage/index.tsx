@@ -1,6 +1,4 @@
-import * as AP from 'activitypub-core/types';
-import NextLink from 'next/link';
-import { styles } from './styles';
+import * as AP from 'activitypub-core/src/types';
 import { ActivityEntity } from './Activity';
 import { ActorEntity } from './Actor';
 import { CollectionEntity } from './Collection';
@@ -9,6 +7,8 @@ import { LinkEntity } from './Link';
 import { ObjectEntity } from './Object';
 import { OrderedCollectionEntity } from './OrderedCollection';
 import { OrderedCollectionPageEntity } from './OrderedCollectionPage';
+import { Header } from '../Header';
+import Head from 'next/head';
 
 export function EntityPage({
   entity,
@@ -16,31 +16,26 @@ export function EntityPage({
   entity: AP.Thing;
 }) {
   return (
-    <html>
-      <style>
-        {styles}
-      </style>
-      <body>
-        <main>
-          <>
-            <header>
-              <NextLink href="/home">
-                {'ActivityWeb'}
-              </NextLink>
-            </header>
-            <Entity entity={entity}></Entity>
-            <details>
-              <summary>
-                Raw
-              </summary>
-              <textarea>
-                {JSON.stringify(entity)}
-              </textarea>
-            </details>
-          </>
-        </main>
-      </body>
-    </html>
+    <>
+      <Head>
+        <title>ActivityWeb</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <main>
+        <>
+          <Header />
+          <Entity entity={entity}></Entity>
+          <details>
+            <summary>
+              Raw
+            </summary>
+            <textarea>
+              {JSON.stringify(entity)}
+            </textarea>
+          </details>
+        </>
+      </main>
+    </>
   );
 }
 

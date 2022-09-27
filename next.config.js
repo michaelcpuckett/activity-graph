@@ -23,7 +23,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/api/path/:thing',
+        source: '/_entity',
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
@@ -37,47 +37,47 @@ const nextConfig = {
     return [
       {
         source: '/actor/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
       {
         source: '/actor/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
       {
         source: '/actor/:username/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
       {
         source: '/actor/:username/:collection/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
       {
         source: '/actor/:username/:thing/:collection/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
       {
         source: '/object/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
       {
         source: '/object/:thing/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
       {
         source: '/activity/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
       {
         source: '/collection/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
       {
         source: '/collection-page/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
       {
         source: '/link/:path',
-        destination: '/api/thing/:path',
+        destination: '/_entity',
       },
     ]
   }

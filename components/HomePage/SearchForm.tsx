@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/types';
+import * as AP from 'activitypub-core/src/types';
 
 export function SearchForm({ actor, handleOutboxSubmit }: { actor: AP.Actor, handleOutboxSubmit: Function }) {
   return <>

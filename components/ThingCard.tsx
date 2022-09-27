@@ -1,5 +1,5 @@
-import { PUBLIC_ACTOR } from 'activitypub-core/globals';
-import * as AP from 'activitypub-core/types';
+import { PUBLIC_ACTOR } from 'activitypub-core/src/globals';
+import * as AP from 'activitypub-core/src/types';
 
 export function ThingCard({ thing, streams, filter, actor, handleOutboxSubmit }: { thing: string | AP.AnyThing, filter?: string; actor?: AP.AnyActor; handleOutboxSubmit?: Function; streams?: AP.Collection[]; }) {
   if (typeof thing === 'string') {

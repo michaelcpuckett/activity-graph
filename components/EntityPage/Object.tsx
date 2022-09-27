@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/types';
+import * as AP from 'activitypub-core/src/types';
 import { NoteEntity } from './Note';
 
 export function ObjectEntity({ object }: { object: AP.Object }) {

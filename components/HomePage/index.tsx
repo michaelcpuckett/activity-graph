@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { ChangeEvent, ChangeEventHandler, FormEventHandler, MouseEventHandler, ReactElement, useState } from 'react';
-import * as AP from 'activitypub-core/types';
+import * as AP from 'activitypub-core/src/types';
 import { IndexPage } from '../IndexPage';
 import { Nav } from '../Nav';
 import { Header } from '../Header';

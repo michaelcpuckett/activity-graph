@@ -1,3 +1,3 @@
-import handleInbox from 'activitypub-core/endpoints/post/inbox';
+import handleInbox from 'activitypub-core/src/endpoints/post/inbox';
 
 export default handleInbox;

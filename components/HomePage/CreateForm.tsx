@@ -1,5 +1,5 @@
-import { PUBLIC_ACTOR } from 'activitypub-core/globals';
-import * as AP from 'activitypub-core/types';
+import { PUBLIC_ACTOR } from 'activitypub-core/src/globals';
+import * as AP from 'activitypub-core/src/types';
 
 export function CreateForm({ actor, streams, handleOutboxSubmit }: { actor: AP.AnyActor, streams?: AP.AnyCollection[], handleOutboxSubmit: Function }) {
    return <>

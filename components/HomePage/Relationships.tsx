@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/types';
+import * as AP from 'activitypub-core/src/types';
 
 export function Relationships({ following, followers, streams, handleOutboxSubmit, actor }: { following: AP.Actor[], streams: AP.AnyCollection[], followers: AP.Actor[], handleOutboxSubmit: Function, actor: AP.Actor }) {
   return <>

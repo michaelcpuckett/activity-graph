@@ -1,5 +1,5 @@
 import { ChangeEventHandler, ReactElement } from 'react';
-import * as AP from 'activitypub-core/types';
+import * as AP from 'activitypub-core/src/types';
 import { ThingCard } from '../ThingCard';
 import { FilterForm } from './FilterForm';
 

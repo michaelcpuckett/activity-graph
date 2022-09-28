@@ -59,11 +59,11 @@ const nextConfig = {
       },
       {
         source: '/actor/:path/inbox',
-        destination: '/api/[username]/inbox',
+        destination: '/_inbox',
       },
       {
         source: '/actor/:username/:thing/inbox',
-        destination: '/api/[username]/inbox',
+        destination: '/_inbox',
       },
       {
         source: '/actor/:username/:thing/outbox',
@@ -71,7 +71,7 @@ const nextConfig = {
       },
       {
         source: '/actor/:username/:collection/:path/:thing/inbox',
-        destination: '/api/[username]/inbox',
+        destination: '/_inbox',
       },
       {
         source: '/actor/:username/:collection/:path/:thing/outbox',

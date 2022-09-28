@@ -1,16 +1,16 @@
 import Head from 'next/head'
 import { ChangeEvent, ChangeEventHandler, FormEventHandler, MouseEventHandler, ReactElement, useState } from 'react';
 import * as AP from 'activitypub-core/src/types';
-import { IndexPage } from '../IndexPage';
 import { Nav } from '../Nav';
 import { Header } from '../Header';
 import { Welcome } from './Welcome';
 import { Box } from './Box';
 import { CreateForm } from './CreateForm';
 import { SearchForm } from './SearchForm';
+import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE } from 'activitypub-core/src/globals';
 
 type Data = {
-  actor: AP.Actor | null;
+  actor: AP.Actor;
   inboxItems: AP.AnyThing[];
   outboxItems: AP.AnyThing[];
   streams?: AP.AnyCollection[];
@@ -97,9 +97,14 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
     } : null,
   };
 
+  console.log(typeof actor.outbox === 'string' ? actor.outbox : actor.outbox.id)
+
   fetch(`${typeof actor.outbox === 'string' ? actor.outbox : actor.outbox.id}`, {
     method: 'POST',
-    body: JSON.stringify(activity)
+    body: JSON.stringify(activity),
+    headers: {
+      [ACCEPT_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
+    },
   })
     .then(response => response.json())
     .then((result: { error?: string; type?: string; }) => {
@@ -123,10 +128,6 @@ export function HomePage({
   followers = [],
 }: Data) {
   const [filter, setFilter]: [filter: string, setFilter: Function] = useState(AP.ActivityTypes.CREATE);
-
-  if (!actor) {
-    return <IndexPage />;
-  }
 
   const handleFilterChange: ChangeEventHandler<HTMLSelectElement> = (event: ChangeEvent<HTMLSelectElement>) => {
     setFilter(event.currentTarget.value);

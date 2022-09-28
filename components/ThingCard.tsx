@@ -76,7 +76,7 @@ export function ThingCard({ thing, streams, filter, actor, handleOutboxSubmit }:
     </>
   }
 
-  return <li className="card">
+  return <li className="card" key={thing.id ?? ''}>
     <p>
       {activityActorHtml}
       {' '}

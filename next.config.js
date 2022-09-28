@@ -31,10 +31,52 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: '/api/[username]/inbox',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
+      {
+        source: '/api/[username]/outbox',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
     ]
   },
   async rewrites() {
     return [
+      {
+        source: '/actor/:path/outbox',
+        destination: '/_outbox',
+      },
+      {
+        source: '/actor/:path/inbox',
+        destination: '/api/[username]/inbox',
+      },
+      {
+        source: '/actor/:username/:thing/inbox',
+        destination: '/api/[username]/inbox',
+      },
+      {
+        source: '/actor/:username/:thing/outbox',
+        destination: '/_outbox',
+      },
+      {
+        source: '/actor/:username/:collection/:path/:thing/inbox',
+        destination: '/api/[username]/inbox',
+      },
+      {
+        source: '/actor/:username/:collection/:path/:thing/outbox',
+        destination: '/_outbox',
+      },
       {
         source: '/actor/:path',
         destination: '/_entity',

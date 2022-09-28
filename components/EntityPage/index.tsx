@@ -29,9 +29,7 @@ export function EntityPage({
             <summary>
               Raw
             </summary>
-            <textarea>
-              {JSON.stringify(entity)}
-            </textarea>
+            <textarea defaultValue={JSON.stringify(entity)}></textarea>
           </details>
         </>
       </main>

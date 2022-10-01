@@ -1,9 +1,9 @@
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 import { PUBLIC_ACTOR } from 'activitypub-core/src/globals';
 import { getCount } from 'activitypub-core/src/utilities/getCount';
 import { useEffect, useState } from 'react';
 
-export function NoteEntity({ note }: { note: AP.Object }) {
+export function NoteEntity({ note }: { note: AP.Note }) {
   return <>
     <div className="card">
       <h1>
@@ -21,7 +21,7 @@ export function NoteEntity({ note }: { note: AP.Object }) {
 
           <dt>To</dt>
           <dd>
-            <>{note.to === PUBLIC_ACTOR ? 'Public' : note.to}</>
+            <>{!Array.isArray(note.to) && note.to?.toString() === PUBLIC_ACTOR ? 'Public' : note.to}</>
           </dd>
 
           <dt>Published</dt>

@@ -22,7 +22,7 @@ export function OrderedCollectionEntity({ collection }: { collection: AP.Ordered
 
         return (
           <EntityCard
-            thing={orderedItem}
+            entity={orderedItem}
             key={orderedItem.id?.toString()}
           ></EntityCard>
         );

@@ -12,7 +12,7 @@ export function Box({ items, actor, filter, handleOutboxSubmit, handleFilterChan
         actor={actor}
         handleOutboxSubmit={handleOutboxSubmit}
         filter={filter}
-        thing={item}
+        entity={item}
         key={item.id?.toString()}
       />) ?? null}
     </ol>

@@ -22,7 +22,7 @@ export function CollectionEntity({ collection }: { collection: AP.Collection }) 
 
         return (
           <EntityCard
-            thing={item}
+            entity={item}
             key={item.id?.toString()}
           ></EntityCard>
         );

@@ -1,5 +1,5 @@
 import { AP } from 'activitypub-core/src/types';
-import { ThingCard } from '../ThingCard';
+import { EntityCard } from '../EntityCard';
 
 export function CollectionEntity({ collection }: { collection: AP.Collection }) {
   const {
@@ -21,10 +21,10 @@ export function CollectionEntity({ collection }: { collection: AP.Collection }) 
         }
 
         return (
-          <ThingCard
+          <EntityCard
             thing={item}
             key={item.id?.toString()}
-          ></ThingCard>
+          ></EntityCard>
         );
       })}
     </ul>

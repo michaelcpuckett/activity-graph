@@ -1,33 +1,33 @@
 import { ReactElement } from 'react';
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 
-function BoxLink({ collection, children }: { collection?: string | AP.AnyCollection, children: string | ReactElement }) {
+function BoxLink({ collection, children }: { collection?: URL | AP.EitherCollection, children: string | ReactElement }) {
   if (!collection) {
     return <></>
   };
 
-  return typeof collection === 'string' ? (
+  return collection instanceof URL ? (
     <li>
-      <a href={collection}>
+      <a href={collection.toString()}>
         {children}
       </a>
     </li>
-  ) : typeof collection.url === 'string' ? (
+  ) : collection.url instanceof URL ? (
     <li>
-      <a href={collection.url}>
+      <a href={collection.url.toString()}>
         {children}
       </a>
     </li>
   ) : <></>;
 }
 
-export function Nav({ actor, streams }: { actor: AP.AnyActor, streams?: AP.AnyCollection[] }) {
+export function Nav({ actor, streams }: { actor: AP.Actor, streams?: AP.EitherCollection[] }) {
   return (
     <nav>
       <ul>
-        {typeof actor.url === 'string' ? (
+        {actor.url instanceof URL ? (
           <li>
-            <a href={actor.url}>
+            <a href={actor.url.toString()}>
               You
             </a>
           </li>

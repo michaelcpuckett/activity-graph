@@ -1,8 +1,8 @@
 import { PUBLIC_ACTOR } from 'activitypub-core/src/globals';
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 
-export function ThingCard({ thing, streams, filter, actor, handleOutboxSubmit }: { thing: string | AP.AnyThing, filter?: string; actor?: AP.AnyActor; handleOutboxSubmit?: Function; streams?: AP.Collection[]; }) {
-  if (typeof thing === 'string') {
+export function EntityCard({ thing, streams, filter, actor, handleOutboxSubmit }: { thing: URL | AP.Entity, filter?: string; actor?: AP.Actor; handleOutboxSubmit?: Function; streams?: AP.EitherCollection[]; }) {
+  if (thing instanceof URL) {
     return <>Not found.</>;
   }
 
@@ -13,19 +13,19 @@ export function ThingCard({ thing, streams, filter, actor, handleOutboxSubmit }:
   }
 
   const activityTypeHtml = 'actor' in thing ? <>
-    <a href={thing.id ?? '#'}>
+    <a href={thing.id?.toString() ?? '#'}>
       {thing.type.toLowerCase()}d
     </a>
   </> : <></>;
 
   let activityActorHtml = <></>;
-  const activityActor = 'actor' in thing ? (thing.actor ?? '') : '';
+  const activityActor = 'actor' in thing ? (thing.actor ?? null) : null;
 
-  if (typeof activityActor !== 'string' && 'inbox' in activityActor) {
+  if (activityActor && !(activityActor instanceof URL) && 'inbox' in activityActor) {
     activityActorHtml = <>
-      <a href={activityActor.id ?? '#'}>
+      <a href={activityActor.id?.toString() ?? '#'}><>
         @{activityActor.preferredUsername ?? activityActor.id}
-      </a>
+      </></a>
     </>
   } else if (typeof activityActor === 'string') {
     activityActorHtml = <>
@@ -36,34 +36,34 @@ export function ThingCard({ thing, streams, filter, actor, handleOutboxSubmit }:
   }
 
   let activityObjectHtml = <></>;
-  const activityObject = ('object' in thing && thing.object && typeof thing.object !== 'string' && 'type' in thing.object) ? thing.object : thing;
+  const activityObject = ('object' in thing && thing.object && thing.object instanceof URL && 'type' in thing.object) ? thing.object : thing;
 
   if (activityObject) {
-    if (activityObject.type === AP.ObjectTypes.TOMBSTONE) {
+    if (activityObject.type === AP.ExtendedObjectTypes.TOMBSTONE) {
       activityObjectHtml = <>
-        a <a href={activityObject.id ?? '#'}>
+        a <a href={activityObject.id?.toString() ?? '#'}>
           {typeof activityObject.formerType === 'string' ? activityObject.formerType.toLowerCase() : 'deleted thing'}
         </a>
         {'target' in thing && thing.target ? <>
           {' '}
           to
           {' '}
-          <a href={(typeof thing.target === 'string' ? thing.target : 'id' in thing.target ? thing.target.id : '') ?? ''}>
+          <a href={(thing.target instanceof URL ? thing.target : 'id' in thing.target ? thing.target.id?.toString() ?? '' : '') ?? ''}>
             {(typeof thing.target === 'string' ? thing.target : 'name' in thing.target ? thing.target.name : '') ?? ''}
           </a>
         </> : <></>}
       </>
     } else {
       activityObjectHtml = <>
-        a <a href={activityObject.id ?? '#'}>
+        a <a href={activityObject.id?.toString() ?? '#'}>
           {activityObject.type.toLowerCase()}
         </a>
         {'target' in thing && thing.target ? <>
           {' '}
           to
           {' '}
-          <a href={(typeof thing.target === 'string' ? thing.target : 'id' in thing.target ? thing.target.id : '') ?? ''}>
-            {(typeof thing.target === 'string' ? thing.target : 'name' in thing.target ? thing.target.name : '') ?? ''}
+          <a href={(thing.target instanceof URL ? thing.target.toString() : 'id' in thing.target ? thing.target.id?.toString() ?? '' : '') ?? ''}>
+            {(thing.target instanceof URL ? thing.target.toString() : 'id' in thing.target ? thing.target.id?.toString() ?? '' : '') ?? ''}
           </a>
         </> : <></>}
       </>
@@ -76,7 +76,7 @@ export function ThingCard({ thing, streams, filter, actor, handleOutboxSubmit }:
     </>
   }
 
-  return <li className="card" key={thing.id ?? ''}>
+  return <li className="card" key={thing.id?.toString ?? ''}>
     <p>
       {activityActorHtml}
       {' '}
@@ -95,7 +95,7 @@ export function ThingCard({ thing, streams, filter, actor, handleOutboxSubmit }:
       </blockquote>
     </> : <></>}
 
-    {activityObject && activityObject.type !== AP.ObjectTypes.TOMBSTONE ? <>
+    {activityObject && activityObject.type !== AP.ExtendedObjectTypes.TOMBSTONE ? <>
       <dl>
         <dt>Likes</dt>
         <dd>

@@ -1,5 +1,5 @@
 import { AP } from 'activitypub-core/src/types';
-import { ThingCard } from '../ThingCard';
+import { EntityCard } from '../EntityCard';
 
 export function OrderedCollectionEntity({ collection }: { collection: AP.OrderedCollection }) {
   const {
@@ -21,10 +21,10 @@ export function OrderedCollectionEntity({ collection }: { collection: AP.Ordered
         }
 
         return (
-          <ThingCard
+          <EntityCard
             thing={orderedItem}
             key={orderedItem.id?.toString()}
-          ></ThingCard>
+          ></EntityCard>
         );
       })}
     </ol>

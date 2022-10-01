@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 import { ThingCard } from '../ThingCard';
 
 export function CollectionEntity({ collection }: { collection: AP.Collection }) {
@@ -16,14 +16,14 @@ export function CollectionEntity({ collection }: { collection: AP.Collection }) 
     </div>
     <ul>
       {items.map(item => {
-        if (typeof item === 'string') {
+        if (item instanceof URL) {
           return <></>;
         }
 
         return (
           <ThingCard
             thing={item}
-            key={item.id}
+            key={item.id?.toString()}
           ></ThingCard>
         );
       })}

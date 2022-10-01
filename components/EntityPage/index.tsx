@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 import { ActivityEntity } from './Activity';
 import { ActorEntity } from './Actor';
 import { CollectionEntity } from './Collection';
@@ -13,7 +13,7 @@ import Head from 'next/head';
 export function EntityPage({
   entity,
 }: {
-  entity: AP.Thing;
+  entity: AP.Entity;
 }) {
   return (
     <>
@@ -37,7 +37,7 @@ export function EntityPage({
   );
 }
 
-function Entity({ entity }: { entity: AP.Thing }) {
+function Entity({ entity }: { entity: AP.Entity }) {
   if (entity.type === AP.CollectionTypes.COLLECTION) {
     return <CollectionEntity collection={entity as AP.Collection}></CollectionEntity>;
   }
@@ -66,9 +66,9 @@ function Entity({ entity }: { entity: AP.Thing }) {
     }
   }
 
-  for (const type of Object.values(AP.ObjectTypes)) {
+  for (const type of Object.values(AP.ExtendedObjectTypes)) {
     if (entity.type === type) {
-      return <ObjectEntity object={entity as AP.Object}></ObjectEntity>
+      return <ObjectEntity object={entity as AP.ExtendedObject}></ObjectEntity>
     }
   }
 

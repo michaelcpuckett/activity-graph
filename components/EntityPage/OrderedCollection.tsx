@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 import { ThingCard } from '../ThingCard';
 
 export function OrderedCollectionEntity({ collection }: { collection: AP.OrderedCollection }) {
@@ -16,14 +16,14 @@ export function OrderedCollectionEntity({ collection }: { collection: AP.Ordered
     </div>
     <ol reversed>
       {orderedItems.map(orderedItem => {
-        if (typeof orderedItem === 'string') {
+        if (orderedItem instanceof URL) {
           return <></>;
         }
 
         return (
           <ThingCard
             thing={orderedItem}
-            key={orderedItem.id}
+            key={orderedItem.id?.toString()}
           ></ThingCard>
         );
       })}

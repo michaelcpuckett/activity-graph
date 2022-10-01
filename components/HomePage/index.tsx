@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { ChangeEvent, ChangeEventHandler, FormEventHandler, MouseEventHandler, ReactElement, useState } from 'react';
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 import { Nav } from '../Nav';
 import { Header } from '../Header';
 import { Welcome } from './Welcome';
@@ -11,15 +11,15 @@ import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE } from 'activitypub-core/sr
 
 type Data = {
   actor: AP.Actor;
-  inboxItems: AP.AnyThing[];
-  outboxItems: AP.AnyThing[];
-  streams?: AP.AnyCollection[];
-  following?: AP.AnyActor[];
-  followers?: AP.AnyActor[];
+  inboxItems: AP.Entity[];
+  outboxItems: AP.Entity[];
+  streams?: AP.Collection[];
+  following?: AP.Actor[];
+  followers?: AP.Actor[];
   groups?: AP.Collection;
 }
 
-const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof AP.ActivityTypes], actor: AP.AnyActor): FormEventHandler<HTMLFormElement> => event => {
+const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof AP.ActivityTypes], actor: AP.Actor): FormEventHandler<HTMLFormElement> => event => {
   event.preventDefault();
   const formElement = event.currentTarget;
   const { elements } = formElement;
@@ -65,7 +65,7 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
     return;
   }
 
-  const activity: AP.Activity = {
+  const activity: AP.TransitiveActivity = {
     type: activityType,
     actor: actor.id,
     ...body.target ? {
@@ -97,9 +97,7 @@ const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof A
     } : null,
   };
 
-  console.log(typeof actor.outbox === 'string' ? actor.outbox : actor.outbox.id)
-
-  fetch(`${typeof actor.outbox === 'string' ? actor.outbox : actor.outbox.id}`, {
+  fetch(`${actor.outbox instanceof URL ? actor.outbox.toString() : actor.outbox.id?.toString()}`, {
     method: 'POST',
     body: JSON.stringify(activity),
     headers: {

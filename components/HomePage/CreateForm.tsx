@@ -1,7 +1,7 @@
 import { PUBLIC_ACTOR } from 'activitypub-core/src/globals';
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 
-export function CreateForm({ actor, streams, handleOutboxSubmit }: { actor: AP.AnyActor, streams?: AP.AnyCollection[], handleOutboxSubmit: Function }) {
+export function CreateForm({ actor, streams, handleOutboxSubmit }: { actor: AP.Actor, streams?: AP.EitherCollection[], handleOutboxSubmit: Function }) {
   return <>
     <h2>Create</h2>
     <form
@@ -12,7 +12,7 @@ export function CreateForm({ actor, streams, handleOutboxSubmit }: { actor: AP.A
           Type
         </span>
         <select name="type" defaultValue={'Note'}>
-          {Object.values(AP.ObjectTypes).map(type =>
+          {Object.values(AP.ExtendedObjectTypes).map(type =>
             <option key={type}>{type}</option>
           )}
         </select>
@@ -40,7 +40,7 @@ export function CreateForm({ actor, streams, handleOutboxSubmit }: { actor: AP.A
           <span>
             Followers
           </span>
-          <input defaultChecked={true} type="checkbox" name="to" value={actor.followers ? typeof actor.followers === 'string' ? actor.followers : actor.followers.id ?? '' : ''} />
+          <input defaultChecked={true} type="checkbox" name="to" value={actor.followers ? actor.followers instanceof URL ? actor.followers.toString() : actor.followers.id?.toString() ?? '' : ''} />
         </label>
       </fieldset>
       <button type="submit">

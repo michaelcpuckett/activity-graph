@@ -1,8 +1,8 @@
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 import { NoteEntity } from './Note';
 
-export function ObjectEntity({ object }: { object: AP.Object }) {
-  if (object.type === AP.ObjectTypes.NOTE) {
+export function ObjectEntity({ object }: { object: AP.ExtendedObject }) {
+  if (object.type === AP.ExtendedObjectTypes.NOTE) {
     return <NoteEntity note={object}></NoteEntity>;
   }
 

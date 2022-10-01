@@ -1,9 +1,9 @@
 import { ChangeEventHandler, ReactElement } from 'react';
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 import { ThingCard } from '../ThingCard';
 import { FilterForm } from './FilterForm';
 
-export function Box({ items, actor, filter, handleOutboxSubmit, handleFilterChange, children }: { items: AP.AnyThing[], actor: AP.Actor, filter: string, handleFilterChange: ChangeEventHandler<HTMLSelectElement>, handleOutboxSubmit: Function, children: string | ReactElement }) {
+export function Box({ items, actor, filter, handleOutboxSubmit, handleFilterChange, children }: { items: AP.Entity[], actor: AP.Actor, filter: string, handleFilterChange: ChangeEventHandler<HTMLSelectElement>, handleOutboxSubmit: Function, children: string | ReactElement }) {
   return <>
     {children}
     <FilterForm filter={filter} handleFilterChange={handleFilterChange} />
@@ -13,7 +13,7 @@ export function Box({ items, actor, filter, handleOutboxSubmit, handleFilterChan
         handleOutboxSubmit={handleOutboxSubmit}
         filter={filter}
         thing={item}
-        key={item.id}
+        key={item.id?.toString()}
       />) ?? null}
     </ol>
   </>

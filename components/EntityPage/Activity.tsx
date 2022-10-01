@@ -1,11 +1,12 @@
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 
 export function ActivityEntity({ activity }: { activity: AP.Activity }) {
   const {
     actor,
-    object,
     target
   } = activity;
+
+  const object = 'object' in activity ? activity.object : null;
 
   if (!actor || typeof actor !== 'object' || !('id' in actor) || !actor.id) {
     return <>Not found.</>;
@@ -17,7 +18,7 @@ export function ActivityEntity({ activity }: { activity: AP.Activity }) {
       {(target && typeof target === 'object' && 'name' in target) ? <> to {target.name}</> : ''}
     </h1>
     <blockquote>
-      {typeof object === 'object' && 'type' in object ? <>
+      {object && typeof object === 'object' && 'type' in object ? <>
         {object.type === AP.ActorTypes.PERSON ||
           object.type === AP.ActorTypes.APPLICATION ||
           object.type === AP.ActorTypes.GROUP ||
@@ -39,7 +40,7 @@ export function ActivityEntity({ activity }: { activity: AP.Activity }) {
           Performed by
         </dt>
         <dd>
-          <a href={actor.id}>
+          <a href={actor.id.toString()}>
             @{'preferredUsername' in actor ? actor.preferredUsername : ''}
           </a>
         </dd>
@@ -49,7 +50,7 @@ export function ActivityEntity({ activity }: { activity: AP.Activity }) {
             Object
           </dt>
           <dd>
-            <a href={object.id ?? '#'}>
+            <a href={object.id ? object.id.toString() : '#'}>
               {object?.name ?? object?.type}
             </a>
           </dd>
@@ -60,7 +61,7 @@ export function ActivityEntity({ activity }: { activity: AP.Activity }) {
             Target
           </dt>
           <dd>
-            <a href={target.id ?? '#'}>
+            <a href={target.id ? target.id.toString() : '#'}>
               {target?.name ?? target?.type}
             </a>
           </dd>

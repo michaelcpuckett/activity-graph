@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 
 export function CollectionPageEntity({ collectionPage }: { collectionPage: AP.CollectionPage }) {
   return <>

@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 
 export function ActorEntity({ actor }: { actor: AP.Actor }) {
   return <div className="card">
@@ -17,50 +17,50 @@ export function ActorEntity({ actor }: { actor: AP.Actor }) {
       </>
     </dl>
     <ul>
-      {[typeof actor.inbox === 'string' ? actor.inbox : actor.inbox.id].map(id => <>
+      {[actor.inbox instanceof URL ? actor.inbox : actor.inbox.id?.toString()].map(id => <>
         <li>
-          <a href={id ?? '#'}>
+          <a href={id?.toString() ?? '#'}>
             Inbox
           </a>
         </li>
       </>)}
-      {[typeof actor.outbox === 'string' ? actor.outbox : actor.outbox.id].map(id => <>
+      {[actor.outbox instanceof URL ? actor.outbox : actor.outbox.id?.toString()].map(id => <>
         <li>
-          <a href={id ?? '#'}>
+          <a href={id?.toString() ?? '#'}>
             Outbox
           </a>
         </li>
       </>)}
 
-      {[actor.following ? (typeof actor.following === 'string' ? actor.following : actor.following.id) : ''].map(id => <>
+      {[actor.following ? (actor.following instanceof URL ? actor.following : actor.following.id) : ''].map(id => <>
         <li>
-          <a href={id ?? '#'}>
+          <a href={id?.toString() ?? '#'}>
             Following
           </a>
         </li>
       </>)}
 
-      {[actor.followers ? (typeof actor.followers === 'string' ? actor.followers : actor.followers.id) : ''].map(id => <>
+      {[actor.followers ? (actor.followers instanceof URL ? actor.followers : actor.followers.id) : ''].map(id => <>
         <li>
-          <a href={id ?? '#'}>
+          <a href={id?.toString() ?? '#'}>
             Followers
           </a>
         </li>
       </>)}
 
-      {[typeof actor.liked === 'string' ? actor.liked : actor.liked?.id ?? ''].map(id => <>
+      {[actor.liked instanceof URL ? actor.liked : actor.liked?.id ?? null].map(id => <>
         <li>
-          <a href={id ?? '#'}>
+          <a href={id?.toString() ?? '#'}>
             Liked
           </a>
         </li>
       </>)}
 
       {Array.isArray(actor.streams) ? actor.streams.map(stream => <>
-        {typeof stream === 'string' ? <><li><a href={stream}>{stream}</a></li></> : <>
+        {stream instanceof URL ? <><li><a href={stream.toString()}>{stream.toString()}</a></li></> : <>
           <li>
-            <a href={stream.id ?? '#'}>
-              {stream.name ?? stream.id ?? ''}
+            <a href={stream.id?.toString() ?? '#'}>
+              {stream.name ?? stream.id?.toString() ?? ''}
             </a>
           </li>
         </>}

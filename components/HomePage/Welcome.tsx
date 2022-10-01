@@ -1,5 +1,4 @@
-import * as AP from 'activitypub-core/src/types';
-import { Nav } from '../Nav';
+import { AP } from 'activitypub-core/src/types';
 
 export function Welcome({ actor }: { actor: AP.Actor }) {
   return <>

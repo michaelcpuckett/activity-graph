@@ -1,4 +1,4 @@
-import * as AP from 'activitypub-core/src/types';
+import { AP } from 'activitypub-core/src/types';
 import { ChangeEventHandler } from 'react';
 
 export function FilterForm({ filter, handleFilterChange }: { filter: string, handleFilterChange: ChangeEventHandler<HTMLSelectElement> }) {

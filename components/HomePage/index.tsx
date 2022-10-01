@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { ChangeEvent, ChangeEventHandler, FormEventHandler, MouseEventHandler, ReactElement, useState } from 'react';
+import { ChangeEvent, ChangeEventHandler, FormEvent, FormEventHandler, MouseEventHandler, ReactElement, useState } from 'react';
 import { AP } from 'activitypub-core/src/types';
 import { Nav } from '../Nav';
 import { Header } from '../Header';
@@ -7,7 +7,8 @@ import { Welcome } from './Welcome';
 import { Box } from './Box';
 import { CreateForm } from './CreateForm';
 import { SearchForm } from './SearchForm';
-import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE } from 'activitypub-core/src/globals';
+import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
+import { getGuid } from 'activitypub-core/src/crypto';
 
 type Data = {
   actor: AP.Actor;
@@ -19,117 +20,106 @@ type Data = {
   groups?: AP.Collection;
 }
 
-const handleOutboxSubmit = (activityType: typeof AP.ActivityTypes[keyof typeof AP.ActivityTypes], actor: AP.Actor): FormEventHandler<HTMLFormElement> => event => {
-  event.preventDefault();
-  const formElement = event.currentTarget;
-  const { elements } = formElement;
-
-  if (!(formElement instanceof HTMLFormElement)) {
-    return;
-  }
-
-  let formElements: Array<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> = [];
-
-  for (const element of elements) {
-    if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
-      formElements.push(element);
-    }
-  }
-
-  const isValid = formElements.find(element => element.checkValidity());
-
-  if (!isValid) {
-    return;
-  }
-
-  const body = Object.fromEntries(formElements.map(formElement => [
-    formElement.getAttribute('name'),
-    formElement.value
-  ]));
-
-  for (const element of elements) {
-    if (element instanceof HTMLFieldSetElement) {
-      const fieldsetValue = [];
-
-      for (const inputElement of element.elements) {
-        if (inputElement instanceof HTMLInputElement && inputElement.checked) {
-          fieldsetValue.push(inputElement.value);
-        }
-      }
-
-      body[element.name] = fieldsetValue;
-    }
-  }
-
-  if (!actor.id) {
-    return;
-  }
-
-  const activity: AP.TransitiveActivity = {
-    type: activityType,
-    actor: actor.id,
-    ...body.target ? {
-      target: body.target
-    } : null,
-    object: (
-      AP.ActivityTypes.LIKE === activityType ||
-      AP.ActivityTypes.ANNOUNCE === activityType ||
-      AP.ActivityTypes.DELETE === activityType ||
-      AP.ActivityTypes.ADD === activityType ||
-      AP.ActivityTypes.REMOVE === activityType
-    ) ? body.id : {
-      ...body.id ? {
-        id: body.id
-      } : null,
-      type: body.type,
-      ...body.content ? {
-        content: body.content,
-      } : null,
-      ...body.summary ? {
-        summary: body.summary,
-      } : null,
-      ...body.location ? {
-        location: body.location,
-      } : null,
-    },
-    ...body.to ? {
-      to: body.to,
-    } : null,
-  };
-
-  fetch(`${actor.outbox instanceof URL ? actor.outbox.toString() : actor.outbox.id?.toString()}`, {
-    method: 'POST',
-    body: JSON.stringify(activity),
-    headers: {
-      [ACCEPT_HEADER]: ACTIVITYSTREAMS_CONTENT_TYPE,
-    },
-  })
-    .then(response => response.json())
-    .then((result: { error?: string; type?: string; }) => {
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      console.log(result);
-      if ('type' in result && result.type === AP.ActivityTypes.CREATE) {
-        window.location.hash = 'outbox';
-      }
-      window.location.reload();
-    });
-};
-
 export function HomePage({
-  actor,
+  actor: player,
   inboxItems,
   outboxItems,
   streams = [],
   following = [],
   followers = [],
 }: Data) {
-  const [filter, setFilter]: [filter: string, setFilter: Function] = useState(AP.ActivityTypes.CREATE);
+  const handleChooseStarter: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-  const handleFilterChange: ChangeEventHandler<HTMLSelectElement> = (event: ChangeEvent<HTMLSelectElement>) => {
-    setFilter(event.currentTarget.value);
+    const formElement = event.currentTarget;
+    const result: Array<[string, unknown]> = [];
+
+    for (const element of [...formElement.elements]) {
+      const name = element.getAttribute('name');
+
+      if (name) {
+        result.push([name, element.getAttribute('value')]);
+      }
+    }
+
+    for (const element of [...formElement.elements]) {
+      if (element instanceof HTMLFieldSetElement) {
+        const name = element.getAttribute('name');
+
+        if (name) {
+          for (const checkableElement of [...element.elements]) {
+            if (checkableElement instanceof HTMLInputElement && checkableElement.checked) {
+              result.push([name, checkableElement.checked]);
+            }
+          }
+        }
+      }
+    }
+
+    const query = Object.fromEntries(result);
+
+    if (!query.starter) {
+      return;
+    }
+
+    if (!player.id) {
+      return;
+    }
+
+    fetch(`${PROTOCOL}//${LOCAL_HOSTNAME}${PORT ? `:${PORT}` : ''}/api/pokemon`, {
+      method: 'POST',
+      body: JSON.stringify({
+        actor: player.id.toString(),
+        name: query.starter,
+      }),
+    });
+  };
+
+  let pokemonCollection: AP.EitherCollection|null = null;
+  
+  for (const stream of player.streams || []) {
+    if (stream instanceof URL) {
+      break;
+    }
+    if (stream.name === 'Pokemon') {
+      pokemonCollection = stream;
+    }
+    break;
   }
+
+  const noPokemonState = <>
+    <h1>
+      Welcome to the world of Pokemon, {player.preferredUsername}!
+    </h1>
+    <p>
+      Choose a partner to begin your quest.
+    </p>
+    <form
+      onSubmit={handleChooseStarter}
+      noValidate>
+      <fieldset>
+        <legend>Your First Pokemon</legend>
+        {[
+          'Aron', // Steel
+          'Togepi', // Fairy
+          'Larvitar', // Dark
+          'Tyrogue', // Fighting
+          'Gible', // Dragon
+        ].map(name => (
+          <label key={name}>
+            <span>{name}</span>
+            <input type="radio" name="starter" value={name} />
+          </label>
+        ))}
+      </fieldset>
+      <button type="submit">
+        I Choose You!
+      </button>
+    </form>
+  </>;
+  const withPokemonState = <>
+    <p>You have a Pokemon!</p>
+  </>
 
   return (
     <>
@@ -139,54 +129,7 @@ export function HomePage({
       </Head>
 
       <main>
-        <Header />
-
-        <div className="tabs">
-          <a href="#welcome">Welcome</a>
-          <a href="#create">Create</a>
-          <a href="#inbox">Inbox</a>
-          <a href="#outbox">Outbox</a>
-          <a href="#search">Search</a>
-        </div>
-
-        <div className="tabpanels">
-
-          <div className="tabpanel" id="welcome">
-            <div className="card">
-              <Welcome actor={actor} />
-              <Nav actor={actor} streams={streams} />
-            </div>
-          </div>
-
-          <div className="tabpanel" id="create">
-            <div className="card">
-              <CreateForm actor={actor} streams={streams} handleOutboxSubmit={handleOutboxSubmit} />
-            </div>
-          </div>
-
-          <div className="tabpanel" id="inbox">
-            <div className="card">
-              <Box items={inboxItems} filter={filter} handleFilterChange={handleFilterChange} actor={actor} handleOutboxSubmit={handleOutboxSubmit}>
-                <h2>Inbox</h2>
-              </Box>
-            </div>
-          </div>
-
-          <div className="tabpanel" id="outbox">
-            <div className="card">
-              <Box items={outboxItems} filter={filter} handleFilterChange={handleFilterChange} actor={actor} handleOutboxSubmit={handleOutboxSubmit}>
-                <h2>Outbox</h2>
-              </Box>
-            </div>
-          </div>
-
-          <div className="tabpanel" id="search">
-            <div className="card">
-              <SearchForm actor={actor} handleOutboxSubmit={handleOutboxSubmit} />
-            </div>
-          </div>
-
-        </div>
+        {pokemonCollection?.totalItems ? withPokemonState : noPokemonState}
       </main>
     </>
   )

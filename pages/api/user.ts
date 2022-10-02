@@ -10,7 +10,7 @@ export default userHandler(serviceAccount, async (actor: AP.Actor, graph: Graph)
   }
 
   const pokemonCollectionId = `${LOCAL_DOMAIN}/actor/${actor.preferredUsername}/pokemon`;
-  const pokemonCollection: AP.Collection = {
+  const pokemonCollection: AP.OrderedCollection = {
     id: new URL(pokemonCollectionId),
     url: new URL(pokemonCollectionId),
     type: AP.CollectionTypes.ORDERED_COLLECTION,

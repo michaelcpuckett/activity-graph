@@ -19,13 +19,36 @@ export default async function pokemonHandler(
 
   const actor = await graph.findEntityById(new URL(actorId));
 
-  console.log({
-    actor
-  })
-
-  if (!actor || !('outbox' in actor) || !('streams' in actor)) {
+  if (!actor || !('outbox' in actor) || !('streams' in actor) || !actor.streams) {
     return res.status(500).send({
       error: 'No Actor with streams',
+    });
+  }
+
+  let pokemonCollectionId: URL | null = null;
+  
+  for (const stream of actor.streams) {
+    if (stream instanceof URL) {
+      const foundStream = await graph.findEntityById(stream);
+
+      if (foundStream) {
+        if (foundStream.name === 'Pokemon') {
+          pokemonCollectionId = foundStream.id ?? null;
+          break;
+        }
+      }
+    } else {
+      console.log(stream.name)
+      if (stream.name === 'Pokemon') {
+        pokemonCollectionId = stream.id ?? null;
+        break;
+      }
+    }
+  }
+
+  if (!pokemonCollectionId) {
+    return res.status(500).send({
+      error: 'No Pokemon Collection',
     });
   }
 
@@ -34,7 +57,7 @@ export default async function pokemonHandler(
 
   const pokemonUsername = `${actor.preferredUsername}_${name}`;
 
-  const pokemonId = `${LOCAL_DOMAIN}/actor/${pokemonUsername}}`;
+  const pokemonId = `${LOCAL_DOMAIN}/actor/${pokemonUsername}`;
 
   const pokemonInbox: AP.OrderedCollection = {
     id: new URL(`${pokemonId}/inbox`),
@@ -119,41 +142,9 @@ export default async function pokemonHandler(
     });
   }
 
-  console.log(actor.streams);
-
   if (!actor.streams?.length) {
     return res.status(500).send({
       error: 'No actor streams',
-    });
-  }
-
-  let pokemonCollectionId: URL | null = null;
-
-  
-  for (const stream of actor.streams) {
-    if (stream instanceof URL) {
-      const foundStream = await graph.findEntityById(stream);
-
-      if (foundStream) {
-        console.log(foundStream.name);
-
-        if (foundStream.name === 'Pokemon') {
-          pokemonCollectionId = foundStream.id ?? null;
-          break;
-        }
-      }
-    } else {
-      console.log(stream.name)
-      if (stream.name === 'Pokemon') {
-        pokemonCollectionId = stream.id ?? null;
-        break;
-      }
-    }
-  }
-
-  if (!pokemonCollectionId) {
-    return res.status(500).send({
-      error: 'No Pokemon Collection',
     });
   }
 

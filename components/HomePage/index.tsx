@@ -31,6 +31,51 @@ export function HomePage({
 }: Data) {
   const player = convertStringsToUrls(actor) as AP.Actor;
   console.log(player)
+  const handleWildPokemonInteraction: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    
+    const formElement = event.currentTarget;
+    const result: Array<[string, unknown]> = [];
+
+    for (const element of [...formElement.elements]) {
+      const name = element.getAttribute('name');
+
+      if (name) {
+        result.push([name, element.getAttribute('value')]);
+      }
+    }
+
+    for (const element of [...formElement.elements]) {
+      if (element instanceof HTMLFieldSetElement) {
+        const name = element.getAttribute('name');
+
+        if (name) {
+          for (const checkableElement of [...element.elements]) {
+            if (checkableElement instanceof HTMLInputElement && checkableElement.checked) {
+              result.push([name, checkableElement.checked]);
+            }
+          }
+        }
+      }
+    }
+
+    const query = Object.fromEntries(result);
+
+    if (!player.id) {
+      return;
+    }
+
+    fetch(`${PROTOCOL}//${LOCAL_HOSTNAME}${PORT ? `:${PORT}` : ''}/api/pokemon`, {
+      method: 'POST',
+      body: JSON.stringify({
+        actor: player.id.toString(),
+        name: query.name,
+      }),
+    }).then(() => {
+      window.location.reload();
+    });
+
+  };
   const handleChooseStarter: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -81,11 +126,14 @@ export function HomePage({
   };
 
 
-  let pokemonCollection: AP.EitherCollection|null = null;
+  let pokemonCollection: AP.OrderedCollection|null = null;
 
   for (const stream of player.streams || []) {
+    if (stream instanceof URL) {
+      break;
+    }
     if (stream.name === 'Pokemon') {
-      pokemonCollection = stream;
+      pokemonCollection = stream as AP.OrderedCollection;
       break;
     }
   }
@@ -123,7 +171,17 @@ export function HomePage({
   </>;
   const withPokemonState = <>
     <p>You have a Pokemon!</p>
-    <textarea defaultValue={JSON.stringify(pokemonCollection.items)}></textarea>
+    <textarea defaultValue={JSON.stringify(pokemonCollection?.orderedItems)}></textarea>
+    <form noValidate onSubmit={handleWildPokemonInteraction}>
+      <p>A wild Pikachu appeared!</p>
+      <input type="hidden" name="name" value="pikachu" />
+      <fieldset>
+        <legend>Actions</legend>
+      </fieldset>
+      <button type="submit">
+        Items / Throw PokeBall
+      </button>
+    </form>
   </>
 
   return (

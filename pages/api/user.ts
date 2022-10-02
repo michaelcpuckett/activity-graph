@@ -13,10 +13,10 @@ export default userHandler(serviceAccount, async (actor: AP.Actor, graph: Graph)
   const pokemonCollection: AP.Collection = {
     id: new URL(pokemonCollectionId),
     url: new URL(pokemonCollectionId),
-    type: AP.CollectionTypes.COLLECTION,
+    type: AP.CollectionTypes.ORDERED_COLLECTION,
     name: 'Pokemon',
     totalItems: 0,
-    items: [],
+    orderedItems: [],
   };
 
   if (actor.streams) {

@@ -9,6 +9,7 @@ import { CreateForm } from './CreateForm';
 import { SearchForm } from './SearchForm';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
 import { getGuid } from 'activitypub-core/src/crypto';
+import {convertStringsToUrls} from 'activitypub-core/src/utilities/convertStringsToUrls';
 
 type Data = {
   actor: AP.Actor;
@@ -21,13 +22,15 @@ type Data = {
 }
 
 export function HomePage({
-  actor: player,
+  actor,
   inboxItems,
   outboxItems,
   streams = [],
   following = [],
   followers = [],
 }: Data) {
+  const player = convertStringsToUrls(actor) as AP.Actor;
+  console.log(player)
   const handleChooseStarter: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -72,19 +75,19 @@ export function HomePage({
         actor: player.id.toString(),
         name: query.starter,
       }),
+    }).then(() => {
+      window.location.reload();
     });
   };
 
+
   let pokemonCollection: AP.EitherCollection|null = null;
-  
+
   for (const stream of player.streams || []) {
-    if (stream instanceof URL) {
-      break;
-    }
     if (stream.name === 'Pokemon') {
       pokemonCollection = stream;
+      break;
     }
-    break;
   }
 
   const noPokemonState = <>
@@ -100,11 +103,12 @@ export function HomePage({
       <fieldset>
         <legend>Your First Pokemon</legend>
         {[
-          'Aron', // Steel
           'Togepi', // Fairy
           'Larvitar', // Dark
           'Tyrogue', // Fighting
           'Gible', // Dragon
+          'Ralts', // Psychic
+          'Riolu', // Steel
         ].map(name => (
           <label key={name}>
             <span>{name}</span>
@@ -119,6 +123,7 @@ export function HomePage({
   </>;
   const withPokemonState = <>
     <p>You have a Pokemon!</p>
+    <textarea defaultValue={JSON.stringify(pokemonCollection.items)}></textarea>
   </>
 
   return (
@@ -129,7 +134,9 @@ export function HomePage({
       </Head>
 
       <main>
-        {pokemonCollection?.totalItems ? withPokemonState : noPokemonState}
+        <>
+          {pokemonCollection?.totalItems ? withPokemonState : noPokemonState}
+        </>
       </main>
     </>
   )

@@ -15,13 +15,14 @@ export default async function pokemonHandler(
 ) {
   const graph = await Graph.connect();
 
-  const { actor: actorId, name } = JSON.parse(req.body);
+  const { actor: actorId, name }: { actor: string; name: string; } = JSON.parse(req.body);
 
-  const actor = await graph.queryById(actorId);
+  const actor = await graph.findEntityById(new URL(actorId));
 
-  console.log(actor, actorId);
+  console.log({
+    actor
+  })
 
-  
   if (!actor || !('outbox' in actor) || !('streams' in actor)) {
     return res.status(500).send({
       error: 'No Actor with streams',
@@ -118,26 +119,20 @@ export default async function pokemonHandler(
     });
   }
 
-  if (!actor.streams) {
+  console.log(actor.streams);
+
+  if (!actor.streams?.length) {
     return res.status(500).send({
       error: 'No actor streams',
     });
   }
 
   let pokemonCollectionId: URL | null = null;
-  
-  console.log(actor.streams?.length);
-  console.log(actor.streams?.length);
-  console.log(actor.streams?.length);
-  console.log(actor.streams?.length);
-  console.log(actor.streams?.length);
-  console.log(actor.streams?.length);
-  console.log(actor.streams?.length);
+
   
   for (const stream of actor.streams) {
     if (stream instanceof URL) {
       const foundStream = await graph.findEntityById(stream);
-
 
       if (foundStream) {
         console.log(foundStream.name);
@@ -148,6 +143,7 @@ export default async function pokemonHandler(
         }
       }
     } else {
+      console.log(stream.name)
       if (stream.name === 'Pokemon') {
         pokemonCollectionId = stream.id ?? null;
         break;
@@ -167,7 +163,7 @@ export default async function pokemonHandler(
     id: new URL(addPokemonActivityId),
     url: new URL(addPokemonActivityId),
     type: AP.ActivityTypes.ADD,
-    actor: actorId,
+    actor: new URL(actorId),
     object: new URL(pokemonId),
   }
 

@@ -38,7 +38,6 @@ export default async function pokemonHandler(
         }
       }
     } else {
-      console.log(stream.name)
       if (stream.name === 'Pokemon') {
         pokemonCollectionId = stream.id ?? null;
         break;
@@ -55,9 +54,9 @@ export default async function pokemonHandler(
   const { publicKey: pokemonPublicKey, privateKey: pokemonPrivateKey } =
   await generateKeyPair();
 
-  const pokemonUsername = `${actor.preferredUsername}_${name}`;
+  const pokemonUsername = name;
 
-  const pokemonId = `${LOCAL_DOMAIN}/actor/${pokemonUsername}`;
+  const pokemonId = `${LOCAL_DOMAIN}/pokemon/${getGuid()}`;
 
   const pokemonInbox: AP.OrderedCollection = {
     id: new URL(`${pokemonId}/inbox`),

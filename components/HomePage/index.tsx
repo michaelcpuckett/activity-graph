@@ -1,36 +1,21 @@
 import Head from 'next/head'
 import { ChangeEvent, ChangeEventHandler, FormEvent, FormEventHandler, MouseEventHandler, ReactElement, useState } from 'react';
 import { AP } from 'activitypub-core/src/types';
-import { Nav } from '../Nav';
-import { Header } from '../Header';
-import { Welcome } from './Welcome';
-import { Box } from './Box';
-import { CreateForm } from './CreateForm';
-import { SearchForm } from './SearchForm';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
 import { getGuid } from 'activitypub-core/src/crypto';
 import {convertStringsToUrls} from 'activitypub-core/src/utilities/convertStringsToUrls';
 
 type Data = {
   actor: AP.Actor;
-  inboxItems: AP.Entity[];
-  outboxItems: AP.Entity[];
-  streams?: AP.Collection[];
-  following?: AP.Actor[];
-  followers?: AP.Actor[];
+  locations?: AP.Collection[];
   groups?: AP.Collection;
 }
 
 export function HomePage({
   actor,
-  inboxItems,
-  outboxItems,
-  streams = [],
-  following = [],
-  followers = [],
+  locations,
 }: Data) {
   const player = convertStringsToUrls(actor) as AP.Actor;
-  console.log(player)
   const handleWildPokemonInteraction: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     
@@ -143,6 +128,18 @@ export function HomePage({
       Welcome to the world of Pokemon, {player.preferredUsername}!
     </h1>
     <p>
+      Now, where are you from?
+    </p>
+    <form>
+      <label>
+        <span>
+          Hometown
+        </span>          
+        <select>
+        </select>
+      </label>
+    </form>
+    <p>
       Choose a partner to begin your quest.
     </p>
     <form
@@ -170,18 +167,50 @@ export function HomePage({
     </form>
   </>;
   const withPokemonState = <>
-    <p>You have a Pokemon!</p>
-    <textarea defaultValue={JSON.stringify(pokemonCollection?.orderedItems)}></textarea>
-    <form noValidate onSubmit={handleWildPokemonInteraction}>
+    <h2>Your Pokemon</h2>
+    <ol>
+      {(pokemonCollection && Array.isArray(pokemonCollection?.orderedItems)) ? pokemonCollection.orderedItems.map((pokemon) => {
+        if (typeof pokemon === 'object' && !(pokemon instanceof URL) && pokemon.type === AP.ActorTypes.APPLICATION) {
+          return <li key={pokemon.id?.toString()}>
+            {pokemon.preferredUsername}
+          </li>
+        }
+      }) : <></>}
+    </ol>
+    <div>
       <p>A wild Pikachu appeared!</p>
-      <input type="hidden" name="name" value="pikachu" />
-      <fieldset>
+      <fieldset name="action">
         <legend>Actions</legend>
+        <form noValidate onSubmit={handleWildPokemonInteraction}>
+          <input type="hidden" name="name" value="pikachu" />
+          <input type="hidden" name="action" value="fight" />
+          <button type="submit">
+            Fight
+          </button>
+        </form>
+        <form noValidate onSubmit={handleWildPokemonInteraction}>
+          <input type="hidden" name="name" value="pikachu" />
+          <input type="hidden" name="action" value="pokemon" />
+          <button type="submit">
+            Pokemon
+          </button>
+        </form>
+        <form noValidate onSubmit={handleWildPokemonInteraction}>
+          <input type="hidden" name="name" value="pikachu" />
+          <input type="hidden" name="action" value="items" />
+          <button type="submit">
+            Items (Throw PokeBall)
+          </button>
+        </form>
+        <form noValidate onSubmit={handleWildPokemonInteraction}>
+          <input type="hidden" name="name" value="pikachu" />
+          <input type="hidden" name="action" value="run" />
+          <button type="submit">
+            Run
+          </button>
+        </form>
       </fieldset>
-      <button type="submit">
-        Items / Throw PokeBall
-      </button>
-    </form>
+    </div>
   </>
 
   return (

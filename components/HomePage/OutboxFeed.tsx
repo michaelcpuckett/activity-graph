@@ -27,7 +27,7 @@ function AddOutboxActivity({ activity }: { activity: AP.Add }) {
 
   if (activity.target.name === 'Pokemon') {
     return <>
-      @{activity.actor.preferredUsername} caught {activity.object.preferredUsername}.
+      <a href={activity.id?.toString() ?? '#'}>@{activity.actor.preferredUsername}</a> <a href={activity.id?.toString() ?? '#'}>caught</a> <a href={activity.object.id?.toString() ?? '#'}>{activity.object.preferredUsername}</a>.
     </>
   }
 

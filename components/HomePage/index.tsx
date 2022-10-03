@@ -7,7 +7,7 @@ import {convertStringsToUrls} from 'activitypub-core/src/utilities/convertString
 
 type Data = {
   actor: AP.Actor;
-  locations?: AP.Collection[];
+  locations?: AP.Place[];
   groups?: AP.Collection;
 }
 
@@ -61,7 +61,7 @@ export function HomePage({
     });
 
   };
-  const handleChooseStarter: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
+  const handleStart: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const formElement = event.currentTarget;
@@ -70,8 +70,8 @@ export function HomePage({
     for (const element of [...formElement.elements]) {
       const name = element.getAttribute('name');
 
-      if (name) {
-        result.push([name, element.getAttribute('value')]);
+      if (name && (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement)) {
+        result.push([name, element.value]);
       }
     }
 
@@ -91,19 +91,21 @@ export function HomePage({
 
     const query = Object.fromEntries(result);
 
-    if (!query.starter) {
-      return;
-    }
-
     if (!player.id) {
       return;
     }
 
-    fetch(`${PROTOCOL}//${LOCAL_HOSTNAME}${PORT ? `:${PORT}` : ''}/api/pokemon`, {
+    if (!(query.starter && query.location)) {
+      console.log(query);
+      return;
+    }
+
+    fetch(`${PROTOCOL}//${LOCAL_HOSTNAME}${PORT ? `:${PORT}` : ''}/api/start`, {
       method: 'POST',
       body: JSON.stringify({
         actor: player.id.toString(),
-        name: query.starter,
+        starterPokemon: query.starter,
+        startingLocation: query.location,
       }),
     }).then(() => {
       window.location.reload();
@@ -112,14 +114,27 @@ export function HomePage({
 
 
   let pokemonCollection: AP.OrderedCollection|null = null;
+  let visitedCollection: AP.OrderedCollection|null = null;
 
   for (const stream of player.streams || []) {
     if (stream instanceof URL) {
-      break;
+      continue;
     }
     if (stream.name === 'Pokemon') {
       pokemonCollection = stream as AP.OrderedCollection;
-      break;
+    }
+    if (stream.name === 'Visited') {
+      visitedCollection = stream as AP.OrderedCollection;
+    }
+  }
+
+  let currentLocation: AP.Place|undefined;
+  console.log(visitedCollection)
+  if (Array.isArray(visitedCollection?.orderedItems)) {
+    const lastLocation = visitedCollection?.orderedItems[visitedCollection.orderedItems.length - 1];
+
+    if (lastLocation && !(lastLocation instanceof URL) && lastLocation.type === AP.ExtendedObjectTypes.PLACE) {
+      currentLocation = lastLocation;
     }
   }
 
@@ -130,21 +145,24 @@ export function HomePage({
     <p>
       Now, where are you from?
     </p>
-    <form>
+    <form
+      onSubmit={handleStart}
+      noValidate>
       <label>
         <span>
           Hometown
-        </span>          
-        <select>
+        </span>
+        <select name="location">
+          {locations?.map(location => {
+            return <option key={location.id?.toString()} value={location.id?.toString() ?? ''}>
+              {location.name}
+            </option>;
+          })}
         </select>
       </label>
-    </form>
-    <p>
-      Choose a partner to begin your quest.
-    </p>
-    <form
-      onSubmit={handleChooseStarter}
-      noValidate>
+      <p>
+        Choose a partner to begin your quest.
+      </p>
       <fieldset>
         <legend>Your First Pokemon</legend>
         {[
@@ -167,6 +185,9 @@ export function HomePage({
     </form>
   </>;
   const withPokemonState = <>
+    <h1>
+      Welcome to {currentLocation?.name ?? '<working>'}!
+    </h1>
     <h2>Your Pokemon</h2>
     <ol>
       {(pokemonCollection && Array.isArray(pokemonCollection?.orderedItems)) ? pokemonCollection.orderedItems.map((pokemon) => {

@@ -5,7 +5,7 @@ import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNA
 import { getGuid } from 'activitypub-core/src/crypto';
 import {convertStringsToUrls} from 'activitypub-core/src/utilities/convertStringsToUrls';
 import { StartPage } from './StartPage';
-import { LocationPage } from './LocationPage';
+import { LocationPage } from '../LocationPage';
 
 type Data = {
   actor: AP.Actor;

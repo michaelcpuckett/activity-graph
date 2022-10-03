@@ -2,7 +2,7 @@ import { ChangeEvent, ChangeEventHandler, FormEvent, FormEventHandler, MouseEven
 import { AP } from 'activitypub-core/src/types';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
 import { OutboxFeed } from '../OutboxFeed';
-
+import { PartyPokemon } from '../PartyPokemon';
 
 export function LocationPage({ player, locations, pokemonCollection, visitedCollection }: { player: AP.Actor, locations: AP.Place[], pokemonCollection: AP.OrderedCollection, visitedCollection: AP.OrderedCollection }) {
   let currentLocation: AP.Place|undefined;
@@ -82,6 +82,17 @@ export function LocationPage({ player, locations, pokemonCollection, visitedColl
         Go
       </button>
     </form>
-    <OutboxFeed player={player} />
+    <details>
+      <summary>
+        Your Feed
+      </summary>
+      <OutboxFeed player={player} />
+    </details>
+    <details>
+      <summary>
+        Pokemon in your Party
+      </summary>
+      <PartyPokemon player={player} pokemonCollection={pokemonCollection} />
+    </details>
   </>
 }

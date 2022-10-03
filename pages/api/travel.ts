@@ -1,7 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Graph } from 'activitypub-core/src/graph';
 import { generateKeyPair, getGuid } from 'activitypub-core/src/crypto';
-import { LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL, SERVER_ACTOR_ID } from 'activitypub-core/src/globals';
+import {
+  LOCAL_DOMAIN,
+  LOCAL_HOSTNAME,
+  PORT,
+  PROTOCOL,
+  SERVER_ACTOR_ID,
+} from 'activitypub-core/src/globals';
 import { AP } from 'activitypub-core/src/types';
 
 type Data = {
@@ -15,16 +21,22 @@ export default async function startHandler(
 ) {
   const graph = await Graph.connect();
 
-  const { actor: actorId, location }: { actor: string; location: string; } = JSON.parse(req.body);
+  const { actor: actorId, location }: { actor: string; location: string } =
+    JSON.parse(req.body);
 
   const actor = await graph.findEntityById(new URL(actorId));
 
-  if (!actor || !actor.id || !('outbox' in actor) || !Array.isArray(actor.streams)) {
+  if (
+    !actor ||
+    !actor.id ||
+    !('outbox' in actor) ||
+    !Array.isArray(actor.streams)
+  ) {
     throw new Error('No actor');
   }
 
   let visitedCollectionId: URL | null = null;
-  
+
   for (const stream of actor.streams) {
     if (stream instanceof URL) {
       const foundStream = await graph.findEntityById(stream);
@@ -42,19 +54,25 @@ export default async function startHandler(
   }
 
   if (!visitedCollectionId) {
-    throw new Error('No visited collection.')
+    throw new Error('No visited collection.');
   }
 
   const visitedCollection = await graph.findEntityById(visitedCollectionId);
 
-  if (!(visitedCollection && visitedCollection.type === AP.CollectionTypes.ORDERED_COLLECTION && Array.isArray(visitedCollection.orderedItems))) {
+  if (
+    !(
+      visitedCollection &&
+      visitedCollection.type === AP.CollectionTypes.ORDERED_COLLECTION &&
+      Array.isArray(visitedCollection.orderedItems)
+    )
+  ) {
     throw new Error('Not visited collection');
   }
 
   const origin = visitedCollection.orderedItems[0];
 
   if (!origin) {
-    throw new Error('No origin')
+    throw new Error('No origin');
   }
 
   const originId = origin instanceof URL ? origin : origin.id;
@@ -63,7 +81,9 @@ export default async function startHandler(
     throw new Error('no origin URL');
   }
 
-  const arriveActivityId = `${PROTOCOL}//${LOCAL_HOSTNAME}${PORT ? `:${PORT}` : ''}/activity/${getGuid()}`;
+  const arriveActivityId = `${PROTOCOL}//${LOCAL_HOSTNAME}${
+    PORT ? `:${PORT}` : ''
+  }/activity/${getGuid()}`;
 
   const arriveActivity: AP.Arrive = {
     id: new URL(arriveActivityId),
@@ -74,8 +94,9 @@ export default async function startHandler(
     origin: originId,
   };
 
-  const actorOutboxId = actor.outbox instanceof URL ? actor.outbox : actor.outbox.id;
-  
+  const actorOutboxId =
+    actor.outbox instanceof URL ? actor.outbox : actor.outbox.id;
+
   if (!actorOutboxId) {
     return res.status(500).send({
       error: 'No Actor Outbox',
@@ -89,6 +110,6 @@ export default async function startHandler(
   ]);
 
   res.status(200).send({
-    success: true
+    success: true,
   });
 }

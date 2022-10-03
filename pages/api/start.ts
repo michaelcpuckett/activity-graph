@@ -15,11 +15,24 @@ export default async function startHandler(
 ) {
   const graph = await Graph.connect();
 
-  const { actor: actorId, starterPokemon, startingLocation }: { actor: string; starterPokemon: string; startingLocation: string; } = JSON.parse(req.body);
+  const {
+    actor: actorId,
+    starterPokemon,
+    startingLocation,
+  }: {
+    actor: string;
+    starterPokemon: string;
+    startingLocation: string;
+  } = JSON.parse(req.body);
 
   const actor = await graph.findEntityById(new URL(actorId));
 
-  if (!actor || !('outbox' in actor) || !('streams' in actor) || !actor.streams) {
+  if (
+    !actor ||
+    !('outbox' in actor) ||
+    !('streams' in actor) ||
+    !actor.streams
+  ) {
     return res.status(500).send({
       error: 'No Actor with streams',
     });
@@ -27,7 +40,7 @@ export default async function startHandler(
 
   let pokemonCollectionId: URL | null = null;
   let visitedCollectionId: URL | null = null;
-  
+
   for (const stream of actor.streams) {
     if (stream instanceof URL) {
       const foundStream = await graph.findEntityById(stream);
@@ -44,7 +57,7 @@ export default async function startHandler(
       if (stream.name === 'Pokemon') {
         pokemonCollectionId = stream.id ?? null;
       }
-      
+
       if (stream.name === 'Visited') {
         visitedCollectionId = stream.id ?? null;
       }
@@ -64,7 +77,7 @@ export default async function startHandler(
   }
 
   const { publicKey: pokemonPublicKey, privateKey: pokemonPrivateKey } =
-  await generateKeyPair();
+    await generateKeyPair();
 
   const pokemonUsername = starterPokemon;
 
@@ -145,8 +158,9 @@ export default async function startHandler(
     graph.saveString('private-key', pokemonUsername, pokemonPrivateKey),
   ]);
 
-  const actorOutboxId = actor.outbox instanceof URL ? actor.outbox : actor.outbox.id;
-  
+  const actorOutboxId =
+    actor.outbox instanceof URL ? actor.outbox : actor.outbox.id;
+
   if (!actorOutboxId) {
     return res.status(500).send({
       error: 'No Actor Outbox',
@@ -177,7 +191,10 @@ export default async function startHandler(
   await Promise.all([
     graph.saveEntity(addPokemonActivity),
     graph.saveEntity(arriveActivity),
-    graph.insertOrderedItem(new URL(`${SERVER_ACTOR_ID}/outbox`), new URL(createPokemonActivityId)),
+    graph.insertOrderedItem(
+      new URL(`${SERVER_ACTOR_ID}/outbox`),
+      new URL(createPokemonActivityId),
+    ),
     graph.insertOrderedItem(actorOutboxId, new URL(addPokemonActivityId)),
     graph.insertOrderedItem(actorOutboxId, new URL(arriveActivityId)),
     graph.insertOrderedItem(pokemonCollectionId, new URL(pokemonId)),
@@ -185,6 +202,6 @@ export default async function startHandler(
   ]);
 
   res.status(200).send({
-    success: true
+    success: true,
   });
 }

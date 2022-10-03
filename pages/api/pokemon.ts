@@ -15,18 +15,25 @@ export default async function pokemonHandler(
 ) {
   const graph = await Graph.connect();
 
-  const { actor: actorId, name }: { actor: string; name: string; } = JSON.parse(req.body);
+  const { actor: actorId, name }: { actor: string; name: string } = JSON.parse(
+    req.body,
+  );
 
   const actor = await graph.findEntityById(new URL(actorId));
 
-  if (!actor || !('outbox' in actor) || !('streams' in actor) || !actor.streams) {
+  if (
+    !actor ||
+    !('outbox' in actor) ||
+    !('streams' in actor) ||
+    !actor.streams
+  ) {
     return res.status(500).send({
       error: 'No Actor with streams',
     });
   }
 
   let pokemonCollectionId: URL | null = null;
-  
+
   for (const stream of actor.streams) {
     if (stream instanceof URL) {
       const foundStream = await graph.findEntityById(stream);
@@ -52,7 +59,7 @@ export default async function pokemonHandler(
   }
 
   const { publicKey: pokemonPublicKey, privateKey: pokemonPrivateKey } =
-  await generateKeyPair();
+    await generateKeyPair();
 
   const pokemonUsername = name;
 
@@ -133,8 +140,9 @@ export default async function pokemonHandler(
     graph.saveString('private-key', pokemonUsername, pokemonPrivateKey),
   ]);
 
-  const actorOutboxId = actor.outbox instanceof URL ? actor.outbox : actor.outbox.id;
-  
+  const actorOutboxId =
+    actor.outbox instanceof URL ? actor.outbox : actor.outbox.id;
+
   if (!actorOutboxId) {
     return res.status(500).send({
       error: 'No Actor Outbox',
@@ -155,7 +163,7 @@ export default async function pokemonHandler(
     type: AP.ActivityTypes.ADD,
     actor: new URL(actorId),
     object: new URL(pokemonId),
-  }
+  };
 
   await Promise.all([
     graph.saveEntity(addPokemonActivity),
@@ -165,6 +173,6 @@ export default async function pokemonHandler(
   ]);
 
   res.status(200).send({
-    success: true
+    success: true,
   });
 }

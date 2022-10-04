@@ -41,8 +41,6 @@ export function StartPage({ player, locations }: { player: AP.Actor, locations: 
       return;
     }
 
-    console.log(query)
-
     fetch(`${PROTOCOL}//${LOCAL_HOSTNAME}${PORT ? `:${PORT}` : ''}/api/start`, {
       method: 'POST',
       body: JSON.stringify({

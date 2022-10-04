@@ -4,6 +4,7 @@ import serviceAccount from "../credentials";
 import { AP } from "activitypub-core/src/types";
 import { allLocations } from "../utilities/locations";
 import { Graph } from "activitypub-core/src/graph";
+import { unprefixPkmnData } from "../utilities/unprefixPkmnData";
 
 export const getServerSideProps = getHomeServerSideProps(serviceAccount, async (props: {
   actor: AP.Actor,
@@ -27,10 +28,13 @@ export const getServerSideProps = getHomeServerSideProps(serviceAccount, async (
   for (const stream of streams) {
     if (stream.name === 'Pokemon' && 'orderedItems' in stream && Array.isArray(stream.orderedItems)) {
       for (const orderedItem of [...stream.orderedItems]) {
-        if ('name' in orderedItem) {
-          speciesData[orderedItem.name?.toLowerCase()] = await graph.findOne('species', {
-            'pkmn:name': orderedItem.name?.toLowerCase(),
+        if ('name' in orderedItem && orderedItem.name) {
+          const species = await graph.findOne('species', {
+            'pkmn:name': orderedItem.name.toLowerCase(),
           });
+          if (species && species.type === AP.ExtendedObjectTypes.DOCUMENT) {
+            speciesData[orderedItem.name.toLowerCase()] = unprefixPkmnData(JSON.parse(JSON.stringify(species)) as unknown as {[key: string]: unknown}) as unknown as AP.Document;
+          }
         }
       }
     }

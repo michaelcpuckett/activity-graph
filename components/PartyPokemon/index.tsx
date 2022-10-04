@@ -1,8 +1,10 @@
 import { ChangeEvent, ChangeEventHandler, FormEvent, FormEventHandler, MouseEventHandler, ReactElement, useState } from 'react';
 import { AP } from 'activitypub-core/src/types';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
+import { PokemonSummary } from '../PokemonSummary';
+import { Pokemon } from 'pokenode-ts';
 
-export function PartyPokemon({ player, pokemonCollection, speciesData}: { speciesData: AP.Document[], player: AP.Actor, pokemonCollection: AP.OrderedCollection}) {
+export function PartyPokemon({ player, pokemonCollection, speciesData}: { speciesData: {[key: string]: AP.Document}, player: AP.Actor, pokemonCollection: AP.OrderedCollection}) {
   const handleWildPokemonInteraction: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     
@@ -54,17 +56,17 @@ return <>
       <ol>
         {(pokemonCollection && Array.isArray(pokemonCollection?.orderedItems)) ? pokemonCollection.orderedItems.map((pokemon) => {
           if (typeof pokemon === 'object' && !(pokemon instanceof URL) && pokemon.type === AP.ActorTypes.APPLICATION) {
-            return <li key={pokemon.id?.toString()}>
-              <img src={speciesData[pokemon.name?.toLowerCase()]['pkmn:sprites']['pkmn:front_default']} />
-              {pokemon.preferredUsername}
-              <p>Types</p>
-              <ul>
-                {speciesData[pokemon.name?.toLowerCase()]['pkmn:types'].map((type) => {
-                  return <>{type['pkmn:type']['pkmn:name']}</>
-                })}
-              </ul>
-            </li>
-          }
+            return (
+              <li key={pokemon.id?.toString()}>
+                {pokemon.name ? (
+                  <PokemonSummary
+                    player={player}
+                    pokemon={pokemon}
+                    species={speciesData[pokemon.name.toLowerCase()] as unknown as Pokemon}
+                  ></PokemonSummary>
+                ) : null}
+              </li>
+            )}
         }) : <></>}
       </ol>
     </>

@@ -76,19 +76,24 @@ export function LocationPage({ player, locations, pokemonCollection, visitedColl
     <h1>
       Welcome to {currentLocation?.name}!
     </h1>
-    <form noValidate onSubmit={handleTravel}>
-      <select name="location">
-        {locations?.map(location => {
-          return <option key={location.id?.toString()} value={location.id?.toString() ?? ''}>
-            {location.name}
-          </option>;
-        })}
-      </select>
-      
-      <button type="submit">
-        Go
-      </button>
-    </form>
+    <details>
+      <summary>
+        Map
+      </summary>
+      <form noValidate onSubmit={handleTravel}>
+        <select name="location">
+          {locations?.map(location => {
+            return <option key={location.id?.toString()} value={location.id?.toString() ?? ''}>
+              {location.name}
+            </option>;
+          })}
+        </select>
+        
+        <button type="submit">
+          Go
+        </button>
+      </form>
+    </details>
     <details>
       <summary>
         Your Feed

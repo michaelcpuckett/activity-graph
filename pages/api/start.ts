@@ -4,6 +4,7 @@ import { generateKeyPair, getGuid } from 'activitypub-core/src/crypto';
 import { LOCAL_DOMAIN, SERVER_ACTOR_ID } from 'activitypub-core/src/globals';
 import { AP } from 'activitypub-core/src/types';
 import { Pokemon, PokemonClient } from 'pokenode-ts';
+import { prefixPkmnData } from '../../utilities/prefixPkmnData';
 
 type Data = {
   error?: string;
@@ -126,40 +127,22 @@ export default async function startHandler(
   if (!existingPokemon) {
     const api = new PokemonClient();
 
-    const pokemonData: void | Pokemon = await api
+    const apiData: void | Pokemon = await api
       .getPokemonByName(starterPokemon.toLowerCase())
       .catch((error) => console.error(error));
     
-      const conformData = (data) => {
-        const conformedData: Array<[string, unknown]> = [];
-
-        for (const [key, value] of Object.entries({...data})) {
-          if (Array.isArray(value)) {
-            conformedData.push([`pkmn:${key}`, value.map(item => {
-              if (item && typeof item === 'object') {
-                return conformData(item);
-              } else {
-                return item;
-              }
-            })]);
-          } else if (value && typeof value === 'object') {
-            conformedData.push([`pkmn:${key}`, conformData(value)]);
-          } else {
-            conformedData.push([`pkmn:${key}`, value]);
-          }
-        }
-
-        return Object.fromEntries(conformedData);
-    }
-
     // TODO store in separate database/collection?
 
+    if (!apiData) {
+      return;
+    }
+
     const speciesData: AP.Document = {
-      ...conformData(pokemonData),
+      ...prefixPkmnData(JSON.parse(JSON.stringify(apiData)) as unknown as { [key: string]: unknown }),
       id: new URL(`${LOCAL_DOMAIN}/species/${starterPokemon.toLowerCase()}`),
       url: new URL(`${LOCAL_DOMAIN}/species/${starterPokemon.toLowerCase()}`),
       type: AP.ExtendedObjectTypes.DOCUMENT,
-    }
+    };
 
     await graph.saveEntity(speciesData);
   }

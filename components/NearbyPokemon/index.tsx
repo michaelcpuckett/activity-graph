@@ -1,9 +1,10 @@
 import { ChangeEvent, ChangeEventHandler, FormEvent, FormEventHandler, MouseEventHandler, ReactElement, useState } from 'react';
 import { AP } from 'activitypub-core/src/types';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
+import { PokemonSummary } from '../PokemonSummary';
+import { Pokemon } from 'pokenode-ts';
 
 export function NearbyPokemon({ location, player, pokemonCollection, speciesData}: { location: AP.Place & { [key: string]: unknown }, speciesData: AP.Document[], player: AP.Actor, pokemonCollection: AP.OrderedCollection}) {
-  console.log(location)
   const handleCatch: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -38,13 +39,13 @@ export function NearbyPokemon({ location, player, pokemonCollection, speciesData
       return;
     }
 
-    console.log(query.name)
+    console.log(query);
 
     fetch(`${PROTOCOL}//${LOCAL_HOSTNAME}${PORT ? `:${PORT}` : ''}/api/pokemon`, {
       method: 'POST',
       body: JSON.stringify({
         actor: player.id.toString(),
-        name: query.name,
+        name: query.nearbyPokemon,
       }),
     }).then(() => {
       window.location.reload();
@@ -64,11 +65,19 @@ export function NearbyPokemon({ location, player, pokemonCollection, speciesData
   
   return <form noValidate onSubmit={handleCatch}>
     <p>Nearby Pokemon</p>
-    <select name="name">
-      {nearbyPokemonOptions.map(name => (
-        <option>{name}</option>
-      ))}
-    </select>
+    {(Array.isArray(nearbyPokemonOptions)) ? nearbyPokemonOptions.map((pokemon) => {
+      const species = speciesData[pokemon.toLowerCase()] as unknown as Pokemon;
+      return species ? (
+        <li key={species.name}>
+          <label>
+            {species.sprites.front_default ? (
+            <img src={species.sprites.front_default} style={{flex: '0 0 auto'}} height="120" width="120" />
+          ) : null}
+            {species.name}
+            <input type="radio" name="nearbyPokemon" value={species.name} />
+          </label>
+        </li>
+    ) : <></>}) : <></>}
     <button type="submit">
       Catch it!
     </button>

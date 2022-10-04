@@ -4,6 +4,7 @@ import serviceAccount from "../credentials";
 import { AP } from "activitypub-core/src/types";
 import { Graph } from "activitypub-core/src/graph";
 import { unprefixPkmnData } from "../utilities/unprefixPkmnData";
+import { cacheSpecies } from "../utilities/cacheSpecies";
 
 export const getServerSideProps = getHomeServerSideProps(serviceAccount, async (props: {
   actor: AP.Actor,
@@ -50,7 +51,12 @@ export const getServerSideProps = getHomeServerSideProps(serviceAccount, async (
   }
 
   for (const location of locations) {
-    console.log(location)
+    for (const pokemon of location['poke:nearbyPokemon']) {
+      const species = await cacheSpecies(pokemon, graph);
+      if (species && species.type === AP.ExtendedObjectTypes.DOCUMENT) {
+        speciesData[pokemon.toLowerCase()] = unprefixPkmnData(JSON.parse(JSON.stringify(species)) as unknown as {[key: string]: unknown}) as unknown as AP.Document;
+      }
+    }
   }
 
   return {

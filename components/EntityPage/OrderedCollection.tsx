@@ -1,32 +1,26 @@
 import { AP } from 'activitypub-core/src/types';
 import { EntityCard } from '../EntityCard';
+import { EntityLink } from '../EntityLink';
 
 export function OrderedCollectionEntity({ collection }: { collection: AP.OrderedCollection }) {
   const {
-    orderedItems
+    orderedItems: items
   } = collection;
 
-  if (!Array.isArray(orderedItems)) {
-    return <></>;
+  if (!Array.isArray(items)) {
+    return <></>
   }
 
-  return <>
-    <div className="intro">
-      <h1>{collection.name ?? 'Collection'}</h1>
+  return (
+    <div>
+      <h1>
+        <EntityLink entity={collection}>
+          {collection.name}
+        </EntityLink>
+      </h1>
+      {items.map(item => (
+        <EntityCard entity={item}></EntityCard>
+      ))}
     </div>
-    <ol reversed>
-      {orderedItems.map(orderedItem => {
-        if (orderedItem instanceof URL) {
-          return <></>;
-        }
-
-        return (
-          <EntityCard
-            entity={orderedItem}
-            key={orderedItem.id?.toString()}
-          ></EntityCard>
-        );
-      })}
-    </ol>
-  </>;
+  );
 }

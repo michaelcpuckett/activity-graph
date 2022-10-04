@@ -2,20 +2,27 @@ import { AP } from 'activitypub-core/src/types';
 import { EntityLink } from '../EntityLink';
 import { EntityMeta } from '../EntityMeta';
 
-export function ActorEntity({ actor }: { actor: AP.Actor }) {
+export function ActorCard({ actor }: { actor: AP.Actor }) {
+  const {
+    preferredUsername,
+    name,
+    inbox,
+    outbox,
+  } = actor;
+
   return (
     <div>
       <h2>
         <EntityLink entity={actor}>
-          @{actor.preferredUsername ?? actor.name}
+          @{preferredUsername ?? name}
         </EntityLink>
       </h2>
       <dl>
-        <EntityMeta entity={actor.inbox as AP.Entity}>
+        <EntityMeta entity={inbox as AP.Entity}>
           Inbox
         </EntityMeta>
-        <EntityMeta entity={actor.outbox as AP.Entity}>
-          Outbox
+        <EntityMeta entity={outbox as AP.Entity}>
+          Object
         </EntityMeta>
         <EntityMeta entity={actor.following as AP.Entity}>
           Following
@@ -32,3 +39,6 @@ export function ActorEntity({ actor }: { actor: AP.Actor }) {
     </div>
   );
 }
+
+
+

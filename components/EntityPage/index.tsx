@@ -9,30 +9,28 @@ import { OrderedCollectionEntity } from './OrderedCollection';
 import { OrderedCollectionPageEntity } from './OrderedCollectionPage';
 import { Header } from '../Header';
 import Head from 'next/head';
+import { convertStringsToUrls } from 'activitypub-core/src/utilities/convertStringsToUrls';
 
 export function EntityPage({
-  entity,
+  entity: rawEntity,
 }: {
   entity: AP.Entity;
 }) {
+  const entity = convertStringsToUrls(rawEntity) as AP.Entity;
+
   return (
     <>
       <Head>
         <title>ActivityWeb</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>
-        <>
-          <Header />
-          <Entity entity={entity}></Entity>
-          <details>
-            <summary>
-              Raw
-            </summary>
-            <textarea defaultValue={JSON.stringify(entity)}></textarea>
-          </details>
-        </>
-      </main>
+      <Entity entity={entity}></Entity>
+      <details>
+        <summary>
+          Raw
+        </summary>
+        <textarea defaultValue={JSON.stringify(entity)}></textarea>
+      </details>
     </>
   );
 }

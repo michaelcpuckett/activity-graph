@@ -1,5 +1,6 @@
 import { AP } from 'activitypub-core/src/types';
 import { EntityCard } from '../EntityCard';
+import { EntityLink } from '../EntityLink';
 
 export function CollectionEntity({ collection }: { collection: AP.Collection }) {
   const {
@@ -10,23 +11,16 @@ export function CollectionEntity({ collection }: { collection: AP.Collection }) 
     return <></>
   }
 
-  return <>
-    <div className="intro">
-      <h1>{collection.name ?? 'Collection'}</h1>
+  return (
+    <div>
+      <h1>
+        <EntityLink entity={collection}>
+          {collection.name}
+        </EntityLink>
+      </h1>
+      {items.map(item => (
+        <EntityCard entity={item}></EntityCard>
+      ))}
     </div>
-    <ul>
-      {items.map(item => {
-        if (item instanceof URL) {
-          return <></>;
-        }
-
-        return (
-          <EntityCard
-            entity={item}
-            key={item.id?.toString()}
-          ></EntityCard>
-        );
-      })}
-    </ul>
-  </>;
+  );
 }

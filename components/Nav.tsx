@@ -12,16 +12,16 @@ function BoxLink({ collection, children }: { collection?: URL | AP.EitherCollect
         {children}
       </a>
     </li>
-  ) : collection.url instanceof URL ? (
+  ) : collection.id instanceof URL ? (
     <li>
-      <a href={collection.url.toString()}>
+      <a href={collection.id.toString()}>
         {children}
       </a>
     </li>
-  ) : <></>;
+  ) : <>Test</>;
 }
 
-export function Nav({ actor, streams }: { actor: AP.Actor, streams?: AP.EitherCollection[] }) {
+export function Nav({ actor }: { actor: AP.Actor }) {
   return (
     <nav>
       <ul>
@@ -47,7 +47,7 @@ export function Nav({ actor, streams }: { actor: AP.Actor, streams?: AP.EitherCo
         <BoxLink collection={actor.liked}>
           Liked
         </BoxLink>
-        {streams ? streams.map(stream => (typeof stream !== 'string' && 'id' in stream && stream.id && 'name' in stream && stream.name && !Array.isArray(stream.name)) ?
+        {actor.streams ? actor.streams.map(stream => (typeof stream !== 'string' && 'id' in stream && stream.id && 'name' in stream && stream.name && !Array.isArray(stream.name)) ?
           <BoxLink collection={stream.id}>
             {stream.name}
           </BoxLink> : <></>) : <></>}

@@ -2,29 +2,25 @@ import { AP } from 'activitypub-core/src/types';
 import { EntityLink } from '../EntityLink';
 import { EntityMeta } from '../EntityMeta';
 
-export function ActivityEntity({ activity }: { activity: AP.Activity }) {
+export function ActivityCard({ activity }: { activity: AP.Activity }) {
   const {
     actor,
     target
   } = activity;
 
-  let object = null;
+  const object = 'object' in activity ? activity.object : null;
 
-  if ('object' in activity) {
-    object = activity.object;
-  }
-
-  if (!actor) {
+  if (!actor || typeof actor !== 'object' || !('id' in actor) || !actor.id) {
     return <>Not found.</>;
   }
 
   return (
     <div>
-      <h1>
+      <h2>
         <EntityLink entity={activity}>
           {activity.type}
         </EntityLink>
-      </h1>
+      </h2>
       <dl>
         <EntityMeta entity={actor as AP.Entity}>
           Actor
@@ -39,3 +35,6 @@ export function ActivityEntity({ activity }: { activity: AP.Activity }) {
     </div>
   );
 }
+
+
+

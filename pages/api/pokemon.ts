@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Graph } from 'activitypub-core/src/graph';
 import { generateKeyPair, getGuid } from 'activitypub-core/src/crypto';
-import { LOCAL_DOMAIN } from 'activitypub-core/src/globals';
+import { LOCAL_DOMAIN, SERVER_ACTOR_ID } from 'activitypub-core/src/globals';
 import { AP } from 'activitypub-core/src/types';
 import { PokemonClient } from 'pokenode-ts';
 
@@ -171,7 +171,7 @@ export default async function pokemonHandler(
     id: new URL(createPokemonActivityId),
     url: new URL(createPokemonActivityId),
     type: AP.ActivityTypes.CREATE,
-    actor: new URL(actorId),
+    actor: new URL(SERVER_ACTOR_ID),
     object: new URL(pokemonId),
   };
 
@@ -213,7 +213,7 @@ export default async function pokemonHandler(
 
   await Promise.all([
     graph.saveEntity(addPokemonActivity),
-    graph.insertOrderedItem(actorOutboxId, new URL(createPokemonActivityId)),
+    graph.insertOrderedItem(new URL(`${SERVER_ACTOR_ID}/outbox`), new URL(createPokemonActivityId)),
     graph.insertOrderedItem(actorOutboxId, new URL(addPokemonActivityId)),
     graph.insertOrderedItem(pokemonCollectionId, new URL(pokemonId)),
   ]);

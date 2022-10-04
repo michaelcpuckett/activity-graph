@@ -172,7 +172,7 @@ export default async function startHandler(
     type: AP.ActorTypes.APPLICATION,
     name: starterPokemon,
     'pkmn:species': starterPokemon.toLowerCase(),
-    preferredUsername: pokemonUsername,
+    preferredUsername: starterPokemon,
     inbox: pokemonInbox,
     outbox: pokemonOutbox,
     following: pokemonFollowing,

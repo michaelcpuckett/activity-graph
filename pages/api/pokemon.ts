@@ -67,20 +67,44 @@ export default async function pokemonHandler(
   const pokemonId = `${LOCAL_DOMAIN}/pokemon/${getGuid()}`;
 
   const existingPokemon = await graph.findOne('species', {
-    name
+    'pkmn:name': name.toLowerCase(),
   });
 
   if (!existingPokemon) {
     const api = new PokemonClient();
 
-    const pokemonData = await api
-      .getPokemonByName('luxray')
+    const pokemonData: void | Pokemon = await api
+      .getPokemonByName(name.toLowerCase())
       .catch((error) => console.error(error));
     
+      const conformData = (data) => {
+        const conformedData: Array<[string, unknown]> = [];
+
+        for (const [key, value] of Object.entries({...data})) {
+          if (Array.isArray(value)) {
+            conformedData.push([`pkmn:${key}`, value.map(item => {
+              if (item && typeof item === 'object') {
+                return conformData(item);
+              } else {
+                return item;
+              }
+            })]);
+          } else if (value && typeof value === 'object') {
+            conformedData.push([`pkmn:${key}`, conformData(value)]);
+          } else {
+            conformedData.push([`pkmn:${key}`, value]);
+          }
+        }
+
+        return Object.fromEntries(conformedData);
+    }
+
+    // TODO store in separate database/collection?
+
     const speciesData: AP.Document = {
-      ...pokemonData,
-      id: new URL(`${LOCAL_DOMAIN}/species/${name}`),
-      url: new URL(`${LOCAL_DOMAIN}/species/${name}`),
+      ...conformData(pokemonData),
+      id: new URL(`${LOCAL_DOMAIN}/species/${name.toLowerCase()}`),
+      url: new URL(`${LOCAL_DOMAIN}/species/${name.toLowerCase()}`),
       type: AP.ExtendedObjectTypes.DOCUMENT,
     }
 

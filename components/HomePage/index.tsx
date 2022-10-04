@@ -11,11 +11,13 @@ type Data = {
   actor: AP.Actor;
   locations: AP.Place[];
   groups?: AP.Collection;
+  speciesData: AP.Document[],
 }
 
 export function HomePage({
   actor,
   locations,
+  speciesData,
 }: Data) {
   const player = convertStringsToUrls(actor) as AP.Actor;
   let pokemonCollection: AP.OrderedCollection|null = null;
@@ -47,6 +49,7 @@ export function HomePage({
             pokemonCollection={pokemonCollection}
             visitedCollection={visitedCollection}
             locations={locations}
+            speciesData={speciesData}
           /> :
           <StartPage
             player={player}

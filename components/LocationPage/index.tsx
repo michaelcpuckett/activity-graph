@@ -3,8 +3,9 @@ import { AP } from 'activitypub-core/src/types';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
 import { OutboxFeed } from '../OutboxFeed';
 import { PartyPokemon } from '../PartyPokemon';
+import { NearbyPokemon } from '../NearbyPokemon';
 
-export function LocationPage({ player, locations, pokemonCollection, visitedCollection }: { player: AP.Actor, locations: AP.Place[], pokemonCollection: AP.OrderedCollection, visitedCollection: AP.OrderedCollection }) {
+export function LocationPage({ player, locations, pokemonCollection, visitedCollection, speciesData }: { speciesData: AP.Document[]; player: AP.Actor, locations: AP.Place[], pokemonCollection: AP.OrderedCollection, visitedCollection: AP.OrderedCollection }) {
   let currentLocation: AP.Place|undefined;
 
   if (Array.isArray(visitedCollection?.orderedItems)) {
@@ -64,6 +65,12 @@ export function LocationPage({ player, locations, pokemonCollection, visitedColl
     });
 
   }
+
+  console.log(speciesData)
+
+  if (!currentLocation) {
+    return <>... Where are we?</>
+  }
   
   return <>
     <h1>
@@ -92,7 +99,11 @@ export function LocationPage({ player, locations, pokemonCollection, visitedColl
       <summary>
         Pokemon in your Party
       </summary>
-      <PartyPokemon player={player} pokemonCollection={pokemonCollection} />
+      <PartyPokemon player={player} pokemonCollection={pokemonCollection} speciesData={speciesData} />
+    </details>
+    <details>
+      <summary>Nearby</summary>
+      <NearbyPokemon player={player} location={currentLocation} pokemonCollection={pokemonCollection} speciesData={speciesData} />
     </details>
   </>
 }

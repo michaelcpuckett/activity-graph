@@ -24,7 +24,7 @@ export function StartPage({ player, locations }: { player: AP.Actor, locations: 
         if (name) {
           for (const checkableElement of [...element.elements]) {
             if (checkableElement instanceof HTMLInputElement && checkableElement.checked) {
-              result.push([name, checkableElement.checked]);
+              result.push([name, checkableElement.value]);
             }
           }
         }
@@ -40,6 +40,8 @@ export function StartPage({ player, locations }: { player: AP.Actor, locations: 
     if (!(query.starter && query.location)) {
       return;
     }
+
+    console.log(query)
 
     fetch(`${PROTOCOL}//${LOCAL_HOSTNAME}${PORT ? `:${PORT}` : ''}/api/start`, {
       method: 'POST',
@@ -78,7 +80,7 @@ return <>
       <p>
         Choose a partner to begin your quest.
       </p>
-      <fieldset>
+      <fieldset name="starter">
         <legend>Your First Pokemon</legend>
         {[
           'Togepi', // Fairy

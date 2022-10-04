@@ -2,18 +2,19 @@ import { ChangeEvent, ChangeEventHandler, FormEvent, FormEventHandler, MouseEven
 import { AP } from 'activitypub-core/src/types';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
 
-export function PartyPokemon({ player, pokemonCollection, speciesData}: { speciesData: AP.Document[], player: AP.Actor, pokemonCollection: AP.OrderedCollection}) {
-  const handleWildPokemonInteraction: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
+export function NearbyPokemon({ location, player, pokemonCollection, speciesData}: { location: AP.Place, speciesData: AP.Document[], player: AP.Actor, pokemonCollection: AP.OrderedCollection}) {
+
+  const handleCatch: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
+
     const formElement = event.currentTarget;
     const result: Array<[string, unknown]> = [];
 
     for (const element of [...formElement.elements]) {
       const name = element.getAttribute('name');
 
-      if (name) {
-        result.push([name, element.getAttribute('value')]);
+      if (name && (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement)) {
+        result.push([name, element.value]);
       }
     }
 
@@ -37,6 +38,8 @@ export function PartyPokemon({ player, pokemonCollection, speciesData}: { specie
       return;
     }
 
+    console.log(query.name)
+
     fetch(`${PROTOCOL}//${LOCAL_HOSTNAME}${PORT ? `:${PORT}` : ''}/api/pokemon`, {
       method: 'POST',
       body: JSON.stringify({
@@ -47,25 +50,16 @@ export function PartyPokemon({ player, pokemonCollection, speciesData}: { specie
       window.location.reload();
     });
 
-  };
-
-return <>
-      <h2>Your Pokemon</h2>
-      <ol>
-        {(pokemonCollection && Array.isArray(pokemonCollection?.orderedItems)) ? pokemonCollection.orderedItems.map((pokemon) => {
-          if (typeof pokemon === 'object' && !(pokemon instanceof URL) && pokemon.type === AP.ActorTypes.APPLICATION) {
-            return <li key={pokemon.id?.toString()}>
-              <img src={speciesData[pokemon.name?.toLowerCase()]['pkmn:sprites']['pkmn:front_default']} />
-              {pokemon.preferredUsername}
-              <p>Types</p>
-              <ul>
-                {speciesData[pokemon.name?.toLowerCase()]['pkmn:types'].map((type) => {
-                  return <>{type['pkmn:type']['pkmn:name']}</>
-                })}
-              </ul>
-            </li>
-          }
-        }) : <></>}
-      </ol>
-    </>
+  }
+  
+  return <form noValidate onSubmit={handleCatch}>
+    <p>Nearby Pokemon</p>
+    <select name="name">
+      <option value="Rattata">Rattata</option>
+      <option value="Spearow">Spearow</option>
+    </select>
+    <button type="submit">
+      Catch it!
+    </button>
+  </form>
 }

@@ -22,6 +22,20 @@ export const getServerSideProps = getHomeServerSideProps(serviceAccount, async (
     }
   }
 
+  const speciesData: {[key: string]: AP.Document} = {};
+
+  for (const stream of streams) {
+    if (stream.name === 'Pokemon' && 'orderedItems' in stream && Array.isArray(stream.orderedItems)) {
+      for (const orderedItem of [...stream.orderedItems]) {
+        if ('name' in orderedItem) {
+          speciesData[orderedItem.name?.toLowerCase()] = await graph.findOne('species', {
+            'pkmn:name': orderedItem.name?.toLowerCase(),
+          });
+        }
+      }
+    }
+  }
+
   props.actor.streams = streams;
 
   const locations = await graph.findAll('object', {
@@ -31,6 +45,7 @@ export const getServerSideProps = getHomeServerSideProps(serviceAccount, async (
   return {
     ...props,
     locations,
+    speciesData,
   };
 });
 

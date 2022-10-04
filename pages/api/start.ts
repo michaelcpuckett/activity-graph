@@ -80,7 +80,7 @@ export default async function startHandler(
   const { publicKey: pokemonPublicKey, privateKey: pokemonPrivateKey } =
     await generateKeyPair();
 
-  const pokemonUsername = starterPokemon;
+  const pokemonUsername = starterPokemon.toLowerCase();
 
   const pokemonId = `${LOCAL_DOMAIN}/pokemon/${getGuid()}`;
 
@@ -120,7 +120,7 @@ export default async function startHandler(
 
   
   const existingPokemon = await graph.findOne('species', {
-    name: starterPokemon,
+    'pkmn:name': starterPokemon.toLowerCase(),
   });
 
   if (!existingPokemon) {
@@ -152,10 +152,12 @@ export default async function startHandler(
         return Object.fromEntries(conformedData);
     }
 
+    // TODO store in separate database/collection?
+
     const speciesData: AP.Document = {
       ...conformData(pokemonData),
-      id: new URL(`${LOCAL_DOMAIN}/species/${starterPokemon}`),
-      url: new URL(`${LOCAL_DOMAIN}/species/${starterPokemon}`),
+      id: new URL(`${LOCAL_DOMAIN}/species/${starterPokemon.toLowerCase()}`),
+      url: new URL(`${LOCAL_DOMAIN}/species/${starterPokemon.toLowerCase()}`),
       type: AP.ExtendedObjectTypes.DOCUMENT,
     }
 
@@ -169,7 +171,7 @@ export default async function startHandler(
     url: new URL(pokemonId),
     type: AP.ActorTypes.APPLICATION,
     name: starterPokemon,
-    'pkmn:species': starterPokemon,
+    'pkmn:species': starterPokemon.toLowerCase(),
     preferredUsername: pokemonUsername,
     inbox: pokemonInbox,
     outbox: pokemonOutbox,

@@ -3,6 +3,7 @@ import { Graph } from 'activitypub-core/src/graph';
 import { generateKeyPair, getGuid } from 'activitypub-core/src/crypto';
 import { LOCAL_DOMAIN, SERVER_ACTOR_ID } from 'activitypub-core/src/globals';
 import { AP } from 'activitypub-core/src/types';
+import { Pokemon, PokemonClient } from 'pokenode-ts';
 
 type Data = {
   error?: string;
@@ -117,11 +118,58 @@ export default async function startHandler(
     items: [],
   };
 
-  const pokemon: AP.Application = {
+  
+  const existingPokemon = await graph.findOne('species', {
+    name: starterPokemon,
+  });
+
+  if (!existingPokemon) {
+    const api = new PokemonClient();
+
+    const pokemonData: void | Pokemon = await api
+      .getPokemonByName(starterPokemon.toLowerCase())
+      .catch((error) => console.error(error));
+    
+      const conformData = (data) => {
+        const conformedData: Array<[string, unknown]> = [];
+
+        for (const [key, value] of Object.entries({...data})) {
+          if (Array.isArray(value)) {
+            conformedData.push([`pkmn:${key}`, value.map(item => {
+              if (item && typeof item === 'object') {
+                return conformData(item);
+              } else {
+                return item;
+              }
+            })]);
+          } else if (value && typeof value === 'object') {
+            conformedData.push([`pkmn:${key}`, conformData(value)]);
+          } else {
+            conformedData.push([`pkmn:${key}`, value]);
+          }
+        }
+
+        return Object.fromEntries(conformedData);
+    }
+
+    const speciesData: AP.Document = {
+      ...conformData(pokemonData),
+      id: new URL(`${LOCAL_DOMAIN}/species/${starterPokemon}`),
+      url: new URL(`${LOCAL_DOMAIN}/species/${starterPokemon}`),
+      type: AP.ExtendedObjectTypes.DOCUMENT,
+    }
+
+    await graph.saveEntity(speciesData);
+  }
+
+  const pokemon: AP.Application & {
+    [key: string]: unknown
+  } = {
     id: new URL(pokemonId),
     url: new URL(pokemonId),
     type: AP.ActorTypes.APPLICATION,
     name: starterPokemon,
+    'pkmn:species': starterPokemon,
     preferredUsername: pokemonUsername,
     inbox: pokemonInbox,
     outbox: pokemonOutbox,

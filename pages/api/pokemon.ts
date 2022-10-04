@@ -3,6 +3,7 @@ import { Graph } from 'activitypub-core/src/graph';
 import { generateKeyPair, getGuid } from 'activitypub-core/src/crypto';
 import { LOCAL_DOMAIN } from 'activitypub-core/src/globals';
 import { AP } from 'activitypub-core/src/types';
+import { PokemonClient } from 'pokenode-ts';
 
 type Data = {
   error?: string;
@@ -64,6 +65,27 @@ export default async function pokemonHandler(
   const pokemonUsername = name;
 
   const pokemonId = `${LOCAL_DOMAIN}/pokemon/${getGuid()}`;
+
+  const existingPokemon = await graph.findOne('species', {
+    name
+  });
+
+  if (!existingPokemon) {
+    const api = new PokemonClient();
+
+    const pokemonData = await api
+      .getPokemonByName('luxray')
+      .catch((error) => console.error(error));
+    
+    const speciesData: AP.Document = {
+      ...pokemonData,
+      id: new URL(`${LOCAL_DOMAIN}/species/${name}`),
+      url: new URL(`${LOCAL_DOMAIN}/species/${name}`),
+      type: AP.ExtendedObjectTypes.DOCUMENT,
+    }
+
+    await graph.saveEntity(speciesData);
+  }
 
   const pokemonInbox: AP.OrderedCollection = {
     id: new URL(`${pokemonId}/inbox`),

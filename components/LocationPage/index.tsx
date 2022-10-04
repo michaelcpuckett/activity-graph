@@ -12,9 +12,19 @@ export function LocationPage({ player, locations, pokemonCollection, visitedColl
     const lastLocation = visitedCollection?.orderedItems[0];
 
     if (lastLocation && !(lastLocation instanceof URL) && lastLocation.type === AP.ExtendedObjectTypes.PLACE) {
-      currentLocation = lastLocation;
+      const currentLocationId = lastLocation.id;
+
+      if (currentLocationId) {
+        console.log(locations, currentLocationId)
+        currentLocation = locations.find(location => new URL(location.id).toString() === new URL(currentLocationId).toString());
+      }
     }
   }
+
+  console.log('LOCATION PAGE', {
+    locations,
+    currentLocation
+  })
 
   const handleTravel: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -66,7 +76,7 @@ export function LocationPage({ player, locations, pokemonCollection, visitedColl
 
   }
 
-  console.log(speciesData)
+  console.log(speciesData, locations)
 
   if (!currentLocation) {
     return <>... Where are we?</>

@@ -2,8 +2,8 @@ import { ChangeEvent, ChangeEventHandler, FormEvent, FormEventHandler, MouseEven
 import { AP } from 'activitypub-core/src/types';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
 
-export function NearbyPokemon({ location, player, pokemonCollection, speciesData}: { location: AP.Place, speciesData: AP.Document[], player: AP.Actor, pokemonCollection: AP.OrderedCollection}) {
-
+export function NearbyPokemon({ location, player, pokemonCollection, speciesData}: { location: AP.Place & { [key: string]: unknown }, speciesData: AP.Document[], player: AP.Actor, pokemonCollection: AP.OrderedCollection}) {
+  console.log(location)
   const handleCatch: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -51,12 +51,23 @@ export function NearbyPokemon({ location, player, pokemonCollection, speciesData
     });
 
   }
+
+  let nearbyPokemonOptions = [];
+
+  console.log(location)
+
+  if (location && 'poke:nearbyPokemon' in location && Array.isArray(location['poke:nearbyPokemon'])) {
+    nearbyPokemonOptions = location['poke:nearbyPokemon'];
+  }
+
+  console.log(nearbyPokemonOptions)
   
   return <form noValidate onSubmit={handleCatch}>
     <p>Nearby Pokemon</p>
     <select name="name">
-      <option value="Rattata">Rattata</option>
-      <option value="Spearow">Spearow</option>
+      {nearbyPokemonOptions.map(name => (
+        <option>{name}</option>
+      ))}
     </select>
     <button type="submit">
       Catch it!

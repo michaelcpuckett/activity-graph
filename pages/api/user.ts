@@ -4,6 +4,8 @@ import { AP } from 'activitypub-core/src/types';
 import { Graph } from 'activitypub-core/src/graph';
 import { LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
 import { allLocations } from '../../utilities/locations';
+import { cacheSpecies } from '../../utilities/cacheSpecies';
+
 
 export default userHandler(
   serviceAccount,
@@ -52,8 +54,14 @@ export default userHandler(
 
     if (!locations?.length) {
       await Promise.all(
-        allLocations.map(async (location: AP.Place) => {
+        allLocations.map(async (location) => {
           await graph.saveEntity(location);
+
+          if (('pkmn:starterPokemon' in location) && Array.isArray(location['pkmn:starterPokemon'])) {
+            for (const pokemon of location['pkmn:starterPokemon']) {
+              await cacheSpecies(pokemon, graph);
+            }
+          }
         }),
       );
     }

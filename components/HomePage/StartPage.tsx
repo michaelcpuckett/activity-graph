@@ -3,6 +3,20 @@ import { AP } from 'activitypub-core/src/types';
 import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE, LOCAL_DOMAIN, LOCAL_HOSTNAME, PORT, PROTOCOL } from 'activitypub-core/src/globals';
 
 export function StartPage({ player, locations }: { player: AP.Actor, locations: AP.Place[] }) {
+  const [startingLocation, setStartingLocation] = useState('');
+  const [starterPokemon, setStarterPokemon] = useState('');
+  const [starterPokemonOptions, setStarterPokemonOptions] = useState([]);
+
+  const handleChange: ChangeEventHandler<HTMLSelectElement> = (event: ChangeEvent<HTMLSelectElement>) => {
+    setStartingLocation(event.currentTarget.value);
+
+    const currentLocation = locations.find(location => location.id?.toString() === event.currentTarget.value);
+
+    if (currentLocation && 'poke:starterPokemon' in currentLocation && Array.isArray(currentLocation['poke:starterPokemon'])) {
+      setStarterPokemonOptions(currentLocation['poke:starterPokemon']);
+    }
+  };
+  
   const handleStart: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -67,7 +81,8 @@ return <>
         <span>
           Hometown
         </span>
-        <select name="location">
+        <select name="location" onChange={handleChange}>
+          <option value="">Choose One</option>
           {locations?.map(location => {
             return <option key={location.id?.toString()} value={location.id?.toString() ?? ''}>
               {location.name}
@@ -75,28 +90,23 @@ return <>
           })}
         </select>
       </label>
-      <p>
-        Choose a partner to begin your quest.
-      </p>
-      <fieldset name="starter">
-        <legend>Your First Pokemon</legend>
-        {[
-          'Togepi', // Fairy
-          'Larvitar', // Dark
-          'Tyrogue', // Fighting
-          'Gible', // Dragon
-          'Ralts', // Psychic
-          'Riolu', // Steel
-        ].map(name => (
-          <label key={name}>
-            <span>{name}</span>
-            <input type="radio" name="starter" value={name} />
-          </label>
-        ))}
-      </fieldset>
-      <button type="submit">
-        I Choose You!
-      </button>
+      {startingLocation ? <>
+        <p>
+          Choose a partner to begin your quest.
+        </p>
+        <fieldset name="starter">
+          <legend>Your First Pokemon</legend>
+          {starterPokemonOptions.map(name => (
+            <label key={name}>
+              <span>{name}</span>
+              <input type="radio" name="starter" value={name} />
+            </label>
+          ))}
+        </fieldset>
+        <button type="submit">
+          I Choose You!
+        </button>
+      </> : null}
     </form>
   </>
 }

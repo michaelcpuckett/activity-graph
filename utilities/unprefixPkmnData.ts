@@ -14,7 +14,7 @@ export const unprefixPkmnData = (data: { [key: string]: unknown }) => {
   const unprefixedData: Array<[string, unknown]> = [];
 
   for (const [key, value] of Object.entries({...data})) {
-    const newKey = key.startsWith('pkmn:') ? key.split('pkmn:')[1] : key;
+    const newKey = key.startsWith('poke:') ? key.split('poke:')[1] : key;
 
     if (Array.isArray(value)) {
       unprefixedData.push([newKey, unprefixPkmnDataArray(value)]);

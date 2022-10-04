@@ -2,7 +2,6 @@ import { HomePage } from "../components/HomePage";
 import { getServerSideProps as getHomeServerSideProps } from "activitypub-core/src/endpoints/home";
 import serviceAccount from "../credentials";
 import { AP } from "activitypub-core/src/types";
-import { allLocations } from "../utilities/locations";
 import { Graph } from "activitypub-core/src/graph";
 import { unprefixPkmnData } from "../utilities/unprefixPkmnData";
 
@@ -30,7 +29,7 @@ export const getServerSideProps = getHomeServerSideProps(serviceAccount, async (
       for (const orderedItem of [...stream.orderedItems]) {
         if ('name' in orderedItem && orderedItem.name) {
           const species = await graph.findOne('species', {
-            'pkmn:name': orderedItem.name.toLowerCase(),
+            'poke:name': orderedItem.name.toLowerCase(),
           });
           if (species && species.type === AP.ExtendedObjectTypes.DOCUMENT) {
             speciesData[orderedItem.name.toLowerCase()] = unprefixPkmnData(JSON.parse(JSON.stringify(species)) as unknown as {[key: string]: unknown}) as unknown as AP.Document;
@@ -45,6 +44,14 @@ export const getServerSideProps = getHomeServerSideProps(serviceAccount, async (
   const locations = await graph.findAll('object', {
     type: AP.ExtendedObjectTypes.PLACE,
   });
+
+  if (!locations || !Array.isArray(locations)) {
+    throw new Error('Bad!')
+  }
+
+  for (const location of locations) {
+    console.log(location)
+  }
 
   return {
     ...props,

@@ -3,6 +3,7 @@ import { LOCAL_DOMAIN, SERVER_ACTOR_ID } from 'activitypub-core/src/globals';
 import { Graph } from 'activitypub-core/src/graph';
 import { AP } from 'activitypub-core/src/types';
 import { Pokemon, PokemonClient } from 'pokenode-ts';
+import { cacheSpecies } from './cacheSpecies';
 import { prefixPkmnData } from './prefixPkmnData';
 import { unprefixPkmnData } from './unprefixPkmnData';
 
@@ -81,36 +82,10 @@ export async function catchPokemon(speciesName: string, actor: AP.Actor, graph: 
     items: [],
   };
 
-  
-  let existingSpecies: (AP.Document & Pokemon) | null = await graph.findOne('species', {
-    'pkmn:name': speciesName.toLowerCase(),
-  }) as (AP.Document & Pokemon);
+  const existingSpecies = await cacheSpecies(speciesName, graph);
 
   if (!existingSpecies) {
-    const api = new PokemonClient();
-
-    const apiData: void | Pokemon = await api
-      .getPokemonByName(speciesName.toLowerCase())
-      .catch((error) => console.error(error));
-    
-    // TODO store in separate database/collection?
-
-    if (!apiData) {
-      return;
-    }
-
-    const speciesData: AP.Document = {
-      ...prefixPkmnData(JSON.parse(JSON.stringify(apiData)) as unknown as { [key: string]: unknown }),
-      id: new URL(`${LOCAL_DOMAIN}/species/${speciesName.toLowerCase()}`),
-      url: new URL(`${LOCAL_DOMAIN}/species/${speciesName.toLowerCase()}`),
-      type: AP.ExtendedObjectTypes.DOCUMENT,
-    };
-
-    await graph.saveEntity(speciesData);
-
-    existingSpecies = unprefixPkmnData(speciesData as unknown as { [key: string]: unknown }) as unknown as (AP.Document & Pokemon);
-  } else {
-    existingSpecies = unprefixPkmnData(existingSpecies as unknown as { [key: string]: unknown }) as unknown as AP.Document & Pokemon;
+    throw new Error('Species not found')
   }
 
   const pokemon: AP.Application & {
@@ -120,7 +95,7 @@ export async function catchPokemon(speciesName: string, actor: AP.Actor, graph: 
     url: new URL(pokemonId),
     type: AP.ActorTypes.APPLICATION,
     name: speciesName,
-    'pkmn:species': speciesName.toLowerCase(),
+    'poke:species': speciesName.toLowerCase(),
     preferredUsername: speciesName,
     inbox: pokemonInbox,
     outbox: pokemonOutbox,
@@ -134,7 +109,7 @@ export async function catchPokemon(speciesName: string, actor: AP.Actor, graph: 
       owner: pokemonId,
       publicKeyPem: pokemonPublicKey,
     },
-    'pkmn:experience': existingSpecies.base_experience * 5
+    'poke:experience': existingSpecies.base_experience * 5
   };
 
   const createPokemonActivityId = `${LOCAL_DOMAIN}/activity/${getGuid()}`;

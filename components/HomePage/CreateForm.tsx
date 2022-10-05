@@ -4,6 +4,7 @@ import { FormEvent, FormEventHandler } from 'react';
 
 export function CreateForm({ actor }: { actor: AP.Actor }) {
   const handleOutboxSubmit: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     const query: { [key: string]: string | string[] } = {};
 
     for (const element of [...event.currentTarget.elements]) {
@@ -54,7 +55,7 @@ export function CreateForm({ actor }: { actor: AP.Actor }) {
       fetch(query.actorOutboxId, {
         method: 'POST',
         body: JSON.stringify(body),
-      }).then(async body => await body.json())
+      })
         .then(() => {
           console.log('Done');
           window.location.reload();

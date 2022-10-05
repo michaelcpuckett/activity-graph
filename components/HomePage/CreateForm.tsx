@@ -1,12 +1,74 @@
 import { PUBLIC_ACTOR } from 'activitypub-core/src/globals';
 import { AP } from 'activitypub-core/src/types';
+import { FormEvent, FormEventHandler } from 'react';
 
-export function CreateForm({ actor, streams, handleOutboxSubmit }: { actor: AP.Actor, streams?: AP.EitherCollection[], handleOutboxSubmit: Function }) {
+export function CreateForm({ actor }: { actor: AP.Actor }) {
+  const handleOutboxSubmit: FormEventHandler<HTMLFormElement> = (event: FormEvent<HTMLFormElement>) => {
+    const query: { [key: string]: string | string[] } = {};
+
+    for (const element of [...event.currentTarget.elements]) {
+      if (element instanceof HTMLSelectElement) {
+        query[element.name] = element.value;
+      }
+
+      if (element instanceof HTMLInputElement) {
+        if (element.type.toLowerCase() === 'radio') {
+
+        } else if (element.type.toLowerCase() === 'checkbox') {
+
+        } else {
+          query[element.name] = element.value;
+        }
+      }
+    }
+
+    for (const element of [...event.currentTarget.elements]) {
+      if (element instanceof HTMLFieldSetElement) {
+        for (const checkableElement of [...element.elements]) {
+          if (checkableElement instanceof HTMLInputElement && checkableElement.type.toLowerCase() === 'radio') {
+            if (checkableElement.checked) {
+              query[checkableElement.name] = checkableElement.value;
+            }
+          } else if (checkableElement instanceof HTMLInputElement && checkableElement.type.toLowerCase() === 'checkbox') {
+            if (checkableElement.checked) {
+              query[checkableElement.name] = [...(query[checkableElement.name] ?? []), checkableElement.value];
+            }
+          }
+        }
+      }
+    }
+
+    const body = {
+      type: 'Create',
+      to: query.to,
+      actor: query.actorId,
+      object: {
+        type: query.type,
+        content: query.content,
+        summary: query.summary,
+        location: query.location,
+      },
+    };
+
+    if (typeof query.actorOutboxId === 'string') {
+      fetch(query.actorOutboxId, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }).then(async body => await body.json())
+        .then(() => {
+          console.log('Done');
+          window.location.reload();
+        })
+    }
+  };
+
   return <>
     <h2>Create</h2>
     <form
-      onSubmit={handleOutboxSubmit(AP.ActivityTypes.CREATE, actor)}
+      onSubmit={handleOutboxSubmit}
       noValidate>
+      <input type="hidden" value={actor.id?.toString()} name="actorId" />
+      <input type="hidden" value={actor.outbox instanceof URL ? actor.outbox.toString() : actor.outbox?.id?.toString()} name="actorOutboxId" />
       <label>
         <span>
           Type

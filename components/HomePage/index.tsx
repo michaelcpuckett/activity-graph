@@ -30,6 +30,7 @@ export function HomePage({
         <Header />
         <Welcome actor={actor} />
         <Nav actor={actor} />
+        <CreateForm actor={actor} />
       </main>
     </>
   )

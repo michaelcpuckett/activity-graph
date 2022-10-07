@@ -35,11 +35,10 @@ dd {
   margin-left: 20px;
 }
 
-form,
-fieldset {
+form {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 24px;
   width: 100%;
   flex-direction: column;
 }
@@ -98,7 +97,7 @@ summary:hover {
 
 textarea {
   width: 100%;
-  min-height: 400px;
+  min-height: 100px;
 }
 
 blockquote {
@@ -137,4 +136,38 @@ blockquote {
 
 .primary:hover {
   background-color: darkgreen;
+}
+
+.two-up {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 24px;
+}
+
+.card {
+  padding: 24px;
+  margin: 0 0 24px;
+  border: 1px solid;
+  border-radius: 24px;
+  width: 100%;
+  background: white;
+  box-shadow: 1px 1px 1px black;
+}
+
+main {
+  padding: 24px;
+  background-color: azure;
+}
+
+fieldset {
+  display: grid;
+  width: 100%;
+  grid-auto-columns: min-content minmax(0, 1fr);
+}
+
+label {
+  display: grid;
+  width: 100%;
+  grid-auto-columns: min-content minmax(0, 1fr);
+  grid-auto-flow: column;
 }

@@ -1,8 +1,7 @@
 import { AP } from 'activitypub-core/src/types';
 import { ReactNode } from 'react';
 
-export function EntityLink({ entity, children }: { entity?: void|null|URL|AP.Entity, children: ReactNode}) {
-  console.log(entity, '...')
+export function EntityLink({ entity, children }: { entity?: void | null | URL | AP.Entity, children: ReactNode }) {
   if (!entity) {
     return <></>;
   }

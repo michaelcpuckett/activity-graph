@@ -39,6 +39,9 @@ export function HomePage({
             <div className="card">
               <CollectionEntity collection={actor.followers} />
             </div>
+            <div className="card">
+              <SearchForm actor={actor} />
+            </div>
           </div>
           <div className="card">
             <CreateForm actor={actor} />

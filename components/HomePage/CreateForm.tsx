@@ -1,4 +1,4 @@
-import { PUBLIC_ACTOR } from 'activitypub-core/src/globals';
+import { ACTIVITYSTREAMS_CONTEXT, PUBLIC_ACTOR } from 'activitypub-core/src/globals';
 import { AP } from 'activitypub-core/src/types';
 import { FormEvent, FormEventHandler } from 'react';
 
@@ -40,6 +40,7 @@ export function CreateForm({ actor }: { actor: AP.Actor }) {
     }
 
     const body = {
+      "@context": ACTIVITYSTREAMS_CONTEXT,
       type: 'Create',
       to: query.to,
       actor: query.actorId,

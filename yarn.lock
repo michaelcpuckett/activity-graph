@@ -1751,17 +1751,13 @@
   "resolved" "file:../activitypub-core"
   "version" "1.0.6"
   dependencies:
-    "body" "^5.1.0"
     "firebase-admin" "^11.0.1"
-    "got-fetch" "^5.1.2"
     "http" "^0.0.1-security"
     "jsonld" "^8.1.0"
     "mongodb" "^4.10.0"
-    "mongodb-client-encryption" "^2.2.1"
     "node-fetch" "^2.6.7"
     "react" "^18.2.0"
     "react-dom" "^18.2.0"
-    "request" "^2.88.2"
 
 "agent-base@6":
   "integrity" "sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ=="

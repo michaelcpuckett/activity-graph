@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   webpack: (config, options) => {
+    config.experiments.topLevelAwait = true;
     config.module.rules.push({
       test: /\.(ts)x?$/, // Just `tsx?` file only
       use: [

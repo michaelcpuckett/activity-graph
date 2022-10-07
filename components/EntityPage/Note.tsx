@@ -19,11 +19,6 @@ export function NoteEntity({ note }: { note: AP.Note }) {
             TODO...
           </dd>
 
-          <dt>To</dt>
-          <dd>
-            <>{!Array.isArray(note.to) && note.to?.toString() === PUBLIC_ACTOR ? 'Public' : note.to}</>
-          </dd>
-
           <dt>Published</dt>
           <dd>
             {note.published ? new Date(note.published).toDateString() : ''}

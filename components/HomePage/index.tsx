@@ -33,15 +33,6 @@ export function HomePage({
           <div className="card">
             <Welcome actor={actor} />
             <Nav actor={actor} />
-            <div className="card">
-              <CollectionEntity collection={actor.following} />
-            </div>
-            <div className="card">
-              <CollectionEntity collection={actor.followers} />
-            </div>
-            <div className="card">
-              <SearchForm actor={actor} />
-            </div>
           </div>
           <div className="card">
             <CreateForm actor={actor} />
@@ -53,6 +44,17 @@ export function HomePage({
           </div>
           <div className="card">
             <OrderedCollectionEntity collection={actor.outbox} />
+          </div>
+        </div>
+        <div className="two-up">
+          <div className="card">
+            <CollectionEntity collection={actor.following} />
+          </div>
+          <div className="card">
+            <CollectionEntity collection={actor.followers} />
+          </div>
+          <div className="card">
+            <SearchForm actor={actor} />
           </div>
         </div>
       </main>

@@ -158,16 +158,3 @@ main {
   padding: 24px;
   background-color: azure;
 }
-
-fieldset {
-  display: grid;
-  width: 100%;
-  grid-auto-columns: min-content minmax(0, 1fr);
-}
-
-label {
-  display: grid;
-  width: 100%;
-  grid-auto-columns: min-content minmax(0, 1fr);
-  grid-auto-flow: column;
-}

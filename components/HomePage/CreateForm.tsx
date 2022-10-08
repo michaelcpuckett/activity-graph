@@ -106,6 +106,17 @@ export function CreateForm({ actor }: { actor: AP.Actor }) {
           </span>
           <input defaultChecked={true} type="checkbox" name="to" value={actor.followers ? actor.followers instanceof URL ? actor.followers.toString() : actor.followers.id?.toString() ?? '' : ''} />
         </label>
+        {actor.followers && !(actor.followers instanceof URL) && Array.isArray(actor.followers?.items) ? actor.followers.items.map((follower) => {
+          return (
+            <label key={follower instanceof URL ? follower.toString() : follower.id?.toString() ?? ''}>
+              <span>
+                @{follower instanceof URL ? follower.toString() : 'preferredUsername' in follower ? follower.preferredUsername : follower.id?.toString()}
+              </span>
+              <input type="checkbox" name="to" value={follower instanceof URL ? follower.toString() : follower.id?.toString() ?? ''} />
+            </label>
+          )
+        })
+          : null}
       </fieldset>
       <button type="submit">
         Submit

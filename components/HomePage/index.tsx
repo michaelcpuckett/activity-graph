@@ -11,6 +11,7 @@ import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE } from 'activitypub-core/sr
 import { convertStringsToUrls } from 'activitypub-core/src/utilities/convertStringsToUrls';
 import { OrderedCollectionEntity } from '../EntityPage/OrderedCollection';
 import { CollectionEntity } from '../EntityPage/Collection';
+import { DirectMessageForm } from './DirectMessagesForm';
 
 type Data = {
   actor: AP.Actor;

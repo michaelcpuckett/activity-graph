@@ -33,7 +33,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/api/sharedInbox',
+        source: '/api/_sharedInbox',
         headers: [
           {
             key: 'Access-Control-Allow-Origin',

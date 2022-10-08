@@ -33,6 +33,15 @@ const nextConfig = {
         ],
       },
       {
+        source: '/api/sharedInbox',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
+      {
         source: '/api/[username]/inbox',
         headers: [
           {
@@ -54,6 +63,10 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      {
+        source: '/sharedInbox',
+        destination: '/api/_sharedInbox',
+      },
       {
         source: '/actor/:path/outbox',
         destination: '/_outbox',

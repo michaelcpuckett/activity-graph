@@ -31,8 +31,8 @@ export function ActorCard({ actor }: { actor: AP.Actor }) {
           Followers
         </EntityMeta>
         {actor.streams?.map(stream => (
-          <EntityMeta entity={stream as AP.Entity}>
-            {stream?.name}
+          <EntityMeta key={!(stream instanceof URL) ? stream.name : null} entity={stream as AP.Entity}>
+            {!(stream instanceof URL) ? stream.name : ''}
           </EntityMeta>
         ))}
       </dl>

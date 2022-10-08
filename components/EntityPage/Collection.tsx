@@ -19,7 +19,9 @@ export function CollectionEntity({ collection }: { collection: AP.Collection }) 
         </EntityLink>
       </h1>
       {items.map(item => (
-        <EntityCard entity={item}></EntityCard>
+        <EntityCard
+          key={!(item instanceof URL) ? item.id?.toString() : null}
+          entity={item}></EntityCard>
       ))}
     </div>
   );

@@ -11,7 +11,6 @@ import { ACCEPT_HEADER, ACTIVITYSTREAMS_CONTENT_TYPE } from 'activitypub-core/sr
 import { convertStringsToUrls } from 'activitypub-core/src/utilities/convertStringsToUrls';
 import { OrderedCollectionEntity } from '../EntityPage/OrderedCollection';
 import { CollectionEntity } from '../EntityPage/Collection';
-import { DirectMessageForm } from './DirectMessagesForm';
 
 type Data = {
   actor: AP.Actor;
@@ -41,18 +40,18 @@ export function HomePage({
         </div>
         <div className="two-up">
           <div className="card">
-            <OrderedCollectionEntity collection={actor.inbox} />
+            <OrderedCollectionEntity collection={actor.inbox as AP.OrderedCollection} />
           </div>
           <div className="card">
-            <OrderedCollectionEntity collection={actor.outbox} />
+            <OrderedCollectionEntity collection={actor.outbox as AP.OrderedCollection} />
           </div>
         </div>
         <div className="two-up">
           <div className="card">
-            <CollectionEntity collection={actor.following} />
+            <CollectionEntity collection={actor.following as AP.Collection} />
           </div>
           <div className="card">
-            <CollectionEntity collection={actor.followers} />
+            <CollectionEntity collection={actor.followers as AP.Collection} />
           </div>
           <div className="card">
             <SearchForm actor={actor} />

@@ -2,6 +2,7 @@ import { PUBLIC_ACTOR } from 'activitypub-core/src/globals';
 import { AP } from 'activitypub-core/src/types';
 import { ActorCard } from './Actor';
 import { ActivityCard } from './Activity';
+import { NoteCard } from './Note';
 
 export function EntityCard({ entity, streams, filter, actor, handleOutboxSubmit }: { entity: URL | AP.Entity, filter?: string; actor?: AP.Actor; handleOutboxSubmit?: Function; streams?: AP.EitherCollection[]; }) {
   if (entity instanceof URL) {

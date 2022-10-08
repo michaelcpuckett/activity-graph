@@ -65,7 +65,7 @@ export function SearchForm({ actor }: { actor: AP.Actor }) {
       onSubmit={handleOutboxSubmit}
       noValidate>
       <input type="hidden" name="actorId" value={actor.id?.toString()} />
-      <input type="hidden" name="actorOutboxId" value={actor.outbox?.id?.toString()} />
+      <input type="hidden" name="actorOutboxId" value={actor.outbox && !(actor.outbox instanceof URL) && 'id' in actor.outbox && actor.outbox.id ? actor.outbox.id.toString() : ''} />
       <label>
         <span>What`s their ID?</span>
         <input name="to" />

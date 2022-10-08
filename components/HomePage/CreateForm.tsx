@@ -8,7 +8,7 @@ export function CreateForm({ actor }: { actor: AP.Actor }) {
     const query: { [key: string]: string | string[] } = {};
 
     for (const element of [...event.currentTarget.elements]) {
-      if (element instanceof HTMLSelectElement) {
+      if (element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) {
         query[element.name] = element.value;
       }
 
@@ -55,6 +55,7 @@ export function CreateForm({ actor }: { actor: AP.Actor }) {
     };
 
     if (typeof query.actorOutboxId === 'string') {
+      console.log(body);
       fetch(query.actorOutboxId, {
         method: 'POST',
         body: JSON.stringify(body),

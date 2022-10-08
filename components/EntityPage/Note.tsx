@@ -16,7 +16,7 @@ export function NoteEntity({ note }: { note: AP.Note }) {
         <>
           <dt>By</dt>
           <dd>
-            TODO...
+            {note.attributedTo && !(note.attributedTo instanceof URL) && !Array.isArray(note.attributedTo) ? note.attributedTo.name : null}
           </dd>
 
           <dt>Published</dt>
@@ -33,7 +33,7 @@ export function NoteEntity({ note }: { note: AP.Note }) {
 
           <dt>Location</dt>
           <dd>
-            <>{note.location ?? ''}</>
+            <>{note.location ? JSON.stringify(note.location) : ''}</>
           </dd>
           {/* Like & Share if logged in */}
         </>

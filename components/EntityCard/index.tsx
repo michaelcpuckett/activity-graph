@@ -20,26 +20,30 @@ function Entity({ entity }: { entity: AP.Entity }) {
       return <ActivityCard activity={entity as AP.Activity}></ActivityCard>;
     }
   }
-  
+
   for (const type of Object.values(AP.ActorTypes)) {
     if (entity.type === type) {
       return <ActorCard actor={entity as AP.Actor}></ActorCard>
     }
   }
-/*
 
-  for (const type of Object.values(AP.ExtendedObjectTypes)) {
-    if (entity.type === type) {
-      return <ObjectEntity object={entity as AP.ExtendedObject}></ObjectEntity>
-    }
+  if (entity.type === AP.ExtendedObjectTypes.NOTE) {
+    return <NoteCard note={entity as AP.Note}></NoteCard>
   }
-
-  for (const type of Object.values(AP.LinkTypes)) {
-    if (entity.type === type) {
-      return <LinkEntity link={entity as AP.Link}></LinkEntity>
+  /*
+  
+    for (const type of Object.values(AP.ExtendedObjectTypes)) {
+      if (entity.type === type) {
+        return <ObjectEntity object={entity as AP.ExtendedObject}></ObjectEntity>
+      }
     }
-  }
-*/
+  
+    for (const type of Object.values(AP.LinkTypes)) {
+      if (entity.type === type) {
+        return <LinkEntity link={entity as AP.Link}></LinkEntity>
+      }
+    }
+  */
   return <>
     TODO.
   </>;

@@ -48,7 +48,9 @@ export function CreateForm({ actor }: { actor: AP.Actor }) {
         type: query.type,
         content: query.content,
         summary: query.summary,
-        location: query.location,
+        location: {
+          name: query.location,
+        }
       },
     };
 

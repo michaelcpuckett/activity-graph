@@ -1,4 +1,5 @@
 import { AP } from 'activitypub-core/src/types';
+import { NoteCard } from '../EntityCard/Note';
 import { EntityLink } from '../EntityLink';
 import { EntityMeta } from '../EntityMeta';
 
@@ -36,6 +37,7 @@ export function ActivityEntity({ activity }: { activity: AP.Activity }) {
           Target
         </EntityMeta>
       </dl>
+      {object && !(object instanceof URL) && !Array.isArray(object) && object.type === AP.ExtendedObjectTypes.NOTE ? <NoteCard note={object} /> : null}
     </div>
   );
 }

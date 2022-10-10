@@ -17,9 +17,10 @@ type Data = {
 }
 
 export function HomePage({
-  actor: rawActor,
+  actor: rawActor
 }: Data) {
-  const actor = convertStringsToUrls(rawActor) as AP.Actor;
+  const actor = convertStringsToUrls(rawActor as unknown as { [key: string]: unknown });
+
   return (
     <>
       <Head>
@@ -57,6 +58,7 @@ export function HomePage({
             <SearchForm actor={actor} />
           </div>
         </div>
+        <textarea defaultValue={JSON.stringify(actor)}></textarea>
       </main>
     </>
   )

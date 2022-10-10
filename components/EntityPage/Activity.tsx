@@ -9,6 +9,10 @@ export function ActivityEntity({ activity }: { activity: AP.Activity }) {
     target
   } = activity;
 
+  console.log({
+    activity,
+  })
+
   let object = null;
 
   if ('object' in activity) {

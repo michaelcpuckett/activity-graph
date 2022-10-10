@@ -7,7 +7,6 @@ import { LinkEntity } from './Link';
 import { ObjectEntity } from './Object';
 import { OrderedCollectionEntity } from './OrderedCollection';
 import { OrderedCollectionPageEntity } from './OrderedCollectionPage';
-import { Header } from '../Header';
 import Head from 'next/head';
 import { convertStringsToUrls } from 'activitypub-core/src/utilities/convertStringsToUrls';
 
@@ -16,7 +15,8 @@ export function EntityPage({
 }: {
   entity: AP.Entity;
 }) {
-  const entity = convertStringsToUrls(rawEntity) as AP.Entity;
+  const entity = convertStringsToUrls(rawEntity as { [key: string]: unknown });
+  console.log(entity)
 
   return (
     <>

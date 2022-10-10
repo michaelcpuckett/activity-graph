@@ -1761,8 +1761,8 @@
   "resolved" "https://registry.npmjs.org/acorn/-/acorn-4.0.13.tgz"
   "version" "4.0.13"
 
-"activitypub-core@github:michaelcpuckett/activitypub-core":
-  "resolved" "git+ssh://git@github.com/michaelcpuckett/activitypub-core.git#152b5daf1568727767ab5b52d46baefc7b00f198"
+"activitypub-core@../activitypub-core":
+  "resolved" "file:../activitypub-core"
   "version" "1.0.6"
   dependencies:
     "firebase-admin" "^11.0.1"
@@ -3792,11 +3792,6 @@
     "jsprim" "^1.2.2"
     "sshpk" "^1.7.0"
 
-"http@^0.0.1-security":
-  "integrity" "sha512-RnDvP10Ty9FxqOtPZuxtebw1j4L/WiqNMDtuc1YMH1XQm5TgDRaR1G9u8upL6KD1bXHSp9eSXo/ED+8Q7FAr+g=="
-  "resolved" "https://registry.npmjs.org/http/-/http-0.0.1-security.tgz"
-  "version" "0.0.1-security"
-
 "https-proxy-agent@^5.0.0", "https-proxy-agent@^5.0.1":
   "integrity" "sha512-dFcAjpTQFgoLMzC2VwU+C/CbS7uRL0lWmxDITmqm7C+7F0Odmj6s9l6alZc6AELXhrnggM2CeWSXHGOdX2YtwA=="
   "resolved" "https://registry.npmjs.org/https-proxy-agent/-/https-proxy-agent-5.0.1.tgz"
@@ -5248,7 +5243,7 @@
     "@types/whatwg-url" "^8.2.1"
     "whatwg-url" "^11.0.0"
 
-"mongodb@^4.10.0", "mongodb@^4.9.1", "mongodb@>=3.4.0":
+"mongodb@^4.9.1", "mongodb@>=3.4.0":
   "integrity" "sha512-My2QxLTw0Cc1O9gih0mz4mqo145Jq4rLAQx0Glk/Ha9iYBzYpt4I2QFNRIh35uNFNfe8KFQcdwY1/HKxXBkinw=="
   "resolved" "https://registry.npmjs.org/mongodb/-/mongodb-4.10.0.tgz"
   "version" "4.10.0"

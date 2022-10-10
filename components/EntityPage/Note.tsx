@@ -21,14 +21,14 @@ export function NoteEntity({ note }: { note: AP.Note }) {
 
           <dt>Published</dt>
           <dd>
-            {note.published ? new Date(note.published).toDateString() : ''}
+            {note.published ? note.published.toDateString() : ''}
           </dd>
 
           <dt>
             Updated
           </dt>
           <dd>
-            {note.updated ? new Date(note.updated).toDateString() : ''}
+            {note.updated ? note.updated.toDateString() : ''}
           </dd>
 
           <dt>Location</dt>
